@@ -1,261 +1,118 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Class Code Portal</title>
-
-<style>
-    body {
-        margin: 0;
-        background: #0d1526;
-        font-family: 'Inter', sans-serif;
-        color: white;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-    }
-
-    /* Fade animation */
-    .fade-out {
-        opacity: 0;
-        transform: scale(0.97);
-        transition: 0.5s ease;
-    }
-
-    /* CLASS CODE CARD */
-    #code-screen {
-        background: rgba(20, 30, 50, 0.5);
-        padding: 40px;
-        border-radius: 20px;
-        width: 650px;
-        text-align: center;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-        backdrop-filter: blur(25px);
-        transition: 0.3s ease;
-    }
-
-    #code-screen h1 {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 10px;
-    }
-
-    .code-inputs {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        margin: 20px 0;
-    }
-
-    .box {
-        width: 55px;
-        height: 70px;
-        background: #0d1320;
-        border-radius: 10px;
-        border: 2px solid transparent;
-        text-align: center;
-        font-size: 32px;
-        font-weight: 600;
-        outline: none;
-        color: white;
-        transition: 0.25s ease;
-    }
-
-    .box:focus {
-        border-color: #2d65ff;
-        box-shadow: 0 0 12px #2d65ff88;
-    }
-
-    /* Buttons */
-    .btn {
-        background: #1f2a44;
-        padding: 10px 18px;
-        border-radius: 10px;
-        border: none;
-        margin: 8px;
-        cursor: pointer;
-        color: white;
-        font-size: 15px;
-        transition: 0.25s ease;
-    }
-
-    .btn:hover {
-        background: #2c3a5c;
-    }
-
-    .enter-btn {
-        background: #2d65ff;
-        box-shadow: 0 0 12px #2d65ff66;
-    }
-
-    .enter-btn:hover {
-        background: #3c79ff;
-    }
-
-    /* Shake animation for incorrect */
-    @keyframes shake {
-        0% { transform: translateX(0); }
-        25% { transform: translateX(-6px); }
-        50% { transform: translateX(6px); }
-        75% { transform: translateX(-6px); }
-        100% { transform: translateX(0); }
-    }
-
-    /* SUCCESS SCREEN */
-    #app-screen {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        padding-top: 40px;
-    }
-
-    #url-bar {
-        width: 70%;
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    #url-input {
-        flex: 1;
-        padding: 14px;
-        border-radius: 12px;
-        border: none;
-        outline: none;
-        font-size: 17px;
-        background: #151e30;
-        color: white;
-    }
-
-    #load-btn {
-        background: #2d65ff;
-        border: none;
-        padding: 14px 22px;
-        border-radius: 12px;
-        cursor: pointer;
-        color: white;
-        font-size: 17px;
-        box-shadow: 0 0 10px #2d65ff66;
-    }
-
-    #iframe-container {
-        width: 95%;
-        height: 90%;
-        border-radius: 20px;
-        overflow: hidden;
-        background: black;
-    }
-
-    iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-    }
-</style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Class Portal — Launcher</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- ✅ CLASS CODE SCREEN -->
-<div id="code-screen">
-    <h1>Class code?</h1>
-    <p>Enter the 5-letter code</p>
+<!-- Left rotating logo (acts as settings button) -->
+<img id="logo-btn" src="logo.png" alt="Logo" />
 
-    <div class="code-inputs">
-        <input maxlength="1" class="box">
-        <input maxlength="1" class="box">
-        <input maxlength="1" class="box">
-        <input maxlength="1" class="box">
-        <input maxlength="1" class="box">
+<!-- Side panel -->
+<aside id="side-panel" aria-hidden="true">
+  <div class="side-inner">
+    <h3>Settings</h3>
+
+    <section class="panel-section">
+      <h4>Background</h4>
+      <input id="bg-color" type="color">
+      <div class="small">Or upload an image</div>
+      <input id="bg-file" type="file" accept="image/*">
+      <button id="bg-clear" class="small-ghost">Clear BG</button>
+    </section>
+
+    <section class="panel-section">
+      <h4>Volume</h4>
+      <label>Master <span id="master-val">100</span>%</label>
+      <input id="master-vol" type="range" min="0" max="100">
+      <label>SFX <span id="sfx-val">100</span>%</label>
+      <input id="sfx-vol" type="range" min="0" max="100">
+      <label>Iframe (best-effort) <span id="frame-val">100</span>%</label>
+      <input id="frame-vol" type="range" min="0" max="100">
+      <div class="small-muted">Iframe volume works only if page supports postMessage control (same-origin or cooperating page).</div>
+    </section>
+
+    <section class="panel-section">
+      <h4>Tools</h4>
+      <div class="tools-grid">
+        <button id="open-stopwatch" class="tool-btn">Stopwatch</button>
+        <button id="open-timer" class="tool-btn">Timer</button>
+        <button id="open-alarm" class="tool-btn">Alarm</button>
+        <button id="open-weather" class="tool-btn">Weather</button>
+        <button id="open-notes" class="tool-btn">Notes</button>
+      </div>
+    </section>
+
+    <section class="panel-section">
+      <h4>Custom Cursor</h4>
+      <input id="cursor-file" type="file" accept="image/*">
+      <label>Size: <span id="cursor-size-val">48</span>px</label>
+      <input id="cursor-size" type="range" min="16" max="128" value="48">
+      <button id="cursor-clear" class="small-ghost">Clear Cursor</button>
+    </section>
+
+    <div style="flex:1"></div>
+    <div class="small-muted">Settings are saved locally in your browser.</div>
+  </div>
+</aside>
+
+<!-- Custom cursor element (follows the mouse when uploaded) -->
+<img id="custom-cursor" class="hidden" alt="cursor">
+
+<!-- Background canvas (particles) -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="bg-overlay"></div>
+
+<!-- Code screen -->
+<main id="code-screen" class="card glass">
+  <h1>Class code?</h1>
+  <p class="subtitle">Enter the 5-letter code</p>
+
+  <div class="code-inputs" id="code-row">
+    <input maxlength="1" class="box code-box" inputmode="text" autocomplete="off">
+    <input maxlength="1" class="box code-box" inputmode="text" autocomplete="off">
+    <input maxlength="1" class="box code-box" inputmode="text" autocomplete="off">
+    <input maxlength="1" class="box code-box" inputmode="text" autocomplete="off">
+    <input maxlength="1" class="box code-box" inputmode="text" autocomplete="off">
+  </div>
+
+  <div class="controls">
+    <button id="paste-btn" class="ghost">Paste</button>
+    <button id="clear-btn" class="ghost">Clear</button>
+    <button id="enter-btn" class="primary">Enter</button>
+  </div>
+
+  <div id="status-line" class="status-line" aria-live="polite"></div>
+</main>
+
+<!-- Launcher screen (hidden until correct code) -->
+<main id="app-screen" class="hidden">
+  <div class="topbar">
+    <div class="left">
+      <h2 class="title">Launcher</h2>
     </div>
+    <div class="right">
+      <input id="url-input" placeholder="Enter URL (e.g. example.com or https://example.com)">
+      <button id="go-btn" class="primary">Open</button>
+    </div>
+  </div>
 
-    <button class="btn" onclick="pasteCode()">Paste</button>
-    <button class="btn" onclick="clearCode()">Clear</button>
-    <button class="btn enter-btn" onclick="submitCode()">Enter</button>
+  <div id="iframe-wrap">
+    <iframe id="the-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" srcdoc="<p style='color: #ddd; padding: 20px;'>Enter a site above and press Open.</p>"></iframe>
+  </div>
+</main>
 
-    <p id="status" style="margin-top:15px; font-size:18px;"></p>
+<!-- Modal container for tools -->
+<div id="tools-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-card card glass">
+    <button id="modal-close" class="close">✕</button>
+    <div id="modal-body"></div>
+  </div>
 </div>
 
-<!-- ✅ APP SCREEN -->
-<div id="app-screen">
-    <div id="url-bar">
-        <input id="url-input" placeholder="Enter URL… (example: https://example.com)">
-        <button id="load-btn" onclick="loadSite()">Go</button>
-    </div>
-
-    <div id="iframe-container">
-        <iframe id="frame"></iframe>
-    </div>
-</div>
-
-<script>
-const inputs = document.querySelectorAll('.box');
-const statusText = document.getElementById("status");
-
-inputs.forEach((box, index) => {
-    box.addEventListener("input", () => {
-        if (box.value.length === 1 && index < inputs.length - 1) {
-            inputs[index + 1].focus();
-        }
-    });
-});
-
-function getCode() {
-    return Array.from(inputs).map(i => i.value.toLowerCase()).join("");
-}
-
-function clearCode() {
-    inputs.forEach(i => i.value = "");
-    inputs[0].focus();
-}
-
-async function pasteCode() {
-    let text = await navigator.clipboard.readText();
-    text = text.toLowerCase().replace(/[^a-z]/g, "").slice(0,5);
-    for (let i = 0; i < text.length; i++) inputs[i].value = text[i];
-}
-
-function submitCode() {
-    const code = getCode();
-
-    if (code !== "sigma") {
-        statusText.innerText = "Incorrect code";
-        statusText.style.color = "#ff5757";
-        document.getElementById("code-screen").style.animation = "shake 0.4s";
-        setTimeout(() => {
-            document.getElementById("code-screen").style.animation = "";
-        }, 400);
-        return;
-    }
-
-    // ✅ Correct code
-    statusText.innerText = "Correct!";
-    statusText.style.color = "#4d9cff";
-
-    // Fade animation
-    const screen = document.getElementById("code-screen");
-    screen.classList.add("fade-out");
-
-    setTimeout(() => {
-        screen.style.display = "none";
-        document.getElementById("app-screen").style.display = "flex";
-    }, 500);
-}
-
-function loadSite() {
-    let url = document.getElementById("url-input").value.trim();
-
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-        url = "https://" + url;
-    }
-
-    document.getElementById("frame").src = url;
-}
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
