@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Game Site</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+    body {
+        margin: 0;
+        background: #0f0f0f;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Arial, sans-serif;
+        color: white;
+        overflow: hidden;
+    }
+
+    /* ------- CODE SCREEN ------- */
+    #code-screen {
+        text-align: center;
+        transition: opacity 0.5s ease;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+        font-size: 32px;
+    }
+
+    .boxes {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .boxes input {
+        width: 50px;
+        height: 60px;
+        text-align: center;
+        font-size: 30px;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        background: #1a1a1a;
+        color: white;
+    }
+
+    /* Shake animation */
+    .shake {
+        animation: shake 0.4s linear;
+    }
+    @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        50% { transform: translateX(10px); }
+        75% { transform: translateX(-10px); }
+        100% { transform: translateX(0); }
+    }
+
+    #message {
+        margin-top: 15px;
+        font-size: 18px;
+        height: 25px;
+    }
+
+    /* ------- GAMES SCREEN ------- */
+    #games-screen {
+        display: none;
+        opacity: 0;
+        transition: opacity 1s ease;
+        text-align: center;
+    }
+
+    #games-screen h1 {
+        font-size: 48px;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- ✅ CLASS CODE SCREEN -->
+<div id="code-screen">
+    <h1>Class code?</h1>
+
+    <div class="boxes">
+        <input maxlength="1" class="code-box">
+        <input maxlength="1" class="code-box">
+        <input maxlength="1" class="code-box">
+        <input maxlength="1" class="code-box">
+        <input maxlength="1" class="code-box">
+    </div>
+
+    <div id="message"></div>
+</div>
+
+<!-- ✅ GAMES SCREEN -->
+<div id="games-screen">
+    <h1>GAMES</h1>
+</div>
+
+<script>
+const correctCode = "sigma";  
+const inputs = document.querySelectorAll(".code-box");
+const message = document.getElementById("message");
+const codeScreen = document.getElementById("code-screen");
+const gamesScreen = document.getElementById("games-screen");
+
+// Auto-advance inputs
+inputs.forEach((box, i) => {
+    box.addEventListener("input", () => {
+        if (box.value.length === 1 && i < inputs.length - 1) {
+            inputs[i + 1].focus();
+        }
+        checkIfFull();
+    });
+
+    box.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && box.value === "" && i > 0) {
+            inputs[i - 1].focus();
+        }
+    });
+});
+
+function checkIfFull() {
+    let code = "";
+    inputs.forEach(i => code += i.value.toLowerCase());
+
+    if (code.length === 5) {
+        if (code === correctCode) {
+            message.style.color = "lime";
+            message.textContent = "Correct!";
+
+            // Fade out code screen
+            setTimeout(() => {
+                codeScreen.style.opacity = 0;
+            }, 300);
+
+            setTimeout(() => {
+                codeScreen.style.display = "none";
+                gamesScreen.style.display = "block";
+
+                // Fade in games screen
+                setTimeout(() => {
+                    gamesScreen.style.opacity = 1;
+                }, 50);
+            }, 800);
+
+        } else {
+            message.style.color = "red";
+            message.textContent = "Incorrect code";
+
+            codeScreen.classList.add("shake");
+            setTimeout(() => codeScreen.classList.remove("shake"), 400);
+
+            // Clear inputs
+            inputs.forEach(i => i.value = "");
+            inputs[0].focus();
+        }
+    }
+}
+</script>
+
+</body>
+</html>
