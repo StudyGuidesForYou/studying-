@@ -1,98 +1,261 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Class Portal — Games</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Code Portal</title>
+
+<style>
+    body {
+        margin: 0;
+        background: #0d1526;
+        font-family: 'Inter', sans-serif;
+        color: white;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    /* Fade animation */
+    .fade-out {
+        opacity: 0;
+        transform: scale(0.97);
+        transition: 0.5s ease;
+    }
+
+    /* CLASS CODE CARD */
+    #code-screen {
+        background: rgba(20, 30, 50, 0.5);
+        padding: 40px;
+        border-radius: 20px;
+        width: 650px;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        backdrop-filter: blur(25px);
+        transition: 0.3s ease;
+    }
+
+    #code-screen h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .code-inputs {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    .box {
+        width: 55px;
+        height: 70px;
+        background: #0d1320;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        text-align: center;
+        font-size: 32px;
+        font-weight: 600;
+        outline: none;
+        color: white;
+        transition: 0.25s ease;
+    }
+
+    .box:focus {
+        border-color: #2d65ff;
+        box-shadow: 0 0 12px #2d65ff88;
+    }
+
+    /* Buttons */
+    .btn {
+        background: #1f2a44;
+        padding: 10px 18px;
+        border-radius: 10px;
+        border: none;
+        margin: 8px;
+        cursor: pointer;
+        color: white;
+        font-size: 15px;
+        transition: 0.25s ease;
+    }
+
+    .btn:hover {
+        background: #2c3a5c;
+    }
+
+    .enter-btn {
+        background: #2d65ff;
+        box-shadow: 0 0 12px #2d65ff66;
+    }
+
+    .enter-btn:hover {
+        background: #3c79ff;
+    }
+
+    /* Shake animation for incorrect */
+    @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-6px); }
+        50% { transform: translateX(6px); }
+        75% { transform: translateX(-6px); }
+        100% { transform: translateX(0); }
+    }
+
+    /* SUCCESS SCREEN */
+    #app-screen {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding-top: 40px;
+    }
+
+    #url-bar {
+        width: 70%;
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    #url-input {
+        flex: 1;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        outline: none;
+        font-size: 17px;
+        background: #151e30;
+        color: white;
+    }
+
+    #load-btn {
+        background: #2d65ff;
+        border: none;
+        padding: 14px 22px;
+        border-radius: 12px;
+        cursor: pointer;
+        color: white;
+        font-size: 17px;
+        box-shadow: 0 0 10px #2d65ff66;
+    }
+
+    #iframe-container {
+        width: 95%;
+        height: 90%;
+        border-radius: 20px;
+        overflow: hidden;
+        background: black;
+    }
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+</style>
 </head>
 <body>
-  <!-- BACKDROP / BG GRADIENT + SUBTLE PARTICLES -->
-  <div id="bg">
-    <canvas id="bg-canvas"></canvas>
-    <div class="bg-gradient"></div>
-  </div>
 
-  <!-- STATUS / TOAST -->
-  <div id="toast" class="toast hidden"></div>
+<!-- ✅ CLASS CODE SCREEN -->
+<div id="code-screen">
+    <h1>Class code?</h1>
+    <p>Enter the 5-letter code</p>
 
-  <!-- CLASS CODE SCREEN -->
-  <main id="code-screen" class="screen center">
-    <div class="card glass enter-card" role="dialog" aria-labelledby="title-code">
-      <h1 id="title-code">Class code?</h1>
-      <p class="subtitle">Enter the 5-letter code sent to your inbox</p>
-
-      <div class="code-row" id="code-row" aria-label="Class code inputs">
-        <input inputmode="text" maxlength="1" class="code-box" />
-        <input inputmode="text" maxlength="1" class="code-box" />
-        <input inputmode="text" maxlength="1" class="code-box" />
-        <input inputmode="text" maxlength="1" class="code-box" />
-        <input inputmode="text" maxlength="1" class="code-box" />
-      </div>
-
-      <div class="controls">
-        <button id="paste-btn" class="ghost">Paste</button>
-        <button id="clear-btn" class="ghost">Clear</button>
-        <button id="submit-btn" class="primary">Enter</button>
-      </div>
-
-      <div id="status-line" class="status-line" aria-live="polite"></div>
-    </div>
-  </main>
-
-  <!-- GAMES SCREEN -->
-  <main id="games-screen" class="screen hidden">
-    <div class="topbar">
-      <h1>GAMES</h1>
-      <div class="top-controls">
-        <button id="reset-data" class="ghost">Reset Data</button>
-        <button id="back-btn" class="ghost">Back</button>
-      </div>
+    <div class="code-inputs">
+        <input maxlength="1" class="box">
+        <input maxlength="1" class="box">
+        <input maxlength="1" class="box">
+        <input maxlength="1" class="box">
+        <input maxlength="1" class="box">
     </div>
 
-    <section class="games-grid">
-      <article class="game-card" data-game="tictactoe">
-        <div class="card glass">
-          <h3>Tic-Tac-Toe</h3>
-          <p>Play vs a simple AI. Score is saved locally.</p>
-          <div class="card-actions">
-            <button class="play-btn">Play</button>
-            <small id="ttt-score" class="score"></small>
-          </div>
-        </div>
-      </article>
+    <button class="btn" onclick="pasteCode()">Paste</button>
+    <button class="btn" onclick="clearCode()">Clear</button>
+    <button class="btn enter-btn" onclick="submitCode()">Enter</button>
 
-      <article class="game-card" data-game="notes">
-        <div class="card glass">
-          <h3>Notebook</h3>
-          <p>Save notes locally. Auto-saves to your browser.</p>
-          <div class="card-actions">
-            <button class="play-btn">Open</button>
-            <small class="score">Local</small>
-          </div>
-        </div>
-      </article>
+    <p id="status" style="margin-top:15px; font-size:18px;"></p>
+</div>
 
-      <article class="game-card" data-game="coming">
-        <div class="card glass">
-          <h3>Coming Soon</h3>
-          <p>More games & features are on the way.</p>
-          <div class="card-actions">
-            <button class="play-btn disabled" disabled>Locked</button>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <!-- GAME MODAL (re-usable) -->
-    <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
-      <div class="modal-card glass">
-        <button id="close-modal" class="close">✕</button>
-        <div id="modal-body"></div>
-      </div>
+<!-- ✅ APP SCREEN -->
+<div id="app-screen">
+    <div id="url-bar">
+        <input id="url-input" placeholder="Enter URL… (example: https://example.com)">
+        <button id="load-btn" onclick="loadSite()">Go</button>
     </div>
-  </main>
 
-<script src="script.js"></script>
+    <div id="iframe-container">
+        <iframe id="frame"></iframe>
+    </div>
+</div>
+
+<script>
+const inputs = document.querySelectorAll('.box');
+const statusText = document.getElementById("status");
+
+inputs.forEach((box, index) => {
+    box.addEventListener("input", () => {
+        if (box.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+        }
+    });
+});
+
+function getCode() {
+    return Array.from(inputs).map(i => i.value.toLowerCase()).join("");
+}
+
+function clearCode() {
+    inputs.forEach(i => i.value = "");
+    inputs[0].focus();
+}
+
+async function pasteCode() {
+    let text = await navigator.clipboard.readText();
+    text = text.toLowerCase().replace(/[^a-z]/g, "").slice(0,5);
+    for (let i = 0; i < text.length; i++) inputs[i].value = text[i];
+}
+
+function submitCode() {
+    const code = getCode();
+
+    if (code !== "sigma") {
+        statusText.innerText = "Incorrect code";
+        statusText.style.color = "#ff5757";
+        document.getElementById("code-screen").style.animation = "shake 0.4s";
+        setTimeout(() => {
+            document.getElementById("code-screen").style.animation = "";
+        }, 400);
+        return;
+    }
+
+    // ✅ Correct code
+    statusText.innerText = "Correct!";
+    statusText.style.color = "#4d9cff";
+
+    // Fade animation
+    const screen = document.getElementById("code-screen");
+    screen.classList.add("fade-out");
+
+    setTimeout(() => {
+        screen.style.display = "none";
+        document.getElementById("app-screen").style.display = "flex";
+    }, 500);
+}
+
+function loadSite() {
+    let url = document.getElementById("url-input").value.trim();
+
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+    }
+
+    document.getElementById("frame").src = url;
+}
+</script>
+
 </body>
 </html>
