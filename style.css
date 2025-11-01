@@ -64,12 +64,13 @@ body::before {
     align-items:center; 
     gap:20px; 
     height: 100%;
-    overflow-y: auto; /* enable vertical scroll */
+    overflow-y: auto; /* vertical scroll */
+    overflow-x: hidden; /* prevent horizontal scroll */
 }
 
 /* MODERN VERTICAL SCROLLBAR */
 .dash-container::-webkit-scrollbar {
-    width: 12px;
+    width: 12px; /* vertical width */
 }
 .dash-container::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
