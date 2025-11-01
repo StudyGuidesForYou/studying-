@@ -1,102 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Class Code Launcher</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Code Portal</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- SETTINGS BUTTON (HIDDEN UNTIL UNLOCK) -->
-  <div id="settings-btn">
-    <div class="diamond big"></div>
-    <div class="diamond small"></div>
+<!-- CLASS CODE SCREEN -->
+<div id="class-code-screen">
+  <h1>Enter Class Code</h1>
+  <input type="text" id="class-code-input" placeholder="Enter code...">
+  <button id="class-code-button">Enter</button>
+</div>
+
+<!-- MAIN SCREEN -->
+<div id="main-screen">
+  <form id="url-form">
+    <input type="text" id="url-input" placeholder="Enter URL here...">
+    <button type="submit">Go</button>
+  </form>
+  <div id="iframe-container">
+    <iframe id="main-iframe" src=""></iframe>
   </div>
+</div>
 
-  <!-- SETTINGS SIDE PANEL -->
-  <div id="settings-panel">
-    <div class="panel-header">
-      <h2>Settings</h2>
-    </div>
-
-    <div class="panel-content">
-      <h3>Background</h3>
-      <div class="setting-card">
-        <label>Pick a color:</label>
-        <input type="color" id="bg-color-picker">
-
-        <label>Upload image:</label>
-        <input type="file" id="bg-image-picker" accept="image/*">
-
-        <button id="bg-reset">Reset Background</button>
-      </div>
-
-      <h3>Utilities</h3>
-      <div class="setting-card">
-        <button class="open-app" data-app="stopwatch">Open Stopwatch</button>
-        <button class="open-app" data-app="timer">Open Timer</button>
-        <button class="open-app" data-app="alarm">Open Alarm</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="settings-overlay"></div>
-
-  <!-- DRAGGABLE WINDOWS -->
-  <div class="app-window" id="stopwatch-window">
-    <div class="window-header">Stopwatch</div>
-    <div class="window-body">
-      <p id="stopwatch-display">00:00.00</p>
-      <button id="sw-start">Start</button>
-      <button id="sw-stop">Stop</button>
-      <button id="sw-reset">Reset</button>
-    </div>
-  </div>
-
-  <div class="app-window" id="timer-window">
-    <div class="window-header">Timer</div>
-    <div class="window-body">
-      <input id="timer-minutes" type="number" placeholder="Minutes">
-      <button id="timer-start">Start</button>
-      <button id="timer-stop">Stop</button>
-    </div>
-  </div>
-
-  <div class="app-window" id="alarm-window">
-    <div class="window-header">Alarm</div>
-    <div class="window-body">
-      <input id="alarm-time" type="time">
-      <button id="alarm-set">Set Alarm</button>
-    </div>
-  </div>
-
-  <!-- CLASS CODE SCREEN -->
-  <div id="class-code-screen">
-    <h1>Enter Class Code</h1>
-
-    <div id="code-boxes">
-      <input maxlength="1" class="digit" type="text">
-      <input maxlength="1" class="digit" type="text">
-      <input maxlength="1" class="digit" type="text">
-      <input maxlength="1" class="digit" type="text">
-      <input maxlength="1" class="digit" type="text">
-    </div>
-
-    <p id="code-error">Incorrect code</p>
-  </div>
-
-  <!-- MAIN PAGE (HIDDEN INITIALLY) -->
-  <div id="main-page">
-    <div id="url-bar">
-      <input type="text" id="url-input" placeholder="Enter a URL..." />
-      <button id="go-btn">Open</button>
-    </div>
-
-    <iframe id="viewer" src=""></iframe>
-  </div>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
