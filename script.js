@@ -19,7 +19,7 @@ codeInputs.forEach((box, index) => {
     });
 });
 
-// Code submission
+// Submit class code
 enterCodeBtn.addEventListener("click", () => {
     let entered = "";
     codeInputs.forEach(box => entered += box.value.toUpperCase());
@@ -47,12 +47,3 @@ function openURL(url) {
     iframe.src = url;
     iframePlaceholder.style.display = "none";
 }
-
-// Make iframe scale dynamically
-function resizeIframe() {
-    const iframeHolder = document.querySelector(".iframe-holder");
-    iframeHolder.style.width = window.innerWidth * 0.95 + "px";
-    iframeHolder.style.height = window.innerHeight * 0.9 + "px";
-}
-window.addEventListener("resize", resizeIframe);
-resizeIframe();
