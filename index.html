@@ -24,11 +24,10 @@
             <button id="enter-code" class="btn">Enter</button>
         </div>
 
-        <!-- aurora layer -->
         <div class="aurora"></div>
     </div>
 
-    <!-- ✅ DASHBOARD SCREEN -->
+    <!-- ✅ DASHBOARD SCREEN (URL bar + IFRAME + Games together) -->
     <div id="dashboard-screen" class="screen hidden">
         <div class="glass dash-container">
 
@@ -38,7 +37,12 @@
                 <button id="launch-btn" class="btn small">Launch</button>
             </div>
 
-            <!-- Prebuilt games -->
+            <!-- IFRAME ALWAYS HERE -->
+            <div class="iframe-holder">
+                <iframe id="game-frame"></iframe>
+            </div>
+
+            <!-- Games -->
             <h2 class="games-title">Games</h2>
             <div class="games-grid">
                 <button class="game-btn" data-url="https://slowroads.io">Slowroads.io</button>
@@ -54,14 +58,9 @@
                 <button class="game-btn" data-url="https://miniplay.com">Miniplay</button>
                 <button class="game-btn" data-url="https://azgames.io">AZGames</button>
             </div>
+
         </div>
 
-        <div class="aurora"></div>
-    </div>
-
-    <!-- ✅ IFRAME SCREEN -->
-    <div id="iframe-screen" class="hidden iframe-wrapper">
-        <iframe id="game-frame"></iframe>
         <div class="aurora"></div>
     </div>
 
