@@ -8,14 +8,13 @@ const urlForm = document.getElementById('url-form');
 const urlInput = document.getElementById('url-input');
 const mainIframe = document.getElementById('main-iframe');
 
-// Move focus automatically when typing
+// Auto-focus between inputs
 codeInputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     if (input.value.length > 0 && idx < codeInputs.length - 1) {
       codeInputs[idx + 1].focus();
     }
   });
-
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Backspace' && input.value === '' && idx > 0) {
       codeInputs[idx - 1].focus();
@@ -23,18 +22,28 @@ codeInputs.forEach((input, idx) => {
   });
 });
 
-// Check code
+// Check code and fade
 function checkClassCode() {
   let enteredCode = '';
-  codeInputs.forEach(input => {
-    enteredCode += input.value;
-  });
+  codeInputs.forEach(input => enteredCode += input.value);
 
   if (enteredCode.toLowerCase() === 'sigma') {
     codeMessage.textContent = '✅ Code accepted!';
     codeMessage.style.color = '#00ff00';
-    // Optionally, show main screen:
-    // mainScreen.style.display = 'flex';
+
+    // Fade out class code screen
+    classCodeScreen.classList.add('fade');
+
+    // Fade in main screen after 0.7s
+    setTimeout(() => {
+      mainScreen.style.opacity = 0;
+      mainScreen.style.display = 'flex';
+      setTimeout(() => {
+        mainScreen.style.transition = 'opacity 0.7s ease';
+        mainScreen.style.opacity = 1;
+      }, 50);
+    }, 700);
+
   } else {
     codeMessage.textContent = '❌ Incorrect code!';
     codeMessage.style.color = '#ff4d4d';
