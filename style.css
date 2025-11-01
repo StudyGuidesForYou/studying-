@@ -1,6 +1,7 @@
+/* GENERAL STYLES */
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body, html {
@@ -8,9 +9,18 @@ body, html {
   padding: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom right, #1a2a6c, #0f2027);
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   color: white;
   overflow: hidden;
+}
+
+/* GLASS EFFECT CONTAINER */
+.glass {
+  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
 /* CLASS CODE SCREEN */
@@ -24,37 +34,60 @@ body, html {
   transition: opacity 0.7s ease;
 }
 
+#class-code-screen h1 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 15px #00f6ff, 0 0 30px #00f6ff33;
+}
+
 #code-boxes {
   display: flex;
-  gap: 10px;
-  margin: 20px 0;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .code-input {
-  width: 50px;
-  height: 50px;
-  font-size: 24px;
+  width: 60px;
+  height: 60px;
+  font-size: 28px;
   text-align: center;
-  border-radius: 5px;
+  border-radius: 12px;
   border: none;
   outline: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(255,255,255,0.05);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.code-input:focus {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px #00f6ff;
 }
 
 #class-code-button {
-  padding: 10px 20px;
+  padding: 12px 28px;
   font-size: 18px;
   border: none;
-  border-radius: 5px;
-  background-color: #004080;
-  color: white;
+  border-radius: 12px;
   cursor: pointer;
+  background: linear-gradient(135deg, #00f6ff, #004080);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#class-code-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px #00f6ff;
 }
 
 #code-message {
   margin-top: 10px;
   font-size: 16px;
-  color: #ffd700;
   min-height: 20px;
+  text-align: center;
+  color: #ffd700;
+  text-shadow: 0 0 5px #ffd70055;
 }
 
 /* MAIN SCREEN */
@@ -74,36 +107,60 @@ body, html {
   display: flex;
   width: 95%;
   max-width: 1200px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 #url-input {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   font-size: 16px;
-  border-radius: 5px 0 0 5px;
-  border: 1px solid #ccc;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: white;
+}
+
+#url-input::placeholder {
+  color: #ccc;
+}
+
+#url-input:focus {
+  box-shadow: inset 0 0 10px #00f6ff;
 }
 
 #url-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 0 5px 5px 0;
-  border: 1px solid #003366;
-  background-color: #003366;
+  padding: 12px 25px;
+  border: none;
+  background: linear-gradient(135deg, #00f6ff, #004080);
   color: white;
   cursor: pointer;
+  font-size: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* IFRAME */
+#url-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #00f6ff;
+}
+
+/* IFRAME CONTAINER */
 #iframe-container {
   width: 95%;
   height: 90%;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
 }
 
 #iframe-container iframe {
   width: 100%;
   height: 100%;
-  border: 2px solid #003366;
-  border-radius: 5px;
+  border: none;
+  border-radius: 15px;
 }
