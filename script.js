@@ -13,12 +13,16 @@ const mainIframe = document.getElementById('main-iframe');
 // SETTINGS PANEL
 const settingsButton = document.getElementById('settings-button');
 const settingsPanel = document.getElementById('settings-panel');
+const mainColorPicker = document.getElementById('main-color');
+const gradientColorPicker = document.getElementById('gradient-color');
+const bgImageInput = document.getElementById('bg-image');
 
+// Toggle settings panel
 settingsButton.addEventListener('click', () => {
   settingsPanel.classList.toggle('open');
 });
 
-// AUTO-FOCUS CODE INPUTS
+// Auto-focus for code inputs
 codeInputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     if(input.value.length > 0 && idx < codeInputs.length-1) codeInputs[idx+1].focus();
@@ -38,6 +42,7 @@ function checkClassCode() {
     setTimeout(()=>{
       classCodeScreen.style.display = 'none';
       mainScreen.style.display = 'flex';
+      settingsButton.style.display = 'block'; // show settings button
       setTimeout(()=>mainScreen.style.opacity=1,50);
       urlInput.focus();
     },500);
@@ -68,4 +73,17 @@ function launchURL(){
 urlButton.addEventListener('click', launchURL);
 urlInput.addEventListener('keypress', e=>{
   if(e.key==='Enter'){ e.preventDefault(); launchURL(); }
+});
+
+// SETTINGS PANEL FUNCTIONALITY
+mainColorPicker.addEventListener('input', () => {
+  document.getElementById('aurora-bg').style.backgroundColor = mainColorPicker.value;
+});
+
+gradientColorPicker.addEventListener('input', () => {
+  document.getElementById('aurora-bg').style.background = `linear-gradient(135deg, ${gradientColorPicker.value}, #12324a)`;
+});
+
+bgImageInput.addEventListener('change', () => {
+  document.getElementById('aurora-bg').style.backgroundImage = `url(${bgImageInput.value})`;
 });
