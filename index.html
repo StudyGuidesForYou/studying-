@@ -1,92 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#02132a" />
-  <title>Class Code Portal</title>
-
-  <!-- Critical inline background to avoid white flash -->
-  <style>
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#010820 0%,#02132a 40%,#041a40 70%,#052255 100%);-webkit-font-smoothing:antialiased;color:#eaf6ff;font-family:Segoe UI,Arial,system-ui;}
-  </style>
-
+  <meta charset="UTF-8">
+  <title>Portal</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- AURORA BACKGROUND LAYER (visual only) -->
-  <div id="aurora-bg" aria-hidden="true"></div>
+  <!-- CLASS CODE PAGE -->
+  <div id="class-page">
+    <div class="glass code-box">
+      <h1>Enter Class Code</h1>
 
-  <!-- CLASS CODE SCREEN -->
-  <div id="class-code-screen" class="glass">
-    <h1 id="class-code-title">Enter Class Code</h1>
+      <div class="code-inputs">
+        <input maxlength="1" class="code-char">
+        <input maxlength="1" class="code-char">
+        <input maxlength="1" class="code-char">
+        <input maxlength="1" class="code-char">
+        <input maxlength="1" class="code-char">
+      </div>
 
-    <div id="code-boxes">
-      <input type="text" maxlength="1" class="code-input" placeholder=" " inputmode="text" />
-      <input type="text" maxlength="1" class="code-input" placeholder=" " inputmode="text" />
-      <input type="text" maxlength="1" class="code-input" placeholder=" " inputmode="text" />
-      <input type="text" maxlength="1" class="code-input" placeholder=" " inputmode="text" />
-      <input type="text" maxlength="1" class="code-input" placeholder=" " inputmode="text" />
-    </div>
-
-    <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:8px;">
-      <button id="class-code-button" class="primary-btn">Enter</button>
-      <div id="code-message" aria-live="polite" style="min-width:140px;text-align:center;color:#d3f0ff;"></div>
+      <button id="submit-code">Enter</button>
+      <p id="code-error"></p>
     </div>
   </div>
 
-  <!-- MAIN SCREEN / DASHBOARD -->
-  <div id="main-screen" aria-hidden="true">
+  <!-- DASHBOARD (HIDDEN AT START) -->
+  <div id="dashboard">
 
-    <!-- SETTINGS BUTTON (hidden until code accepted) -->
-    <button id="settings-button" class="glass small-btn" style="display:none;">Settings</button>
+    <button id="settings-btn" class="glass small-btn">⚙️ Settings</button>
 
-    <!-- SETTINGS PANEL (hidden) -->
-    <aside id="settings-panel" aria-hidden="true">
-      <h2 style="color:white;margin:0 0 8px 0;">Settings</h2>
-
-      <label style="color:white;font-size:13px;display:block;margin-bottom:6px;">Gradient (preview)</label>
-      <input id="gradient-color" type="color" value="#1e90ff" style="width:100%;height:36px;border-radius:8px;border:none;">
-
-      <label style="color:white;font-size:13px;display:block;margin:12px 0 6px 0;">Background image (local)</label>
-      <select id="bg-select" style="width:100%;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:white;">
-        <option value="">None</option>
-        <option value="bg1.jpg">Aurora</option>
-        <option value="bg2.jpg">Galaxy</option>
-        <option value="bg3.jpg">Nebula</option>
-      </select>
-    </aside>
-
-    <!-- URL BAR -->
-    <div id="url-bar" class="glass">
-      <input id="url-input" type="text" placeholder="Enter URL here (example: https://example.com)" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <button id="url-button" class="primary-btn">Go</button>
+    <!-- URL launcher -->
+    <div id="launcher" class="glass">
+      <input id="launch-url" placeholder="Enter URL…">
+      <button id="launch-btn" class="glass small-btn">Open</button>
     </div>
 
-    <!-- IFRAME CONTAINER -->
-    <div id="iframe-container" class="glass">
-      <iframe id="main-iframe" src="" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+    <!-- IFRAME -->
+    <div id="frame-box" class="glass">
+      <iframe id="main-frame"></iframe>
     </div>
 
-    <!-- PREBUILT GAMES (10x2 grid) -->
-    <div id="game-buttons" class="glass" role="list">
-      <button class="game-button" data-url="https://slowroads.io">Slow Roads</button>
-      <button class="game-button" data-url="https://bloxd.io">Bloxd.io</button>
-      <button class="game-button" data-url="https://diep.io">Diep.io</button>
-      <button class="game-button" data-url="https://ev.io">EV.io</button>
-      <button class="game-button" data-url="https://jellymar.io">Jellymar.io</button>
-      <button class="game-button" data-url="https://slopeonline.online">Slope Online</button>
-      <button class="game-button" data-url="https://ethonion10.neocities.org">Ethonion10</button>
-      <button class="game-button" data-url="https://emulatorgames.online">Emulator Games</button>
-      <button class="game-button" data-url="https://sandboxels.r74n.com">Sandboxels</button>
-      <button class="game-button" data-url="https://wplace.live">WPlace</button>
-      <button class="game-button" data-url="https://azgames.io">AZGames</button>
-      <button class="game-button" data-url="https://www.miniplay.com">Miniplay</button>
+    <!-- PREBUILT GAMES (10 x 2 GRID, MODERNIZED)-->
+    <h2 class="section-title">Quick Launch Games</h2>
+    <div id="game-grid">
+      <button class="game-btn" data-url="https://slowroads.io">SlowRoads</button>
+      <button class="game-btn" data-url="https://bloxd.io">Bloxd.io</button>
+      <button class="game-btn" data-url="https://diep.io">Diep.io</button>
+      <button class="game-btn" data-url="https://ev.io">EV.io</button>
+      <button class="game-btn" data-url="https://jellymar.io">Jellymar.io</button>
+      <button class="game-btn" data-url="https://slopeonline.online">Slope Online</button>
+      <button class="game-btn" data-url="https://ethonion10.neocities.org">Ethonion10</button>
+      <button class="game-btn" data-url="https://emulatorgames.online">EmulatorGames</button>
+      <button class="game-btn" data-url="https://sandboxels.r74n.com">Sandboxels</button>
+      <button class="game-btn" data-url="https://wplace.live">WPlace</button>
+
+      <!-- Added before breakage -->
+      <button class="game-btn" data-url="https://azgames.io">AZGames</button>
+      <button class="game-btn" data-url="https://miniplay.com">Miniplay</button>
     </div>
 
   </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
+
 </body>
 </html>
