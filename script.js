@@ -1,51 +1,61 @@
-// CLASS CODE AUTO-ADVANCE + CHECK
-const chars = document.querySelectorAll(".code-char");
-const classPage = document.getElementById("class-page");
-const dash = document.getElementById("dashboard");
-const submitBtn = document.getElementById("submit-code");
-const error = document.getElementById("code-error");
+// Elements
+const codeScreen = document.getElementById("class-code-screen");
+const dashScreen = document.getElementById("dashboard-screen");
+const codeInputs = document.querySelectorAll(".code-input");
+const enterBtn = document.getElementById("enter-btn");
 
-chars.forEach((box, i) => {
-  box.addEventListener("input", () => {
-    if (box.value.length === 1 && i < chars.length - 1) {
-      chars[i + 1].focus();
+const warning = document.getElementById("redirect-warning");
+const redirectText = document.getElementById("redirect-text");
+const continueBtn = document.getElementById("continue-btn");
+const cancelBtn = document.getElementById("cancel-btn");
+
+const iframe = document.getElementById("game-frame");
+
+let pendingURL = null;
+
+// Auto move to next box
+codeInputs.forEach((input, index) => {
+  input.addEventListener("input", () => {
+    if (input.value && index < codeInputs.length - 1) {
+      codeInputs[index + 1].focus();
     }
   });
 });
 
-submitBtn.onclick = () => {
-  let code = "";
-  chars.forEach(c => code += c.value);
-
-  if (code.toLowerCase() === "sigma") {
-    classPage.style.display = "none";
-    dash.style.display = "block";
-  } else {
-    error.textContent = "Incorrect code";
-  }
+// Enter button
+enterBtn.onclick = () => {
+  codeScreen.classList.add("hidden");
+  dashScreen.classList.remove("hidden");
 };
 
-// URL LAUNCHER
-const launchBtn = document.getElementById("launch-btn");
-const urlInput = document.getElementById("launch-url");
-const iframe = document.getElementById("main-frame");
+// Game buttons
+document.querySelectorAll(".game-btn").forEach(btn => {
+  btn.addEventListener("click", () => askRedirect(btn.dataset.url));
+});
 
-launchBtn.onclick = () => {
-  launchURL();
-};
-urlInput.onkeydown = e => {
-  if (e.key === "Enter") launchURL();
+// Custom launcher
+document.getElementById("launch-btn").onclick = () => {
+  const url = document.getElementById("custom-url").value.trim();
+  if (url) askRedirect(url);
 };
 
-function launchURL() {
-  let u = urlInput.value.trim();
-  if (!u.startsWith("http")) u = "https://" + u;
-  iframe.src = u;
+// Show redirect warning
+function askRedirect(url) {
+  pendingURL = url;
+  redirectText.innerText = `You are about to be redirected to: ${url}`;
+  warning.classList.remove("hidden");
 }
 
-// GAME BUTTONS LOAD URL
-document.querySelectorAll(".game-btn").forEach(btn => {
-  btn.onclick = () => {
-    iframe.src = btn.dataset.url;
-  };
-});
+// Continue to site
+continueBtn.onclick = () => {
+  warning.classList.add("hidden");
+  dashScreen.classList.add("hidden");
+  iframe.classList.remove("hidden");
+  iframe.src = pendingURL;
+};
+
+// Cancel
+cancelBtn.onclick = () => {
+  warning.classList.add("hidden");
+  pendingURL = null;
+};
