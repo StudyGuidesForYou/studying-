@@ -1,256 +1,59 @@
-<!-- Fully Rewritten Modern Class Code Portal (HTML + CSS + JS in one file) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Class Code Portal</title>
-  <style>
-    /* ========= GLOBAL ========= */
-    :root {
-      --blue: #1a3cff;
-      --blue2: #0d1f75;
-      --bg1: #020617;
-      --glass: rgba(255,255,255,0.06);
-      --radius: 18px;
-      --card-shadow: 0 30px 80px rgba(0,0,0,0.55);
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Inter", sans-serif; }
-    body { background: var(--bg1); height: 100vh; overflow: hidden; color: white; }
-
-    /* ========= CENTER LAYOUT ========= */
-    .center { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; }
-
-    /* ========= CARD ========= */
-    .card {
-      width: 100%;
-      max-width: 440px;
-      background: var(--glass);
-      border-radius: var(--radius);
-      backdrop-filter: blur(18px) saturate(1.3);
-      padding: 40px 36px;
-      box-shadow: var(--card-shadow);
-      animation: fadeInUp .7s ease;
-    }
-
-    h1 { font-size: 32px; font-weight: 700; margin-bottom: 6px; }
-    .subtitle { opacity: .8; margin-bottom: 28px; }
-
-    /* ========= CODE BOXES ========= */
-    .code-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
-    .code-box {
-      width: 52px;
-      height: 64px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 12px;
-      text-align: center;
-      font-size: 28px;
-      font-weight: 600;
-      border: 2px solid transparent;
-      transition: .2s;
-      color: white;
-    }
-    .code-box:focus { border-color: var(--blue); outline: none; background: rgba(255,255,255,0.12); }
-
-    /* ========= BUTTONS ========= */
-    .btn-row { display: flex; justify-content: space-between; margin-top: 6px; }
-
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 20px;
-      font-size: 15px;
-      transition: .25s;
-    }
-
-    .ghost { background: rgba(255,255,255,0.08); color: white; }
-    .ghost:hover { background: rgba(255,255,255,0.14); }
-
-    .primary { background: var(--blue); color: white; }
-    .primary:hover { background: #002aff; }
-
-    /* ========= STATUS LINE ========= */
-    #status-line { margin-top: 18px; min-height: 22px; text-align: center; font-size: 15px; opacity: .85; }
-
-    /* ========= LOGO BUTTON ========= */
-    #logo-btn {
-      position: fixed;
-      left: 18px;
-      top: 16px;
-      width: 56px;
-      height: 56px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      z-index: 50;
-      opacity: .85;
-      transition: .2s;
-    }
-    #logo-btn:hover { opacity: 1; transform: scale(1.08); }
-    #logo-btn svg { width: 100%; height: 100%; }
-
-    /* ========= SETTINGS PANEL ========= */
-    #side-panel {
-      position: fixed;
-      left: -320px;
-      top: 0;
-      width: 300px;
-      height: 100vh;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(16px);
-      transition: .35s ease;
-      padding: 20px;
-      z-index: 80;
-      border-right: 1px solid rgba(255,255,255,0.1);
-    }
-    #side-panel.open { left: 0; }
-
-    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    #side-close { background: none; color: white; font-size: 22px; cursor: pointer; }
-
-    .panel-section { margin-bottom: 24px; }
-    .panel-section h4 { margin-bottom: 8px; opacity: .9; }
-    #bg-color, #bg-file { width: 100%; }
-    .panel-footer { margin-top: 26px; opacity: .6; font-size: 14px; }
-
-    /* ========= BACKGROUND CANVAS ========= */
-    #bg-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      background: radial-gradient(circle at top, #0b1c66, #020617 70%);
-    }
-
-    /* ========= ANIMATIONS ========= */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Code Launcher</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- LOGO BUTTON -->
-  <button id="logo-btn">
-    <svg viewBox="0 0 100 100"><path fill="#1a3cff" d="M50 6c-6 0-12 2-17 7L13 33c-9 9-9 24 0 33l20 20c9 9 24 9 33 0l20-20c9-9 9-24 0-33L67 13c-5-5-11-7-17-7z"/></svg>
-  </button>
+  <!-- Custom Cursor -->
+  <img id="custom-cursor" class="hidden" alt="cursor">
+
+  <!-- Background Particles -->
+  <canvas id="particles"></canvas>
+
+  <!-- CLASS CODE SCREEN -->
+  <div id="class-code-screen" class="center-box">
+    <h1>Enter Class Code</h1>
+    <input id="class-code-input" type="text" maxlength="16" autocomplete="off">
+    <button id="class-code-btn">Enter</button>
+    <p id="class-code-error" class="error"></p>
+  </div>
+
+  <!-- MAIN LAUNCHER -->
+  <div id="launcher" class="hidden">
+    <div class="top-bar">
+      <input id="url-input" type="text" placeholder="Enter URL…">
+      <button id="launch-btn">Launch</button>
+      <button id="settings-btn">⚙️</button>
+    </div>
+
+    <iframe id="iframe" src=""></iframe>
+  </div>
 
   <!-- SETTINGS PANEL -->
-  <aside id="side-panel">
-    <div class="panel-header">
-      <h3>Settings</h3>
-      <button id="side-close">✕</button>
-    </div>
+  <div id="settings" class="hidden settings-panel">
+    <h2>Settings</h2>
 
-    <div class="panel-section">
-      <h4>Background Color</h4>
-      <input type="color" id="bg-color" />
-    </div>
+    <label>Custom Cursor URL:</label>
+    <input id="cursor-url" type="text" placeholder="Image URL…">
+    <button id="cursor-apply">Apply Cursor</button>
 
-    <div class="panel-section">
-      <h4>Background Image</h4>
-      <input type="file" id="bg-file" accept="image/*" />
-      <button id="bg-clear" class="ghost" style="margin-top:8px; width:100%;">Clear</button>
-    </div>
+    <label>Background Image URL:</label>
+    <input id="bg-url" type="text" placeholder="Image URL…">
+    <button id="bg-apply">Apply Background</button>
 
-    <p class="panel-footer">Settings save locally.</p>
-  </aside>
+    <label>Particles:</label>
+    <select id="particles-toggle">
+      <option value="on">On</option>
+      <option value="off">Off</option>
+    </select>
 
-  <!-- BACKGROUND -->
-  <canvas id="bg-canvas"></canvas>
+    <button id="close-settings">Close</button>
+  </div>
 
-  <!-- MAIN SCREEN -->
-  <main id="code-screen" class="center">
-    <div class="card">
-      <h1>Class Code</h1>
-      <p class="subtitle">Enter 5 letters</p>
-
-      <div class="code-row">
-        <input maxlength="1" class="code-box" />
-        <input maxlength="1" class="code-box" />
-        <input maxlength="1" class="code-box" />
-        <input maxlength="1" class="code-box" />
-        <input maxlength="1" class="code-box" />
-      </div>
-
-      <div class="btn-row">
-        <button id="clear-btn" class="ghost">Clear</button>
-        <button id="enter-btn" class="primary">Enter</button>
-      </div>
-
-      <div id="status-line"></div>
-    </div>
-  </main>
-
-  <script>
-    /* ===== SETTINGS PANEL ===== */
-    const panel = document.querySelector('#side-panel');
-    document.querySelector('#logo-btn').onclick = () => panel.classList.add('open');
-    document.querySelector('#side-close').onclick = () => panel.classList.remove('open');
-
-    /* ===== BACKGROUND COLOR ===== */
-    const bgCanvas = document.querySelector('#bg-canvas');
-    const ctx = bgCanvas.getContext('2d');
-    function resize() {
-      bgCanvas.width = innerWidth;
-      bgCanvas.height = innerHeight;
-    }
-    resize();
-    addEventListener('resize', resize);
-
-    document.querySelector('#bg-color').oninput = e => {
-      bgCanvas.style.background = e.target.value;
-      localStorage.setItem('bg-color', e.target.value);
-    };
-
-    /* ===== BACKGROUND IMAGE ===== */
-    document.querySelector('#bg-file').onchange = e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const url = URL.createObjectURL(file);
-      bgCanvas.style.background = `url(${url}) center/cover`;
-      localStorage.setItem('bg-image', url);
-    };
-
-    document.querySelector('#bg-clear').onclick = () => {
-      bgCanvas.style.background = '';
-      localStorage.removeItem('bg-image');
-    };
-
-    /* ===== CODE INPUT HANDLING ===== */
-    const boxes = document.querySelectorAll('.code-box');
-
-    boxes.forEach((box, i) => {
-      box.addEventListener('input', () => {
-        if (box.value.length === 1 && i < 4) boxes[i+1].focus();
-      });
-
-      box.addEventListener('keydown', e => {
-        if (e.key === 'Backspace' && !box.value && i > 0) boxes[i-1].focus();
-      });
-    });
-
-    document.querySelector('#clear-btn').onclick = () => {
-      boxes.forEach(b => b.value = '');
-      boxes[0].focus();
-    };
-
-    document.querySelector('#enter-btn').onclick = () => {
-      const code = [...boxes].map(b => b.value).join('');
-      const status = document.querySelector('#status-line');
-
-      if (code.length !== 5) {
-        status.textContent = "Please enter all 5 letters";
-        return;
-      }
-
-      status.textContent = "Checking...";
-      setTimeout(() => {
-        status.textContent = "Invalid code";
-      }, 800);
-    };
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
