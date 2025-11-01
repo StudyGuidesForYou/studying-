@@ -28,6 +28,7 @@ body::before {
     animation: auroraMove 30s infinite alternate ease-in-out;
     z-index: -1;
 }
+
 @keyframes auroraMove {
     0% { transform: translate(-10%, -10%) scale(1); }
     100% { transform: translate(10%, 10%) scale(1.3); }
@@ -139,17 +140,17 @@ body::before {
 /* IFRAME HOLDER */
 .iframe-holder {
     position: relative;
-    width: 95vw;      /* 95% viewport width */
+    width: 95vw;                /* 95% viewport width */
     max-width: 1400px;
-    height: 90vh;     /* 90% viewport height */
+    height: calc(100vh - 200px); /* leaves space for URL bar + prebuilt games */
     border-radius: 25px;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 20px;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 20px;
 }
 
 /* IFRAME */
@@ -160,16 +161,6 @@ body::before {
     border-radius: 15px;
     background: rgba(0,0,0,0.4);
     display: block;
-}
-
-/* IFRAME PLACEHOLDER TEXT */
-.iframe-placeholder {
-    position: absolute;
-    z-index: 2;
-    color: rgba(255,255,255,0.8);
-    text-align: center;
-    font-size: 18px;
-    user-select: none;
 }
 
 /* PREBUILT GAMES */
