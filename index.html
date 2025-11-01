@@ -1,69 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Launcher</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Portal</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-  <!-- CLASS CODE SCREEN -->
-  <main id="class-screen" class="screen">
-    <div class="glass code-card">
-      <h1 class="title">Enter Class Code</h1>
-      <div class="code-row" id="code-row">
-        <input class="code-input" maxlength="1" inputmode="text" />
-        <input class="code-input" maxlength="1" inputmode="text" />
-        <input class="code-input" maxlength="1" inputmode="text" />
-        <input class="code-input" maxlength="1" inputmode="text" />
-        <input class="code-input" maxlength="1" inputmode="text" />
-      </div>
-      <button id="enter-code" class="btn primary">Enter</button>
-    </div>
-    <div class="aurora" aria-hidden="true"></div>
-  </main>
+  <div class="container">
 
-  <!-- DASHBOARD WRAPPER (hidden until code accepted) -->
-  <section id="dashboard" class="screen hidden">
-    <div class="dash-wrapper">
-      <div class="dash-content glass">
+    <div id="login-box">
+      <h1>Enter Class Code</h1>
 
-        <!-- URL bar -->
-        <div class="url-bar">
-          <input id="url-input" placeholder="Enter URL..." autocomplete="off" />
-          <button id="launch-btn" class="btn small">Launch</button>
-          <button id="fullscreen-btn" class="btn small">Fullscreen</button>
-        </div>
+      <input type="text" id="code-input" placeholder="Enter code...">
 
-        <!-- Iframe container -->
-        <div id="iframe-container" class="iframe-container">
-          <iframe id="game-frame" title="Launcher Frame" sandbox="allow-forms allow-scripts allow-same-origin allow-popups"></iframe>
-        </div>
+      <button id="enter-btn">Enter</button>
 
-        <!-- Prebuilt games -->
-        <h3 class="games-title">Games</h3>
-        <div class="games-grid" id="games-grid">
-          <button class="game-btn" data-url="https://slowroads.io">Slowroads.io</button>
-          <button class="game-btn" data-url="https://bloxd.io">Bloxd.io</button>
-          <button class="game-btn" data-url="https://diep.io">Diep.io</button>
-          <button class="game-btn" data-url="https://ev.io">EV.io</button>
-          <button class="game-btn" data-url="https://jellymar.io">Jellymar.io</button>
-          <button class="game-btn" data-url="https://slopeonline.online">Slope Online</button>
-          <button class="game-btn" data-url="https://ethonion10.neocities.org">Ethonion10</button>
-          <button class="game-btn" data-url="https://emulatorgames.online">EmulatorGames</button>
-          <button class="game-btn" data-url="https://sandboxels.r74n.com">Sandboxels</button>
-          <button class="game-btn" data-url="https://wplace.live">wPlace</button>
-          <button class="game-btn" data-url="https://miniplay.com">Miniplay</button>
-          <button class="game-btn" data-url="https://azgames.io">AZGames</button>
-        </div>
-
+      <h3>Prebuilt Games</h3>
+      <div class="game-buttons">
+        <button class="game-btn" data-url="https://example1.com">Example 1</button>
+        <button class="game-btn" data-url="https://example2.com">Example 2</button>
+        <button class="game-btn" data-url="https://163-192-96-222.nip.io">NIP.IO Server</button>
       </div>
     </div>
 
-    <div class="aurora" aria-hidden="true"></div>
-  </section>
+    <div id="viewer" class="hidden">
 
-  <script src="script.js"></script>
+      <div class="top-bar">
+        <button id="close-iframe">✕</button>
+        <button id="fullscreen-toggle">⛶</button>
+      </div>
+
+      <iframe id="game-frame" src=""></iframe>
+    </div>
+
+  </div>
+
+<script src="script.js"></script>
 </body>
 </html>
