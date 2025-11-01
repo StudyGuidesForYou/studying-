@@ -11,12 +11,20 @@
 <!-- CLASS CODE SCREEN -->
 <div id="class-code-screen">
   <h1>Enter Class Code</h1>
-  <input type="text" id="class-code-input" placeholder="Enter code...">
+  <div id="code-boxes">
+    <input type="text" maxlength="1" class="code-input">
+    <input type="text" maxlength="1" class="code-input">
+    <input type="text" maxlength="1" class="code-input">
+    <input type="text" maxlength="1" class="code-input">
+    <input type="text" maxlength="1" class="code-input">
+  </div>
   <button id="class-code-button">Enter</button>
+  <p id="code-message"></p>
 </div>
 
 <!-- MAIN SCREEN -->
 <div id="main-screen">
+  <h2>URL Launcher</h2>
   <form id="url-form">
     <input type="text" id="url-input" placeholder="Enter URL here...">
     <button type="submit">Go</button>
