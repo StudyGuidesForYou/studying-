@@ -34,9 +34,10 @@ function checkClassCode() {
     // Fade out class code screen
     classCodeScreen.classList.add('fade');
 
-    // Show main screen after fade
+    // Display main screen after fade
     setTimeout(() => {
       mainScreen.style.display = 'flex';
+      // small delay to trigger fade-in transition
       setTimeout(() => {
         mainScreen.style.transition = 'opacity 0.7s ease';
         mainScreen.style.opacity = 1;
