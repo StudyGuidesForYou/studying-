@@ -5,7 +5,7 @@
 body {
     background: linear-gradient(135deg, #00172e, #002346);
     height: 100vh;
-    overflow: hidden;
+    overflow: hidden; /* hide global scrollbar */
     position: relative;
 }
 
@@ -64,14 +64,13 @@ body::before {
     align-items:center; 
     gap:20px; 
     height: 100%;
-    overflow-y: scroll;  /* allow internal vertical scrolling */
-    overflow-x: hidden;  /* prevent horizontal scroll */
-    -ms-overflow-style: none;  /* IE & Edge */
-    scrollbar-width: none;  /* Firefox */
+    overflow: hidden; /* hide all scroll */
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
-.dash-container::-webkit-scrollbar { display: none; }
+/* DISABLE SCROLLING ON MOBILE/TOUCH */
+.dash-container, .dash-container * {
+    touch-action: none;
+}
 
 /* URL BAR */
 .url-bar { display:flex; width:100%; flex-shrink:0; }
