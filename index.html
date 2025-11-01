@@ -1,68 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Portal</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Code Portal</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- CLASS CODE PAGE -->
-  <div id="class-page">
+  <!-- CLASS CODE SCREEN -->
+  <div id="class-code-screen" class="full-screen">
     <div class="glass code-box">
       <h1>Enter Class Code</h1>
-
       <div class="code-inputs">
-        <input maxlength="1" class="code-char">
-        <input maxlength="1" class="code-char">
-        <input maxlength="1" class="code-char">
-        <input maxlength="1" class="code-char">
-        <input maxlength="1" class="code-char">
+        <input maxlength="1" class="code-input" />
+        <input maxlength="1" class="code-input" />
+        <input maxlength="1" class="code-input" />
+        <input maxlength="1" class="code-input" />
+        <input maxlength="1" class="code-input" />
+      </div>
+      <button id="enter-btn" class="btn-main">Enter</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard-screen" class="hidden full-screen">
+    <div class="glass dashboard-box">
+      <h2>Game Dashboard</h2>
+
+      <div class="games-grid">
+        <!-- KEEPING YOUR ORDER EXACT — JUST MODERNIZED -->
+        <button class="game-btn" data-url="https://ubg100.net/">UBG100</button>
+        <button class="game-btn" data-url="https://ubg9.com/">UBG9</button>
+        <button class="game-btn" data-url="https://mathadventurer.com/">Math Adventurer</button>
+        <button class="game-btn" data-url="https://coolmathgames.com/">CoolMath</button>
+        <button class="game-btn" data-url="https://poki.com/">Poki</button>
+        <button class="game-btn" data-url="https://classroom6xgg.com/">Classroom 6x</button>
+        <button class="game-btn" data-url="https://iogames.live/">IO Games</button>
+        <button class="game-btn" data-url="https://azgames.io/">AZGames</button>
+        <button class="game-btn" data-url="https://miniplay.com/">MiniPlay</button>
       </div>
 
-      <button id="submit-code">Enter</button>
-      <p id="code-error"></p>
+      <div class="url-launcher glass">
+        <input id="custom-url" placeholder="Enter custom URL…" />
+        <button id="launch-btn" class="btn-main">Launch</button>
+      </div>
     </div>
   </div>
 
-  <!-- DASHBOARD (HIDDEN AT START) -->
-  <div id="dashboard">
-
-    <button id="settings-btn" class="glass small-btn">⚙️ Settings</button>
-
-    <!-- URL launcher -->
-    <div id="launcher" class="glass">
-      <input id="launch-url" placeholder="Enter URL…">
-      <button id="launch-btn" class="glass small-btn">Open</button>
+  <!-- REDIRECT WARNING -->
+  <div id="redirect-warning" class="hidden">
+    <div class="glass warning-box">
+      <h2>Leaving Portal</h2>
+      <p id="redirect-text"></p>
+      <button id="continue-btn" class="btn-main red">Continue</button>
+      <button id="cancel-btn" class="btn-secondary">Cancel</button>
     </div>
-
-    <!-- IFRAME -->
-    <div id="frame-box" class="glass">
-      <iframe id="main-frame"></iframe>
-    </div>
-
-    <!-- PREBUILT GAMES (10 x 2 GRID, MODERNIZED)-->
-    <h2 class="section-title">Quick Launch Games</h2>
-    <div id="game-grid">
-      <button class="game-btn" data-url="https://slowroads.io">SlowRoads</button>
-      <button class="game-btn" data-url="https://bloxd.io">Bloxd.io</button>
-      <button class="game-btn" data-url="https://diep.io">Diep.io</button>
-      <button class="game-btn" data-url="https://ev.io">EV.io</button>
-      <button class="game-btn" data-url="https://jellymar.io">Jellymar.io</button>
-      <button class="game-btn" data-url="https://slopeonline.online">Slope Online</button>
-      <button class="game-btn" data-url="https://ethonion10.neocities.org">Ethonion10</button>
-      <button class="game-btn" data-url="https://emulatorgames.online">EmulatorGames</button>
-      <button class="game-btn" data-url="https://sandboxels.r74n.com">Sandboxels</button>
-      <button class="game-btn" data-url="https://wplace.live">WPlace</button>
-
-      <!-- Added before breakage -->
-      <button class="game-btn" data-url="https://azgames.io">AZGames</button>
-      <button class="game-btn" data-url="https://miniplay.com">Miniplay</button>
-    </div>
-
   </div>
+
+  <iframe id="game-frame" class="hidden"></iframe>
 
   <script src="script.js"></script>
-
 </body>
 </html>
