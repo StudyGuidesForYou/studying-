@@ -9,6 +9,67 @@
 
 <body>
 
+  <!-- SETTINGS BUTTON (INTERLOCKING DIAMONDS) -->
+  <div id="settings-btn">
+    <div class="diamond big"></div>
+    <div class="diamond small"></div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div id="settings-panel">
+    <h2>Settings</h2>
+
+    <div class="section">
+      <h3>Background</h3>
+      <label>Pick a color:</label>
+      <input type="color" id="bg-color-picker">
+
+      <label>Or upload an image:</label>
+      <input type="file" id="bg-image-picker" accept="image/*">
+    </div>
+
+    <div class="section">
+      <h3>Utilities</h3>
+      <button class="open-app" data-app="stopwatch">Open Stopwatch</button>
+      <button class="open-app" data-app="timer">Open Timer</button>
+      <button class="open-app" data-app="alarm">Open Alarm</button>
+    </div>
+
+    <button id="close-settings">Close</button>
+  </div>
+
+  <!-- DRAGGABLE WINDOWS -->
+
+  <!-- STOPWATCH -->
+  <div class="app-window" id="stopwatch-window">
+    <div class="window-header">Stopwatch</div>
+    <div class="window-body">
+      <p id="stopwatch-display">00:00.00</p>
+      <button id="sw-start">Start</button>
+      <button id="sw-stop">Stop</button>
+      <button id="sw-reset">Reset</button>
+    </div>
+  </div>
+
+  <!-- TIMER -->
+  <div class="app-window" id="timer-window">
+    <div class="window-header">Timer</div>
+    <div class="window-body">
+      <input id="timer-minutes" type="number" placeholder="Minutes">
+      <button id="timer-start">Start</button>
+      <button id="timer-stop">Stop</button>
+    </div>
+  </div>
+
+  <!-- ALARM -->
+  <div class="app-window" id="alarm-window">
+    <div class="window-header">Alarm</div>
+    <div class="window-body">
+      <input id="alarm-time" type="time">
+      <button id="alarm-set">Set Alarm</button>
+    </div>
+  </div>
+
   <!-- CLASS CODE SCREEN -->
   <div id="class-code-screen">
     <h1>Enter Class Code</h1>
