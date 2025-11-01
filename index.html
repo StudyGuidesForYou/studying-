@@ -28,13 +28,28 @@
 <!-- MAIN SCREEN -->
 <div id="main-screen">
 
-  <!-- SETTINGS BUTTON -->
-  <button id="settings-button">Settings</button>
+  <!-- SETTINGS BUTTON (hidden until code entered) -->
+  <button id="settings-button" style="display:none;">Settings</button>
 
   <!-- SETTINGS SIDE PANEL -->
   <div id="settings-panel">
-    <h2>Settings Panel</h2>
-    <!-- Empty for now -->
+    <h2 style="color:white;">Settings Panel</h2>
+
+    <div class="setting-item">
+      <label style="color:white;" for="main-color">Main Color</label>
+      <input type="color" id="main-color">
+    </div>
+
+    <div class="setting-item">
+      <label style="color:white;" for="gradient-color">Gradient Color</label>
+      <input type="color" id="gradient-color">
+    </div>
+
+    <div class="setting-item">
+      <label style="color:white;" for="bg-image">Background Image URL</label>
+      <input type="text" id="bg-image" placeholder="Enter image URL...">
+    </div>
+
   </div>
 
   <!-- URL BAR -->
