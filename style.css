@@ -1,6 +1,19 @@
 /* --- GENERAL RESET --- */
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
-body, html { width:100%; height:100%; overflow:hidden; background: #090a0f; }
+body, html { width:100%; height:100%; overflow:hidden; }
+
+/* --- AURORA BACKGROUND --- */
+body {
+  background: linear-gradient(270deg, #0d1b2a, #1b263b, #415a77, #778da9);
+  background-size: 800% 800%;
+  animation: auroraAnimation 20s ease infinite;
+}
+
+@keyframes auroraAnimation {
+  0% { background-position:0% 50%; }
+  50% { background-position:100% 50%; }
+  100% { background-position:0% 50%; }
+}
 
 /* --- GLASS EFFECT --- */
 .glass {
@@ -16,7 +29,7 @@ body, html { width:100%; height:100%; overflow:hidden; background: #090a0f; }
 #class-code-screen {
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:350px; height:400px; text-align:center; color:black; transition:opacity 0.5s;
+  width:350px; height:400px; text-align:center; color:white; transition:opacity 0.5s;
   z-index:10;
 }
 
@@ -41,6 +54,7 @@ body, html { width:100%; height:100%; overflow:hidden; background: #090a0f; }
   100% { box-shadow:0 0 8px #ff69b4,0 0 16px #1e90ff,0 0 24px #00ffff; }
 }
 
+/* --- CLASS CODE BUTTON --- */
 #class-code-button {
   padding:10px 20px; border:none; border-radius:8px; background:#1e90ff;
   color:white; font-size:16px; cursor:pointer; transition:0.3s;
