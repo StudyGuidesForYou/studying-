@@ -102,3 +102,22 @@ gameButtons.forEach(btn => {
     launchURL();
   });
 });
+
+// --- WARNING FOR IFRAME POPUPS ---
+mainIframe.addEventListener('load', () => {
+  try {
+    const iframeWindow = mainIframe.contentWindow;
+    // Override window.open inside iframe
+    iframeWindow.open = function(url, name, specs){
+      const proceed = confirm(`⚠️ The page inside the iframe is trying to open a new window:\n${url}\nDo you want to proceed?`);
+      if(proceed){
+        return window.open(url, name, specs);
+      } else {
+        return null;
+      }
+    }
+  } catch(e){
+    // Cross-origin: we can't override open, ignore silently
+    console.log('Warning override not available for cross-origin iframe');
+  }
+});
