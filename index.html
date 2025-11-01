@@ -1,59 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Class Code Launcher</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Portal</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Particles -->
-  <canvas id="particles"></canvas>
+    <div class="container">
 
-  <!-- Custom Cursor -->
-  <img id="custom-cursor" class="hidden" alt="cursor">
+        <h1>Enter Access Code</h1>
 
-  <!-- Class Code Screen -->
-  <div id="class-code-screen" class="card">
-    <h1>Enter Class Code</h1>
-    <input id="class-code-input" type="text" maxlength="16" autocomplete="off">
-    <button id="class-code-btn" class="primary">Enter</button>
-    <p id="class-code-error" class="error"></p>
-  </div>
+        <!-- 5 verification boxes -->
+        <div class="code-boxes">
+            <input maxlength="1" class="code" id="code1">
+            <input maxlength="1" class="code" id="code2">
+            <input maxlength="1" class="code" id="code3">
+            <input maxlength="1" class="code" id="code4">
+            <input maxlength="1" class="code" id="code5">
+        </div>
 
-  <!-- Launcher -->
-  <div id="launcher" class="hidden">
-    <div class="top-bar">
-      <input id="url-input" type="text" placeholder="Enter URL…">
-      <button id="launch-btn" class="primary">Open</button>
-      <button id="settings-btn" class="icon-btn">⚙️</button>
+        <!-- Long text input -->
+        <input type="text" id="longInput" class="long-input" placeholder="Type something here...">
+
+        <!-- Normal-sized button -->
+        <button id="openBtn">OPEN</button>
+
+        <p id="result"></p>
+
     </div>
 
-    <iframe id="iframe"></iframe>
-  </div>
-
-  <!-- Settings Panel -->
-  <div id="settings-panel" class="side-panel hidden">
-    <h2>Settings</h2>
-
-    <label>Custom Cursor Image URL</label>
-    <input id="cursor-url" type="text" placeholder="https://...">
-    <button id="cursor-apply" class="primary small">Apply Cursor</button>
-
-    <label>Background Image URL</label>
-    <input id="bg-url" type="text" placeholder="https://...">
-    <button id="bg-apply" class="primary small">Apply Background</button>
-
-    <label>Particles</label>
-    <select id="particles-toggle">
-      <option value="on">On</option>
-      <option value="off">Off</option>
-    </select>
-
-    <button id="close-settings" class="primary small close-button">Close</button>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
