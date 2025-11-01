@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Class Code Portal</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Class Code Portal — Private Launcher</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
@@ -12,25 +12,50 @@
 <div id="class-code-screen">
   <h1>Enter Class Code</h1>
   <div id="code-boxes">
-    <input type="text" maxlength="1" class="code-input">
-    <input type="text" maxlength="1" class="code-input">
-    <input type="text" maxlength="1" class="code-input">
-    <input type="text" maxlength="1" class="code-input">
-    <input type="text" maxlength="1" class="code-input">
+    <input type="text" maxlength="1" class="code-input" inputmode="text" autocomplete="one-time-code">
+    <input type="text" maxlength="1" class="code-input" inputmode="text" autocomplete="one-time-code">
+    <input type="text" maxlength="1" class="code-input" inputmode="text" autocomplete="one-time-code">
+    <input type="text" maxlength="1" class="code-input" inputmode="text" autocomplete="one-time-code">
+    <input type="text" maxlength="1" class="code-input" inputmode="text" autocomplete="one-time-code">
   </div>
   <button id="class-code-button">Enter</button>
-  <p id="code-message"></p>
+  <p id="code-message" aria-live="polite"></p>
 </div>
 
 <!-- MAIN SCREEN -->
-<div id="main-screen">
-  <div id="url-bar">
-    <input type="text" id="url-input" placeholder="Enter URL here...">
-    <button id="url-button">Go</button>
+<div id="main-screen" aria-hidden="true">
+  <div id="url-bar" class="glass">
+    <input type="text" id="url-input" placeholder="Enter URL here (no history saved)..." autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="url-buttons">
+      <button id="url-button" title="Open in iframe">Go</button>
+      <button id="private-open-button" title="Open in new window without referrer">Open Privately</button>
+    </div>
   </div>
-  <div id="iframe-container">
-    <iframe id="main-iframe" src=""></iframe>
+
+  <div id="iframe-container" class="glass" aria-live="polite">
+    <!-- privacy-focused iframe attributes:
+         - referrerpolicy="no-referrer" prevents sending Referer header
+         - sandbox without allow-same-origin isolates the framed page (privacy/security) but may break many sites
+         - allow-popups intentionally allowed so sites can open new windows when needed
+    -->
+    <iframe id="main-iframe"
+            src=""
+            referrerpolicy="no-referrer"
+            sandbox="allow-forms allow-scripts allow-popups"
+            title="Content Viewer"></iframe>
+
+    <div id="iframe-overlay" class="hidden">
+      <p id="iframe-overlay-text"></p>
+      <div class="overlay-actions">
+        <button id="overlay-open">Open in new tab (no referrer)</button>
+        <button id="overlay-help">Why was this blocked?</button>
+      </div>
+    </div>
   </div>
+
+  <p id="privacy-note" class="note">
+    This launcher does not save URLs or browsing history. Some sites block embedding for security — use "Open Privately" if embedding is refused.
+  </p>
 </div>
 
 <script src="script.js"></script>
