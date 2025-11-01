@@ -97,9 +97,9 @@ html,body { width:100%; height:100%; overflow:hidden; }
   font-weight: 600;
   cursor: pointer;
   background: linear-gradient(135deg,#00f6ff,#246b9c);
-  color: #012;
+  color: #fff; /* White text */
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  z-index: 3;
+  z-index:5; /* Above panel */
   transition: transform 0.2s ease;
 }
 #settings-button:hover { transform: scale(1.05); }
@@ -107,11 +107,11 @@ html,body { width:100%; height:100%; overflow:hidden; }
 /* SETTINGS PANEL */
 #settings-panel {
   position: fixed;
-  top:0;
-  left:-400px; /* hidden to left */
+  top: 60px; /* below button */
+  left: -400px; /* hidden left */
   width: 400px;
   max-width: 90vw;
-  height: 100vh;
+  height: calc(100vh - 60px);
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(15px) saturate(120%);
   box-shadow: 6px 0 30px rgba(0,0,0,0.5);
@@ -155,7 +155,7 @@ html,body { width:100%; height:100%; overflow:hidden; }
 /* IFRAME */
 #iframe-container {
   width:98%;
-  height:88%; /* bigger now */
+  height:88%; /* bigger */
   max-width:1600px;
   max-height:960px;
   border-radius:16px; overflow:hidden;
