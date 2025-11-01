@@ -23,14 +23,13 @@ codeInputs.forEach((box, index) => {
 enterCodeBtn.addEventListener("click", () => {
     let entered = "";
     codeInputs.forEach(box => entered += box.value.toUpperCase());
-
     if (entered === CORRECT_CODE) {
         classScreen.style.opacity = "0";
         setTimeout(() => {
             classScreen.classList.add("hidden");
             dashScreen.classList.remove("hidden");
             dashScreen.style.opacity = "1";
-        }, 350);
+        }, 300);
     }
 });
 
