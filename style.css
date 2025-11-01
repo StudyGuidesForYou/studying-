@@ -64,7 +64,24 @@ body::before {
     align-items:center; 
     gap:20px; 
     height: 100%;
-    /* Scrolling removed */
+    overflow-y: auto; /* enable vertical scroll */
+}
+
+/* MODERN VERTICAL SCROLLBAR */
+.dash-container::-webkit-scrollbar {
+    width: 12px;
+}
+.dash-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+.dash-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 200, 255, 0.5);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+.dash-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 200, 255, 0.7);
 }
 
 /* URL BAR */
