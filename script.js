@@ -1,61 +1,56 @@
-// Elements
-const codeScreen = document.getElementById("class-code-screen");
-const dashScreen = document.getElementById("dashboard-screen");
 const codeInputs = document.querySelectorAll(".code-input");
-const enterBtn = document.getElementById("enter-btn");
-
-const warning = document.getElementById("redirect-warning");
-const redirectText = document.getElementById("redirect-text");
-const continueBtn = document.getElementById("continue-btn");
-const cancelBtn = document.getElementById("cancel-btn");
-
+const enterCodeBtn = document.getElementById("enter-code");
+const classScreen = document.getElementById("class-code-screen");
+const dashScreen = document.getElementById("dashboard-screen");
+const frameScreen = document.getElementById("iframe-screen");
 const iframe = document.getElementById("game-frame");
+const urlInput = document.getElementById("url-input");
+const launchBtn = document.getElementById("launch-btn");
+const gameBtns = document.querySelectorAll(".game-btn");
 
-let pendingURL = null;
+const CORRECT_CODE = "SIGMA";
 
-// Auto move to next box
-codeInputs.forEach((input, index) => {
-  input.addEventListener("input", () => {
-    if (input.value && index < codeInputs.length - 1) {
-      codeInputs[index + 1].focus();
+// ✅ Auto-advance code boxes
+codeInputs.forEach((box, index) => {
+    box.addEventListener("input", () => {
+        if (box.value.length === 1 && index < codeInputs.length - 1) {
+            codeInputs[index + 1].focus();
+        }
+    });
+});
+
+// ✅ Code submission
+enterCodeBtn.addEventListener("click", () => {
+    let entered = "";
+    codeInputs.forEach(box => entered += box.value.toUpperCase());
+
+    if (entered === CORRECT_CODE) {
+        classScreen.classList.add("hidden");
+        dashScreen.classList.remove("hidden");
     }
-  });
 });
 
-// Enter button
-enterBtn.onclick = () => {
-  codeScreen.classList.add("hidden");
-  dashScreen.classList.remove("hidden");
-};
-
-// Game buttons
-document.querySelectorAll(".game-btn").forEach(btn => {
-  btn.addEventListener("click", () => askRedirect(btn.dataset.url));
+// ✅ URL Launch
+launchBtn.addEventListener("click", () => {
+    openURL(urlInput.value);
 });
 
-// Custom launcher
-document.getElementById("launch-btn").onclick = () => {
-  const url = document.getElementById("custom-url").value.trim();
-  if (url) askRedirect(url);
-};
+urlInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") openURL(urlInput.value);
+});
 
-// Show redirect warning
-function askRedirect(url) {
-  pendingURL = url;
-  redirectText.innerText = `You are about to be redirected to: ${url}`;
-  warning.classList.remove("hidden");
+// ✅ Game buttons
+gameBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        openURL(btn.dataset.url);
+    });
+});
+
+// ✅ Open URL in iframe
+function openURL(url) {
+    if (!url.startsWith("http")) url = "https://" + url;
+
+    dashScreen.classList.add("hidden");
+    frameScreen.classList.remove("hidden");
+    iframe.src = url;
 }
-
-// Continue to site
-continueBtn.onclick = () => {
-  warning.classList.add("hidden");
-  dashScreen.classList.add("hidden");
-  iframe.classList.remove("hidden");
-  iframe.src = pendingURL;
-};
-
-// Cancel
-cancelBtn.onclick = () => {
-  warning.classList.add("hidden");
-  pendingURL = null;
-};
