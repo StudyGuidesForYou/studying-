@@ -4,11 +4,12 @@ const codeInputs = document.querySelectorAll('.code-input');
 const classCodeButton = document.getElementById('class-code-button');
 const codeMessage = document.getElementById('code-message');
 
-const urlForm = document.getElementById('url-form');
+const urlForm = document.getElementById('url-bar');
 const urlInput = document.getElementById('url-input');
+const urlButton = document.getElementById('url-button');
 const mainIframe = document.getElementById('main-iframe');
 
-// Auto-focus between inputs
+// Auto-focus between code inputs
 codeInputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     if (input.value.length > 0 && idx < codeInputs.length - 1) {
@@ -22,7 +23,7 @@ codeInputs.forEach((input, idx) => {
   });
 });
 
-// Check code and fade
+// Check class code and fade transition
 function checkClassCode() {
   let enteredCode = '';
   codeInputs.forEach(input => enteredCode += input.value);
@@ -34,9 +35,8 @@ function checkClassCode() {
     // Fade out class code screen
     classCodeScreen.classList.add('fade');
 
-    // Fade in main screen after 0.7s
+    // Fade in main screen after fade out
     setTimeout(() => {
-      mainScreen.style.opacity = 0;
       mainScreen.style.display = 'flex';
       setTimeout(() => {
         mainScreen.style.transition = 'opacity 0.7s ease';
@@ -63,11 +63,18 @@ codeInputs.forEach(input => {
 });
 
 // URL Launcher
-urlForm.addEventListener('submit', function(e) {
-  e.preventDefault();
+urlButton.addEventListener('click', () => {
   let url = urlInput.value.trim();
   if (!url) return;
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   mainIframe.src = url;
   urlInput.value = '';
+});
+
+// Allow Enter key to submit URL
+urlInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    urlButton.click();
+  }
 });
