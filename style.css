@@ -2,20 +2,23 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
 body,html{width:100%;height:100%;overflow:hidden;}
 
-/* --- AURORA BACKGROUND (only dashboard) --- */
+/* --- AURORA BACKGROUND (dashboard only) --- */
 #aurora-bg{
   position:fixed;top:0;left:0;width:100%;height:100%;
-  background:linear-gradient(135deg,#1b2735,#090a0f);
-  background-size:400% 400%;
+  background:linear-gradient(270deg,#1b2735,#090a0f,#0b1c2f,#1b2735);
+  background-size:800% 800%;
   animation: auroraAnim 20s ease infinite;
   z-index:-1;
   opacity:0;
   transition:opacity 0.5s;
 }
 #main-screen.show-bg #aurora-bg{opacity:1;}
+
 @keyframes auroraAnim{
   0%{background-position:0 50%}
+  25%{background-position:50% 50%}
   50%{background-position:100% 50%}
+  75%{background-position:50% 50%}
   100%{background-position:0 50%}
 }
 
@@ -37,9 +40,34 @@ body,html{width:100%;height:100%;overflow:hidden;}
   z-index:10;
 }
 #code-boxes{display:flex;gap:10px;margin:20px 0;}
-.code-input{width:50px;height:50px;text-align:center;font-size:24px;border-radius:8px;border:none;background:rgba(255,255,255,0.1);color:white;transition:box-shadow 0.3s;}
-.code-input:focus{outline:none;box-shadow:0 0 12px 4px #1e90ff;}
+.code-input{
+  width:50px;height:50px;text-align:center;font-size:24px;border-radius:8px;border:none;
+  background:rgba(255,255,255,0.1);color:white;
+  transition:0.3s;position:relative;
+}
+.code-input:focus{
+  outline:none;
+  animation: auroraGlow 1.5s infinite alternate;
+}
 
+/* --- URL BAR INPUT --- */
+#url-bar input{
+  flex:1;padding:12px;border:none;border-radius:12px 0 0 12px;
+  background:rgba(255,255,255,0.1);color:white;font-size:16px;transition:0.3s;
+}
+#url-bar input:focus{
+  outline:none;
+  animation: auroraGlow 1.5s infinite alternate;
+}
+
+/* --- AURORA GLOW ANIMATION --- */
+@keyframes auroraGlow{
+  0%{box-shadow:0 0 10px #1e90ff,0 0 20px #00ffff,0 0 30px #ff69b4;}
+  50%{box-shadow:0 0 15px #00ffff,0 0 25px #ff69b4,0 0 35px #1e90ff;}
+  100%{box-shadow:0 0 10px #ff69b4,0 0 20px #1e90ff,0 0 30px #00ffff;}
+}
+
+/* --- CLASS CODE BUTTON --- */
 #class-code-button{padding:10px 20px;border:none;border-radius:8px;background:#1e90ff;color:white;font-size:16px;cursor:pointer;transition:0.3s;}
 #class-code-button:hover{background:#0b71d0;}
 
@@ -59,10 +87,7 @@ body,html{width:100%;height:100%;overflow:hidden;}
 }
 #settings-panel.open{display:flex;}
 
-/* --- URL BAR --- */
-#url-bar{display:flex;width:95%;max-width:1200px;}
-#url-bar input{flex:1;padding:12px;border:none;border-radius:12px 0 0 12px;background:rgba(255,255,255,0.1);color:white;font-size:16px;transition:box-shadow 0.3s;}
-#url-bar input:focus{outline:none;box-shadow:0 0 12px 4px #1e90ff;}
+/* --- URL BAR BUTTON --- */
 #url-bar button{padding:12px 20px;border:none;background:#1e90ff;color:white;border-radius:0 12px 12px 0;cursor:pointer;transition:0.3s;}
 #url-bar button:hover{background:#0b71d0;}
 
