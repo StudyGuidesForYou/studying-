@@ -29,36 +29,37 @@
 
     <!-- DASHBOARD SCREEN -->
     <div id="dashboard-screen" class="screen hidden">
-        <div class="dash-container glass">
+        <div class="dash-wrapper">
+            <div class="dash-container glass">
 
-            <!-- URL launcher -->
-            <div class="url-bar">
-                <input id="url-input" placeholder="Enter URL..." />
-                <button id="launch-btn" class="btn small">Launch</button>
+                <!-- URL launcher -->
+                <div class="url-bar">
+                    <input id="url-input" placeholder="Enter URL..." />
+                    <button id="launch-btn" class="btn small">Launch</button>
+                </div>
+
+                <!-- IFRAME -->
+                <div class="iframe-holder">
+                    <iframe id="game-frame"></iframe>
+                </div>
+
+                <!-- Prebuilt games -->
+                <h2 class="games-title">Games</h2>
+                <div class="games-grid">
+                    <button class="game-btn" data-url="https://slowroads.io">Slowroads.io</button>
+                    <button class="game-btn" data-url="https://bloxd.io">Bloxd.io</button>
+                    <button class="game-btn" data-url="https://diep.io">Diep.io</button>
+                    <button class="game-btn" data-url="https://ev.io">EV.io</button>
+                    <button class="game-btn" data-url="https://jellymar.io">Jellymar.io</button>
+                    <button class="game-btn" data-url="https://slopeonline.online">Slope Online</button>
+                    <button class="game-btn" data-url="https://ethonion10.neocities.org">Ethonion10</button>
+                    <button class="game-btn" data-url="https://emulatorgames.online">EmulatorGames</button>
+                    <button class="game-btn" data-url="https://sandboxels.r74n.com">Sandboxels</button>
+                    <button class="game-btn" data-url="https://wplace.live">wPlace</button>
+                    <button class="game-btn" data-url="https://miniplay.com">Miniplay</button>
+                    <button class="game-btn" data-url="https://azgames.io">AZGames</button>
+                </div>
             </div>
-
-            <!-- IFRAME -->
-            <div class="iframe-holder">
-                <iframe id="game-frame"></iframe>
-            </div>
-
-            <!-- Prebuilt games -->
-            <h2 class="games-title">Games</h2>
-            <div class="games-grid">
-                <button class="game-btn" data-url="https://slowroads.io">Slowroads.io</button>
-                <button class="game-btn" data-url="https://bloxd.io">Bloxd.io</button>
-                <button class="game-btn" data-url="https://diep.io">Diep.io</button>
-                <button class="game-btn" data-url="https://ev.io">EV.io</button>
-                <button class="game-btn" data-url="https://jellymar.io">Jellymar.io</button>
-                <button class="game-btn" data-url="https://slopeonline.online">Slope Online</button>
-                <button class="game-btn" data-url="https://ethonion10.neocities.org">Ethonion10</button>
-                <button class="game-btn" data-url="https://emulatorgames.online">EmulatorGames</button>
-                <button class="game-btn" data-url="https://sandboxels.r74n.com">Sandboxels</button>
-                <button class="game-btn" data-url="https://wplace.live">wPlace</button>
-                <button class="game-btn" data-url="https://miniplay.com">Miniplay</button>
-                <button class="game-btn" data-url="https://azgames.io">AZGames</button>
-            </div>
-
         </div>
 
         <div class="aurora"></div>
