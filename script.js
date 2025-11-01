@@ -8,7 +8,7 @@ const urlInput = document.getElementById('url-input');
 const urlButton = document.getElementById('url-button');
 const mainIframe = document.getElementById('main-iframe');
 
-// Auto-focus code inputs with backspace support
+// Auto-focus code inputs
 codeInputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     if (input.value.length > 0 && idx < codeInputs.length - 1) codeInputs[idx + 1].focus();
@@ -20,25 +20,19 @@ codeInputs.forEach((input, idx) => {
 
 // Check class code
 function checkClassCode() {
-  let enteredCode = '';
-  codeInputs.forEach(input => enteredCode += input.value);
-
-  if (enteredCode.toLowerCase() === 'sigma') {
+  let code = '';
+  codeInputs.forEach(input => code += input.value);
+  if (code.toLowerCase() === 'sigma') {
     codeMessage.textContent = '✅ Code accepted!';
     codeMessage.style.color = '#00ff00';
-
-    // Fade out class code screen
-    classCodeScreen.classList.add('fade');
-
-    // Show main screen with scale-in animation
+    classCodeScreen.style.opacity = 0;
     setTimeout(() => {
+      classCodeScreen.style.display = 'none';
       mainScreen.style.display = 'flex';
-      mainScreen.classList.add('scale-in');
       setTimeout(() => {
-        mainScreen.classList.add('visible');
+        mainScreen.style.opacity = 1;
       }, 50);
     }, 700);
-
   } else {
     codeMessage.textContent = '❌ Incorrect code!';
     codeMessage.style.color = '#ff4d4d';
@@ -47,14 +41,15 @@ function checkClassCode() {
   }
 }
 
-// Event listeners
 classCodeButton.addEventListener('click', checkClassCode);
-codeInputs.forEach(input => input.addEventListener('keypress', e => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    checkClassCode();
-  }
-}));
+codeInputs.forEach(input => {
+  input.addEventListener('keypress', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      checkClassCode();
+    }
+  });
+});
 
 // URL launcher
 function launchURL() {
