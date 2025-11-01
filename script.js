@@ -3,6 +3,7 @@ const enterCodeBtn = document.getElementById("enter-code");
 const classScreen = document.getElementById("class-code-screen");
 const dashScreen = document.getElementById("dashboard-screen");
 const iframe = document.getElementById("game-frame");
+const iframePlaceholder = document.getElementById("iframe-placeholder");
 const urlInput = document.getElementById("url-input");
 const launchBtn = document.getElementById("launch-btn");
 const gameBtns = document.querySelectorAll(".game-btn");
@@ -18,37 +19,35 @@ codeInputs.forEach((box, index) => {
     });
 });
 
-// ✅ Submit code and fade transition
+// ✅ Submit code
 enterCodeBtn.addEventListener("click", () => {
     let entered = "";
     codeInputs.forEach(box => entered += box.value.toUpperCase());
 
     if (entered === CORRECT_CODE) {
-        // fade OUT class screen
         classScreen.style.opacity = "0";
         setTimeout(() => {
             classScreen.classList.add("hidden");
-
-            // fade IN dashboard
             dashScreen.classList.remove("hidden");
             dashScreen.style.opacity = "1";
         }, 350);
     }
 });
 
-// ✅ Launch URL
+// ✅ Launch button
 launchBtn.addEventListener("click", () => openURL(urlInput.value));
 urlInput.addEventListener("keydown", e => {
     if (e.key === "Enter") openURL(urlInput.value);
 });
 
-// ✅ Game buttons → open URL
+// ✅ Game buttons
 gameBtns.forEach(btn => {
     btn.addEventListener("click", () => openURL(btn.dataset.url));
 });
 
-// ✅ Load URL in iframe
+// ✅ Load URL in iframe (without resizing)
 function openURL(url) {
     if (!url.startsWith("http")) url = "https://" + url;
     iframe.src = url;
+    iframePlaceholder.style.display = "none";
 }
