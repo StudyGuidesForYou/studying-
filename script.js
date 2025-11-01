@@ -76,15 +76,15 @@ urlInput.addEventListener('keypress', e=>{
 
 // --- SETTINGS PANEL FUNCTIONALITY ---
 gradientColorPicker.addEventListener('input',()=>{
-  document.getElementById('aurora-bg').style.background=`linear-gradient(135deg, ${gradientColorPicker.value}, #12324a)`;
+  document.body.style.background = gradientColorPicker.value;
 });
 bgSelect.addEventListener('change',()=>{
   const val = bgSelect.value;
   if(val){
-    document.getElementById('aurora-bg').style.backgroundImage=`url('./images/${val}')`;
-    document.getElementById('aurora-bg').style.backgroundSize='cover';
-    document.getElementById('aurora-bg').style.backgroundBlendMode='overlay';
-  } else document.getElementById('aurora-bg').style.backgroundImage='';
+    document.body.style.backgroundImage=`url('./images/${val}')`;
+    document.body.style.backgroundSize='cover';
+    document.body.style.backgroundBlendMode='overlay';
+  } else document.body.style.backgroundImage='';
 });
 
 // --- GAME BUTTONS ---
