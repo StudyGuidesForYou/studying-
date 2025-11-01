@@ -1,3 +1,4 @@
+// ====== DOM ELEMENTS ======
 const codeInputs = document.querySelectorAll(".code-input");
 const enterCodeBtn = document.getElementById("enter-code");
 const classScreen = document.getElementById("class-code-screen");
@@ -10,7 +11,9 @@ const gameBtns = document.querySelectorAll(".game-btn");
 
 const CORRECT_CODE = "SIGMA";
 
-// Auto-advance code boxes
+// ====== CLASS CODE SCREEN ======
+
+// Auto-advance code inputs
 codeInputs.forEach((box, index) => {
     box.addEventListener("input", () => {
         if (box.value.length === 1 && index < codeInputs.length - 1) {
@@ -18,7 +21,7 @@ codeInputs.forEach((box, index) => {
         }
     });
 
-    // ✅ Allow pressing Enter in last box to submit code
+    // Pressing Enter triggers code submission
     box.addEventListener("keydown", e => {
         if (e.key === "Enter") submitCode();
     });
@@ -27,11 +30,13 @@ codeInputs.forEach((box, index) => {
 // Enter button click
 enterCodeBtn.addEventListener("click", submitCode);
 
-// Submit class code function
+// Submit code function
 function submitCode() {
     let entered = "";
     codeInputs.forEach(box => entered += box.value.toUpperCase());
+
     if (entered === CORRECT_CODE) {
+        // Fade out class code screen
         classScreen.style.opacity = "0";
         setTimeout(() => {
             classScreen.classList.add("hidden");
@@ -43,16 +48,24 @@ function submitCode() {
     }
 }
 
-// URL launch
-launchBtn.addEventListener("click", () => openURL(urlInput.value));
-urlInput.addEventListener("keydown", e => { if (e.key === "Enter") openURL(urlInput.value); });
+// ====== URL LAUNCHER ======
 
-// Game buttons
-gameBtns.forEach(btn => btn.addEventListener("click", () => openURL(btn.dataset.url)));
+// Launch URL button
+launchBtn.addEventListener("click", () => openURL(urlInput.value));
+
+// Enter key in URL input
+urlInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") openURL(urlInput.value);
+});
+
+// Prebuilt game buttons
+gameBtns.forEach(btn => {
+    btn.addEventListener("click", () => openURL(btn.dataset.url));
+});
 
 // Open URL in iframe
 function openURL(url) {
     if (!url.startsWith("http")) url = "https://" + url;
     iframe.src = url;
-    iframePlaceholder.style.display = "none";
+    if (iframePlaceholder) iframePlaceholder.style.display = "none";
 }
