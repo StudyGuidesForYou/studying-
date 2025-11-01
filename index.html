@@ -1,98 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Class Code Launcher</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-  <!-- SETTINGS BUTTON (INTERLOCKING DIAMONDS) -->
-  <div id="settings-btn">
-    <div class="diamond big"></div>
-    <div class="diamond small"></div>
+  <!-- SETTINGS LOGO (hidden until unlock) -->
+  <button id="settings-logo" class="hidden" aria-label="Open settings" title="Settings">
+    <!-- two interlocking diamonds (SVG) -->
+    <svg viewBox="0 0 80 80" width="44" height="44" aria-hidden="true">
+      <g transform="translate(10,10)">
+        <polygon class="diamond large" points="30,0 60,30 30,60 0,30" />
+        <polygon class="diamond small"  points="36,6 66,36 36,66 6,36" />
+      </g>
+    </svg>
+  </button>
+
+  <!-- SETTINGS PANEL (full-height, slides from left) -->
+  <div id="settings-overlay" class="hidden" aria-hidden="true">
+    <aside id="settings-panel" role="dialog" aria-label="Settings panel">
+      <header class="panel-header">
+        <h2>Settings</h2>
+        <button id="settings-close" aria-label="Close settings">✕</button>
+      </header>
+
+      <section class="panel-section">
+        <h3>Background</h3>
+        <label class="label-inline">Color</label>
+        <input id="bg-color" type="color" aria-label="Background color" />
+        <div class="or">— OR —</div>
+        <label class="label-inline">Upload image</label>
+        <input id="bg-file" type="file" accept="image/*" aria-label="Background image" />
+        <button id="bg-clear" class="btn-ghost">Reset</button>
+        <div id="bg-preview" class="bg-preview" aria-hidden="true"></div>
+      </section>
+
+      <section class="panel-section">
+        <h3>Utilities</h3>
+        <div class="apps-grid">
+          <button class="app-btn" data-app="stopwatch">Open Stopwatch</button>
+          <button class="app-btn" data-app="timer">Open Timer</button>
+          <button class="app-btn" data-app="alarm">Open Alarm</button>
+        </div>
+      </section>
+
+      <footer class="panel-footer">
+        <small>Settings saved locally</small>
+      </footer>
+    </aside>
   </div>
 
-  <!-- SETTINGS PANEL -->
-  <div id="settings-panel">
-    <h2>Settings</h2>
-
-    <div class="section">
-      <h3>Background</h3>
-      <label>Pick a color:</label>
-      <input type="color" id="bg-color-picker">
-
-      <label>Or upload an image:</label>
-      <input type="file" id="bg-image-picker" accept="image/*">
+  <!-- DRAGGABLE MINI-WINDOWS (initially hidden) -->
+  <div id="apps-root">
+    <!-- Stopwatch -->
+    <div class="app-window hidden" id="win-stopwatch" data-app="stopwatch" role="dialog" aria-label="Stopwatch">
+      <div class="window-header">Stopwatch <span class="drag-hint">⠿</span></div>
+      <div class="window-body">
+        <div id="sw-display" class="big-display">00:00.00</div>
+        <div class="controls-row">
+          <button id="sw-start" class="btn">Start</button>
+          <button id="sw-stop" class="btn">Stop</button>
+          <button id="sw-reset" class="btn btn-ghost">Reset</button>
+        </div>
+      </div>
     </div>
 
-    <div class="section">
-      <h3>Utilities</h3>
-      <button class="open-app" data-app="stopwatch">Open Stopwatch</button>
-      <button class="open-app" data-app="timer">Open Timer</button>
-      <button class="open-app" data-app="alarm">Open Alarm</button>
+    <!-- Timer -->
+    <div class="app-window hidden" id="win-timer" data-app="timer" role="dialog" aria-label="Timer">
+      <div class="window-header">Timer <span class="drag-hint">⠿</span></div>
+      <div class="window-body">
+        <input id="timer-min" type="number" min="0" placeholder="Minutes" />
+        <div class="controls-row">
+          <button id="timer-start" class="btn">Start</button>
+          <button id="timer-stop" class="btn btn-ghost">Stop</button>
+        </div>
+        <div id="timer-status" class="muted small"></div>
+      </div>
     </div>
 
-    <button id="close-settings">Close</button>
-  </div>
-
-  <!-- DRAGGABLE WINDOWS -->
-
-  <!-- STOPWATCH -->
-  <div class="app-window" id="stopwatch-window">
-    <div class="window-header">Stopwatch</div>
-    <div class="window-body">
-      <p id="stopwatch-display">00:00.00</p>
-      <button id="sw-start">Start</button>
-      <button id="sw-stop">Stop</button>
-      <button id="sw-reset">Reset</button>
-    </div>
-  </div>
-
-  <!-- TIMER -->
-  <div class="app-window" id="timer-window">
-    <div class="window-header">Timer</div>
-    <div class="window-body">
-      <input id="timer-minutes" type="number" placeholder="Minutes">
-      <button id="timer-start">Start</button>
-      <button id="timer-stop">Stop</button>
-    </div>
-  </div>
-
-  <!-- ALARM -->
-  <div class="app-window" id="alarm-window">
-    <div class="window-header">Alarm</div>
-    <div class="window-body">
-      <input id="alarm-time" type="time">
-      <button id="alarm-set">Set Alarm</button>
+    <!-- Alarm -->
+    <div class="app-window hidden" id="win-alarm" data-app="alarm" role="dialog" aria-label="Alarm">
+      <div class="window-header">Alarm <span class="drag-hint">⠿</span></div>
+      <div class="window-body">
+        <input id="alarm-time" type="time" />
+        <div class="controls-row">
+          <button id="alarm-set" class="btn">Set Alarm</button>
+          <button id="alarm-clear" class="btn btn-ghost">Clear</button>
+        </div>
+        <div id="alarm-status" class="muted small"></div>
+      </div>
     </div>
   </div>
 
   <!-- CLASS CODE SCREEN -->
-  <div id="class-code-screen">
-    <h1>Enter Class Code</h1>
-
-    <div id="code-boxes">
-      <input maxlength="1" class="digit" type="text">
-      <input maxlength="1" class="digit" type="text">
-      <input maxlength="1" class="digit" type="text">
-      <input maxlength="1" class="digit" type="text">
-      <input maxlength="1" class="digit" type="text">
+  <main id="class-code-screen" role="main" aria-labelledby="enter-heading">
+    <h1 id="enter-heading">Enter Class Code</h1>
+    <div id="code-row" class="code-row" role="group" aria-label="Class code">
+      <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
+      <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
+      <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
+      <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
+      <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
     </div>
+    <div id="code-status" class="muted small" aria-live="polite"></div>
+  </main>
 
-    <p id="code-error">Incorrect code</p>
-  </div>
+  <!-- MAIN LAUNCHER (hidden until unlock) -->
+  <div id="main-launcher" class="hidden">
+    <header id="topbar">
+      <div class="left-space"></div>
+      <div class="center">
+        <input id="url-input" type="text" placeholder="Enter URL (example.com or https://example.com)" />
+        <button id="open-url" class="btn primary">Open</button>
+      </div>
+      <div class="right-space"></div>
+    </header>
 
-  <!-- MAIN PAGE -->
-  <div id="main-page">
-    <div id="url-bar">
-      <input type="text" id="url-input" placeholder="Enter a URL..." />
-      <button id="go-btn">Open</button>
-    </div>
-
-    <iframe id="viewer" src=""></iframe>
+    <section id="viewer-area">
+      <!-- 95% x 90% iframe viewer centered and scrollable page content allowed beneath -->
+      <iframe id="viewer" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+    </section>
   </div>
 
   <script src="script.js"></script>
