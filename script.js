@@ -1,27 +1,30 @@
-// CLASS CODE SCREEN
+// --- CLASS CODE SCREEN ---
 const classCodeScreen = document.getElementById('class-code-screen');
 const mainScreen = document.getElementById('main-screen');
 const codeInputs = document.querySelectorAll('.code-input');
 const classCodeButton = document.getElementById('class-code-button');
 const codeMessage = document.getElementById('code-message');
 
-// URL LAUNCHER
+// --- URL LAUNCHER ---
 const urlInput = document.getElementById('url-input');
 const urlButton = document.getElementById('url-button');
 const mainIframe = document.getElementById('main-iframe');
 
-// SETTINGS PANEL
+// --- SETTINGS PANEL ---
 const settingsButton = document.getElementById('settings-button');
 const settingsPanel = document.getElementById('settings-panel');
 const gradientColorPicker = document.getElementById('gradient-color');
 const bgSelect = document.getElementById('bg-select');
 
-// Toggle settings panel
+// --- GAME BUTTONS ---
+const gameButtons = document.querySelectorAll('.game-button');
+
+// --- SETTINGS PANEL TOGGLE ---
 settingsButton.addEventListener('click', () => {
   settingsPanel.classList.toggle('open');
 });
 
-// Auto-focus for code inputs
+// --- AUTO-FOCUS CODE INPUTS ---
 codeInputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     if(input.value.length > 0 && idx < codeInputs.length-1) codeInputs[idx+1].focus();
@@ -31,7 +34,7 @@ codeInputs.forEach((input, idx) => {
   });
 });
 
-// CHECK CLASS CODE
+// --- CHECK CLASS CODE ---
 function checkClassCode() {
   let code = '';
   codeInputs.forEach(i => code += i.value);
@@ -52,7 +55,7 @@ function checkClassCode() {
   }
 }
 
-// EVENTS
+// --- CLASS CODE EVENTS ---
 classCodeButton.addEventListener('click', checkClassCode);
 codeInputs.forEach(input=>{
   input.addEventListener('keypress', e=>{
@@ -60,7 +63,7 @@ codeInputs.forEach(input=>{
   });
 });
 
-// LAUNCH URL
+// --- LAUNCH URL ---
 function launchURL(){
   let url = urlInput.value.trim();
   if(!url) return;
@@ -69,12 +72,13 @@ function launchURL(){
   urlInput.value='';
 }
 
+// --- URL EVENTS ---
 urlButton.addEventListener('click', launchURL);
 urlInput.addEventListener('keypress', e=>{
   if(e.key==='Enter'){ e.preventDefault(); launchURL(); }
 });
 
-// SETTINGS PANEL FUNCTIONALITY
+// --- SETTINGS PANEL FUNCTIONALITY ---
 gradientColorPicker.addEventListener('input', () => {
   document.getElementById('aurora-bg').style.background = `linear-gradient(135deg, ${gradientColorPicker.value}, #12324a)`;
 });
@@ -88,4 +92,13 @@ bgSelect.addEventListener('change', () => {
   } else {
     document.getElementById('aurora-bg').style.backgroundImage = '';
   }
+});
+
+// --- GAME BUTTONS FUNCTIONALITY ---
+gameButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const url = btn.getAttribute('data-url');
+    urlInput.value = url;
+    launchURL();
+  });
 });
