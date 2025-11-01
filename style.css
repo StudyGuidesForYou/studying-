@@ -2,9 +2,9 @@
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
 html, body { width:100%; height:100%; overflow:hidden; }
 
-/* --- ANIMATED AURORA BACKGROUND --- */
+/* --- ANIMATED DARKER AURORA BACKGROUND --- */
 body {
-  background: linear-gradient(270deg, #0d1b2a, #1b263b, #415a77, #778da9);
+  background: linear-gradient(270deg, #050a1a, #0a1122, #1a2640, #2a3b5c);
   background-size: 800% 800%;
   animation: auroraAnimation 20s ease infinite;
 }
@@ -18,7 +18,7 @@ body {
 /* --- GLASS PANELS --- */
 .glass {
   backdrop-filter: blur(12px) saturate(180%);
-  background-color: rgba(10,20,50,0.2); /* dark & transparent for aurora */
+  background-color: rgba(10,20,50,0.2); /* semi-transparent to show aurora */
   border-radius:16px;
   border:1px solid rgba(255,255,255,0.1);
   box-shadow:0 8px 32px 0 rgba(31,38,135,0.37);
