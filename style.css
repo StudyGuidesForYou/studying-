@@ -8,7 +8,7 @@ body, html {
   padding: 0;
   height: 100%;
   width: 100%;
-  background: linear-gradient(to bottom right, #1a2a6c, #0f2027); /* keep blue background */
+  background: linear-gradient(to bottom right, #1a2a6c, #0f2027);
   overflow: hidden;
   color: white;
 }
@@ -70,15 +70,17 @@ body, html {
   align-items: center;
   width: 100%;
   height: 100%;
-  opacity: 0; /* initially hidden */
+  opacity: 0;
+  background: linear-gradient(to bottom right, #1a2a6c, #0f2027); /* keep same background */
+  padding-top: 20px;
 }
 
 /* URL BAR */
 #url-bar {
   display: flex;
   width: 95%;
-  margin: 20px 0 10px 0;
   max-width: 1200px;
+  margin-bottom: 10px;
 }
 
 #url-input {
@@ -100,7 +102,7 @@ body, html {
   cursor: pointer;
 }
 
-/* IFRAME CONTAINER */
+/* IFRAME */
 #iframe-container {
   width: 95%;
   height: 90%;
