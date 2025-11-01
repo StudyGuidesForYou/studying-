@@ -1,6 +1,6 @@
 /* BASE STYLING */
 * { box-sizing: border-box; margin:0; padding:0; font-family:'Inter',sans-serif; }
-html,body { width:100%; height:100%; overflow:hidden; }
+html,body { width:100%; height:100%; overflow:auto; }
 
 /* AURORA BACKGROUND */
 #aurora-bg {
@@ -46,8 +46,8 @@ html,body { width:100%; height:100%; overflow:hidden; }
 
 #class-code-screen h1 {
   font-size:32px;
-  color:#fff;
-  text-shadow:0 0 18px rgba(0,240,255,0.12);
+  color:#000; /* changed to black */
+  text-shadow:0 0 8px rgba(0,0,0,0.1);
 }
 
 #code-boxes { display:flex; gap:14px; }
@@ -73,9 +73,7 @@ html,body { width:100%; height:100%; overflow:hidden; }
 
 /* MAIN SCREEN */
 #main-screen {
-  position: fixed;
-  top:50%; left:50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   display:flex;
   flex-direction: column;
   align-items: center;
@@ -107,8 +105,8 @@ html,body { width:100%; height:100%; overflow:hidden; }
 /* SETTINGS PANEL */
 #settings-panel {
   position: fixed;
-  top: 60px; /* below button */
-  left: -420px; /* hidden until button clicked */
+  top: 60px; 
+  left: -420px;
   width: 400px;
   max-width: 90vw;
   height: calc(100vh - 60px);
@@ -126,7 +124,6 @@ html,body { width:100%; height:100%; overflow:hidden; }
 #settings-panel.open { left:0; }
 
 .setting-item { display:flex; flex-direction: column; gap:6px; }
-
 .setting-item select, .setting-item input[type=color] {
   padding:8px;
   border-radius:10px;
@@ -166,8 +163,8 @@ html,body { width:100%; height:100%; overflow:hidden; }
 
 /* IFRAME */
 #iframe-container {
-  width:98%;
-  height:88%; 
+  width:95%;
+  height:90%;
   max-width:1600px;
   max-height:960px;
   border-radius:16px; overflow:hidden;
@@ -180,10 +177,50 @@ html,body { width:100%; height:100%; overflow:hidden; }
   width:100%; height:100%; border:none; border-radius:16px;
 }
 
+/* SCROLLABLE GAME BUTTONS */
+#game-buttons {
+  width:95%;
+  max-width:1600px;
+  margin-top:12px;
+  padding:16px;
+  border-radius:16px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(15px) saturate(120%);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+  overflow-x:auto;
+  display:flex;
+  flex-direction: column;
+  gap:12px;
+}
+
+.buttons-container {
+  display:flex;
+  flex-wrap: nowrap;
+  gap:12px;
+  overflow-x:auto;
+}
+
+.game-button {
+  padding:12px 20px;
+  border-radius:12px;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+  background: linear-gradient(135deg,#00f6ff,#246b9c);
+  color:#012;
+  flex-shrink:0;
+  white-space: nowrap;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.game-button:hover { transform: scale(1.05); box-shadow:0 8px 20px rgba(0,0,0,0.4); }
+
 /* MOBILE */
 @media(max-width:600px){
   #url-bar{width:95%; flex-direction:column; gap:6px;}
   #url-button{width:100%;}
   #iframe-container{width:95%; height:85%;}
   #settings-panel{width:90vw;}
+  #game-buttons { width:95%; padding:12px; }
+  .buttons-container { gap:8px; }
+  .game-button { padding:10px 16px; font-size:14px; }
 }
