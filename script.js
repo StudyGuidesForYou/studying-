@@ -9,22 +9,22 @@ const gameBtns = document.querySelectorAll(".game-btn");
 
 const CORRECT_CODE = "SIGMA";
 
-// Auto-advance code boxes
+// Auto-advance code boxes with backspace support
 codeInputs.forEach((box, index) => {
     box.addEventListener("input", () => {
         if (box.value.length === 1 && index < codeInputs.length - 1) {
             codeInputs[index + 1].focus();
         }
     });
-
     box.addEventListener("keydown", (e) => {
         if (e.key === "Backspace" && !box.value && index > 0) {
             codeInputs[index - 1].focus();
         }
+        if (e.key === "Enter") submitCode();
     });
 });
 
-// Submit code with button or Enter key
+// Submit code function
 function submitCode() {
     let entered = "";
     codeInputs.forEach(box => entered += box.value.toUpperCase());
@@ -35,17 +35,13 @@ function submitCode() {
 }
 
 enterCodeBtn.addEventListener("click", submitCode);
-codeInputs.forEach(box => {
-    box.addEventListener("keydown", e => {
-        if (e.key === "Enter") submitCode();
-    });
-});
 
-// Launch URL
+// Launch URL function
 function openURL(url) {
     if (!url.startsWith("http")) url = "https://" + url;
     iframe.src = url;
 }
+
 launchBtn.addEventListener("click", () => openURL(urlInput.value));
 urlInput.addEventListener("keydown", e => {
     if (e.key === "Enter") openURL(urlInput.value);
