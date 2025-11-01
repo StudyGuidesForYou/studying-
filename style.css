@@ -2,11 +2,11 @@
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
 html, body { width:100%; height:100%; overflow:hidden; }
 
-/* --- ANIMATED DARKER AURORA BACKGROUND --- */
+/* --- DARKER, SLOWER AURORA BACKGROUND --- */
 body {
-  background: linear-gradient(270deg, #050a1a, #0a1122, #1a2640, #2a3b5c);
+  background: linear-gradient(270deg, #010820, #020f30, #041a4b, #05225f); /* darker blue shades */
   background-size: 800% 800%;
-  animation: auroraAnimation 20s ease infinite;
+  animation: auroraAnimation 60s ease infinite; /* slower animation */
 }
 
 @keyframes auroraAnimation {
@@ -38,7 +38,7 @@ body {
   z-index:-1;
   filter:blur(15px);
   opacity:0.5;
-  animation: auroraGlow 8s linear infinite;
+  animation: auroraGlow 30s linear infinite; /* slower glow */
 }
 
 @keyframes auroraGlow {
