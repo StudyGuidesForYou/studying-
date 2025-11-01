@@ -1,78 +1,67 @@
-const loginBox = document.getElementById("login-box");
-const viewer = document.getElementById("viewer");
+const codeInputs = document.querySelectorAll(".code-input");
+const enterCodeBtn = document.getElementById("enter-code");
+const classScreen = document.getElementById("class-code-screen");
+const dashScreen = document.getElementById("dashboard-screen");
 const iframe = document.getElementById("game-frame");
+const urlInput = document.getElementById("url-input");
+const launchBtn = document.getElementById("launch-btn");
+const gameBtns = document.querySelectorAll(".game-btn");
 
-const enterBtn = document.getElementById("enter-btn");
-const input = document.getElementById("code-input");
+const CORRECT_CODE = "SIGMA";
 
-const closeBtn = document.getElementById("close-iframe");
-const fullscreenBtn = document.getElementById("fullscreen-toggle");
+// ✅ Auto-advance code boxes with backward support
+codeInputs.forEach((box, index) => {
+    box.addEventListener("input", () => {
+        if (box.value.length === 1 && index < codeInputs.length - 1) {
+            codeInputs[index + 1].focus();
+        }
+    });
 
-let exitArea = null;
-
-/* -------------------------
-   LOAD PREBUILT GAMES
--------------------------- */
-document.querySelectorAll(".game-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    openViewer(btn.dataset.url);
-  });
+    box.addEventListener("keydown", e => {
+        if (e.key === "Backspace" && box.value === "" && index > 0) {
+            codeInputs[index - 1].focus();
+        }
+        if (e.key === "Enter") {
+            submitCode();
+        }
+    });
 });
 
-/* -------------------------
-   ENTER CODE BUTTON
--------------------------- */
-enterBtn.addEventListener("click", () => {
-  openViewer(input.value.trim());
-});
+// ✅ Code submission
+enterCodeBtn.addEventListener("click", submitCode);
 
-/* -------------------------
-   OPEN IFRAME VIEWER
--------------------------- */
-function openViewer(url) {
-  if (!url) return;
+function submitCode() {
+    let entered = "";
+    codeInputs.forEach(box => entered += box.value.toUpperCase());
 
-  iframe.src = url;
-  loginBox.classList.add("hidden");
-  viewer.classList.remove("hidden");
+    if (entered === CORRECT_CODE) {
+        classScreen.classList.add("hidden");
+        dashScreen.classList.remove("hidden");
+    } else {
+        alert("Incorrect code!");
+    }
 }
 
-/* -------------------------
-   CLOSE IFRAME
--------------------------- */
-closeBtn.addEventListener("click", () => {
-  viewer.classList.add("hidden");
-  loginBox.classList.remove("hidden");
-  iframe.src = "";
-  removeFullscreen();
+// ✅ URL Launch
+launchBtn.addEventListener("click", () => {
+    openURL(urlInput.value);
 });
 
-/* -------------------------
-   FULLSCREEN TOGGLE
--------------------------- */
-fullscreenBtn.addEventListener("click", () => {
-  if (viewer.classList.contains("fullscreen")) {
-    removeFullscreen();
-  } else {
-    applyFullscreen();
-  }
+urlInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") openURL(urlInput.value);
 });
 
-function applyFullscreen() {
-  viewer.classList.add("fullscreen");
+// ✅ Prebuilt game buttons
+gameBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const url = btn.dataset.url;
+        urlInput.value = url; // Put URL in input
+        openURL(url);
+    });
+});
 
-  exitArea = document.createElement("div");
-  exitArea.id = "exit-area";
-  document.body.appendChild(exitArea);
-
-  exitArea.addEventListener("click", removeFullscreen);
-}
-
-function removeFullscreen() {
-  viewer.classList.remove("fullscreen");
-
-  if (exitArea) {
-    exitArea.remove();
-    exitArea = null;
-  }
+// ✅ Open URL in iframe
+function openURL(url) {
+    if (!url.startsWith("http")) url = "https://" + url;
+    iframe.src = url;
 }
