@@ -2,7 +2,7 @@
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
 body, html { width:100%; height:100%; overflow:hidden; }
 
-/* --- AURORA BACKGROUND --- */
+/* --- ANIMATED AURORA BACKGROUND --- */
 body {
   background: linear-gradient(270deg, #0d1b2a, #1b263b, #415a77, #778da9);
   background-size: 800% 800%;
