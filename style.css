@@ -2,27 +2,19 @@
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
 html, body { width:100%; height:100%; overflow:hidden; }
 
-/* --- DARKER, SLOWER AURORA BACKGROUND --- */
+/* --- STATIC DARK BLUE GRADIENT BACKGROUND --- */
 body {
-  background: linear-gradient(270deg, #010820, #020f30, #041a4b, #05225f); /* darker blue shades */
-  background-size: 800% 800%;
-  animation: auroraAnimation 60s ease infinite; /* slower animation */
-}
-
-@keyframes auroraAnimation {
-  0% { background-position:0% 50%; }
-  50% { background-position:100% 50%; }
-  100% { background-position:0% 50%; }
+  background: linear-gradient(180deg, #020618, #03102c, #041a40, #052355);
+  background-attachment: fixed;
 }
 
 /* --- GLASS PANELS --- */
 .glass {
   backdrop-filter: blur(12px) saturate(180%);
-  background-color: rgba(10,20,50,0.2); /* semi-transparent to show aurora */
+  background-color: rgba(10,20,50,0.2);
   border-radius:16px;
   border:1px solid rgba(255,255,255,0.1);
   box-shadow:0 8px 32px 0 rgba(31,38,135,0.37);
-  transition:0.3s;
   position: relative;
   z-index:1;
 }
@@ -37,8 +29,8 @@ body {
   background-size: 400% 400%;
   z-index:-1;
   filter:blur(15px);
-  opacity:0.5;
-  animation: auroraGlow 30s linear infinite; /* slower glow */
+  opacity:0.45;
+  animation: auroraGlow 30s linear infinite;
 }
 
 @keyframes auroraGlow {
@@ -49,20 +41,36 @@ body {
 
 /* --- CLASS CODE SCREEN --- */
 #class-code-screen {
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:350px; height:400px; text-align:center; color:white; transition:opacity 0.5s;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:350px;
+  height:400px;
+  text-align:center;
+  color:white;
+  transition:opacity .5s;
   z-index:10;
 }
 
 #code-boxes { display:flex; gap:10px; margin:20px 0; }
 
 .code-input {
-  width:50px; height:50px; text-align:center; font-size:24px; border-radius:8px;
-  border:none; background:rgba(255,255,255,0.05); color:white; transition:0.3s; position:relative;
+  width:50px;
+  height:50px;
+  text-align:center;
+  font-size:24px;
+  border-radius:8px;
+  border:none;
+  background:rgba(255,255,255,0.05);
+  color:white;
+  transition:0.3s;
 }
 
-/* --- AURORA GLOW ON CLASS CODE INPUTS --- */
+/* --- AURORA GLOW ON INPUTS --- */
 .code-input:focus,
 .code-input:not(:placeholder-shown) {
   outline:none;
@@ -78,43 +86,121 @@ body {
 
 /* --- CLASS CODE BUTTON --- */
 #class-code-button {
-  padding:10px 20px; border:none; border-radius:8px; background:#1e90ff;
-  color:white; font-size:16px; cursor:pointer; transition:0.3s;
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  background:#1e90ff;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+  transition:.3s;
 }
-
 #class-code-button:hover { background:#0b71d0; }
 
 /* --- MAIN SCREEN --- */
-#main-screen { display:none; flex-direction:column; align-items:center; opacity:0; width:100%; height:100%; padding:20px; gap:20px; }
+#main-screen {
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  opacity:0;
+  width:100%;
+  height:100%;
+  padding:20px;
+  gap:20px;
+}
 
 /* --- SETTINGS --- */
-#settings-button { position:absolute; top:20px; left:20px; padding:10px 20px; background:#1e90ff; color:white; border:none; border-radius:8px; cursor:pointer; }
-#settings-panel { position:absolute; top:60px; left:20px; width:250px; padding:15px; display:none; flex-direction:column; gap:10px; background:rgba(10,20,50,0.8); border-radius:12px; }
+#settings-button {
+  position:absolute;
+  top:20px;
+  left:20px;
+  padding:10px 20px;
+  background:#1e90ff;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  z-index:20;
+}
+
+#settings-panel {
+  position:absolute;
+  top:60px;
+  left:20px;
+  width:250px;
+  padding:15px;
+  display:none;
+  flex-direction:column;
+  gap:10px;
+  background:rgba(10,20,50,0.85);
+  border-radius:12px;
+  color:white;
+  z-index:19;
+}
+
 #settings-panel.open { display:flex; }
 
 /* --- URL BAR --- */
-#url-bar { display:flex; width:95%; max-width:1200px; }
-#url-bar input { flex:1; padding:12px; border:none; border-radius:12px 0 0 12px; background:rgba(255,255,255,0.05); color:white; font-size:16px; }
-#url-bar button { padding:12px 20px; border:none; background:#1e90ff; color:white; border-radius:0 12px 12px 0; cursor:pointer; transition:0.3s; }
+#url-bar {
+  display:flex;
+  width:95%;
+  max-width:1200px;
+}
+#url-bar input {
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:12px 0 0 12px;
+  background:rgba(255,255,255,0.05);
+  color:white;
+}
+#url-bar button {
+  padding:12px 20px;
+  border:none;
+  background:#1e90ff;
+  color:white;
+  border-radius:0 12px 12px 0;
+  cursor:pointer;
+  transition:.3s;
+}
 #url-bar button:hover { background:#0b71d0; }
 
 /* --- IFRAME --- */
-#iframe-container { width:95%; height:90vh; border-radius:16px; overflow:hidden; position:relative; }
-#iframe-container iframe { width:100%; height:100%; border:none; border-radius:16px; }
+#iframe-container {
+  width:95%;
+  height:90vh;
+  border-radius:16px;
+  overflow:hidden;
+}
 
-/* --- GAME BUTTONS GRID 10x2 --- */
+#iframe-container iframe {
+  width:100%;
+  height:100%;
+  border:none;
+  border-radius:16px;
+}
+
+/* --- GAME BUTTON GRID 10×2 --- */
 #game-buttons {
-  width:95%; max-width:1200px;
+  width:95%;
+  max-width:1200px;
   display:grid;
-  grid-template-columns:repeat(10,1fr);
-  grid-template-rows:repeat(2,60px);
+  grid-template-columns:repeat(10, 1fr);
+  grid-template-rows:repeat(2, 60px);
   gap:10px;
-  padding:10px;
 }
 
 .game-button {
-  padding:10px; border:none; border-radius:12px; background:rgba(30,144,255,0.6);
-  color:white; font-weight:bold; cursor:pointer; transition:0.3s; white-space:nowrap;
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  background:rgba(30,144,255,0.6);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.3s;
 }
-
-.game-button:hover { background:#1e90ff; transform:scale(1.05); }
+.game-button:hover {
+  background:#1e90ff;
+  transform:scale(1.05);
+}
