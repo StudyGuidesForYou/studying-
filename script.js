@@ -10,7 +10,7 @@ const gameBtns = document.querySelectorAll(".game-btn");
 
 const CORRECT_CODE = "SIGMA";
 
-// Auto-move focus
+// Auto-advance code boxes
 codeInputs.forEach((box, index) => {
     box.addEventListener("input", () => {
         if (box.value.length === 1 && index < codeInputs.length - 1) {
@@ -19,7 +19,7 @@ codeInputs.forEach((box, index) => {
     });
 });
 
-// Submit code
+// Code submission
 enterCodeBtn.addEventListener("click", () => {
     let entered = "";
     codeInputs.forEach(box => entered += box.value.toUpperCase());
@@ -34,28 +34,25 @@ enterCodeBtn.addEventListener("click", () => {
     }
 });
 
-// Launch URL
+// URL launch
 launchBtn.addEventListener("click", () => openURL(urlInput.value));
-urlInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") openURL(urlInput.value);
-});
+urlInput.addEventListener("keydown", e => { if (e.key === "Enter") openURL(urlInput.value); });
 
 // Game buttons
-gameBtns.forEach(btn => {
-    btn.addEventListener("click", () => openURL(btn.dataset.url));
-});
+gameBtns.forEach(btn => btn.addEventListener("click", () => openURL(btn.dataset.url)));
 
-// Load URL in iframe
+// Open URL in iframe
 function openURL(url) {
     if (!url.startsWith("http")) url = "https://" + url;
     iframe.src = url;
     iframePlaceholder.style.display = "none";
 }
 
-// ✅ Make iframe dynamically resize based on viewport
+// Make iframe scale dynamically
 function resizeIframe() {
-    iframe.style.width = window.innerWidth * 0.95 + "px";
-    iframe.style.height = window.innerHeight * 0.9 + "px";
+    const iframeHolder = document.querySelector(".iframe-holder");
+    iframeHolder.style.width = window.innerWidth * 0.95 + "px";
+    iframeHolder.style.height = window.innerHeight * 0.9 + "px";
 }
 window.addEventListener("resize", resizeIframe);
 resizeIframe();
