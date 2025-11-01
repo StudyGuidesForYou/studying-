@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Class Code Launcher</title>
+  <title>Class Code Launcher — Aurora</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <!-- SETTINGS LOGO (hidden until unlock) -->
   <button id="settings-logo" class="hidden" aria-label="Open settings" title="Settings">
-    <!-- two interlocking diamonds (SVG) -->
     <svg viewBox="0 0 80 80" width="44" height="44" aria-hidden="true">
       <g transform="translate(10,10)">
         <polygon class="diamond large" points="30,0 60,30 30,60 0,30" />
@@ -19,7 +18,7 @@
     </svg>
   </button>
 
-  <!-- SETTINGS PANEL (full-height, slides from left) -->
+  <!-- SETTINGS OVERLAY & PANEL (hidden until logo clicked) -->
   <div id="settings-overlay" class="hidden" aria-hidden="true">
     <aside id="settings-panel" role="dialog" aria-label="Settings panel">
       <header class="panel-header">
@@ -29,12 +28,12 @@
 
       <section class="panel-section">
         <h3>Background</h3>
-        <label class="label-inline">Color</label>
+        <label class="label-inline">Pick a color</label>
         <input id="bg-color" type="color" aria-label="Background color" />
         <div class="or">— OR —</div>
-        <label class="label-inline">Upload image</label>
+        <label class="label-inline">Upload an image</label>
         <input id="bg-file" type="file" accept="image/*" aria-label="Background image" />
-        <button id="bg-clear" class="btn-ghost">Reset</button>
+        <button id="bg-clear" class="btn-ghost">Reset background</button>
         <div id="bg-preview" class="bg-preview" aria-hidden="true"></div>
       </section>
 
@@ -48,14 +47,13 @@
       </section>
 
       <footer class="panel-footer">
-        <small>Settings saved locally</small>
+        <small>Settings saved locally in your browser.</small>
       </footer>
     </aside>
   </div>
 
-  <!-- DRAGGABLE MINI-WINDOWS (initially hidden) -->
+  <!-- DRAGGABLE WINDOWS (Hidden initially) -->
   <div id="apps-root">
-    <!-- Stopwatch -->
     <div class="app-window hidden" id="win-stopwatch" data-app="stopwatch" role="dialog" aria-label="Stopwatch">
       <div class="window-header">Stopwatch <span class="drag-hint">⠿</span></div>
       <div class="window-body">
@@ -68,7 +66,6 @@
       </div>
     </div>
 
-    <!-- Timer -->
     <div class="app-window hidden" id="win-timer" data-app="timer" role="dialog" aria-label="Timer">
       <div class="window-header">Timer <span class="drag-hint">⠿</span></div>
       <div class="window-body">
@@ -81,7 +78,6 @@
       </div>
     </div>
 
-    <!-- Alarm -->
     <div class="app-window hidden" id="win-alarm" data-app="alarm" role="dialog" aria-label="Alarm">
       <div class="window-header">Alarm <span class="drag-hint">⠿</span></div>
       <div class="window-body">
@@ -95,9 +91,10 @@
     </div>
   </div>
 
-  <!-- CLASS CODE SCREEN -->
+  <!-- CLASS CODE SCREEN (only this visible on load) -->
   <main id="class-code-screen" role="main" aria-labelledby="enter-heading">
     <h1 id="enter-heading">Enter Class Code</h1>
+
     <div id="code-row" class="code-row" role="group" aria-label="Class code">
       <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
       <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
@@ -105,6 +102,7 @@
       <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
       <input class="code-box" maxlength="1" inputmode="text" autocomplete="off" />
     </div>
+
     <div id="code-status" class="muted small" aria-live="polite"></div>
   </main>
 
@@ -120,7 +118,6 @@
     </header>
 
     <section id="viewer-area">
-      <!-- 95% x 90% iframe viewer centered and scrollable page content allowed beneath -->
       <iframe id="viewer" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
     </section>
   </div>
