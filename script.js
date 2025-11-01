@@ -1,16 +1,14 @@
-// Modern script.js — preserves and improves original behavior
+// Aurora-blue modern behavior — script.js
 (() => {
   'use strict';
 
-  // Helpers
+  // helpers
   const qs = s => document.querySelector(s);
   const qsa = s => Array.from(document.querySelectorAll(s));
   const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
-  const load = (k,def=null) => {
-    try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? def : v; } catch(e){ return def; }
-  };
+  const load = (k,def=null) => { try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? def : v; } catch(e){ return def; }};
 
-  // Config
+  // config
   const CORRECT = 'SIGMA'; // class code (uppercase)
   // DOM
   const codeBoxes = qsa('.code-box');
@@ -33,7 +31,6 @@
   const bgPreview = qs('#bg-preview');
 
   const appButtons = qsa('.app-btn');
-  const appsRoot = qs('#apps-root');
 
   // app windows
   const winStopwatch = qs('#win-stopwatch');
@@ -61,17 +58,27 @@
   // state
   let unlocked = false;
 
-  // -------- Code boxes behavior ----------
+  // --- ensure initial visibility states
+  function initialState() {
+    // show only code screen
+    codeScreen.style.display = 'flex';
+    codeScreen.style.opacity = '1';
+    mainLauncher.classList.add('hidden');
+    settingsLogo.classList.add('hidden');
+    settingsLogo.style.opacity = '0';
+    settingsOverlay.classList.add('hidden');
+  }
+  initialState();
+
+  // --- code-boxes navigation + input
   codeBoxes.forEach((box, idx) => {
     box.addEventListener('input', () => {
-      box.value = box.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,1);
+      box.value = (box.value || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,1);
       if (box.value && idx < codeBoxes.length - 1) codeBoxes[idx+1].focus();
       checkCode();
     });
     box.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !box.value && idx > 0) {
-        codeBoxes[idx-1].focus();
-      }
+      if (e.key === 'Backspace' && !box.value && idx > 0) codeBoxes[idx-1].focus();
       if (e.key === 'Enter') checkCode(true);
     });
   });
@@ -85,12 +92,12 @@
         codeStatus.textContent = 'Incorrect code';
         codeStatus.style.color = 'var(--danger)';
         codeRow.classList.add('shake');
-        setTimeout(()=> {
+        setTimeout(() => {
           codeRow.classList.remove('shake');
           codeBoxes.forEach(b => b.value = '');
           codeBoxes[0].focus();
           codeStatus.textContent = '';
-        }, 650);
+        }, 700);
       }
     }
   }
@@ -101,25 +108,21 @@
     codeScreen.style.transition = 'opacity .45s ease, transform .45s ease';
     codeScreen.style.opacity = '0';
     codeScreen.style.transform = 'translateY(-8px)';
-    setTimeout(()=> {
+    setTimeout(() => {
       codeScreen.style.display = 'none';
       mainLauncher.classList.remove('hidden');
       mainLauncher.style.opacity = '1';
       // show settings logo
       settingsLogo.classList.remove('hidden');
       settingsLogo.style.opacity = '1';
-      // load persisted background
-      applySavedBackground();
+      applySavedBackground(); // apply persisted bg
       urlInput.focus();
     }, 480);
   }
 
-  // -------- Main launcher URL handling ----------
-  openUrlBtn.addEventListener('click', () => {
-    openURL();
-  });
+  // --- launcher
+  openUrlBtn.addEventListener('click', openURL);
   urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') openURL(); });
-
   function openURL() {
     let url = (urlInput.value || '').trim();
     if (!url) return;
@@ -127,48 +130,31 @@
     viewer.src = url;
   }
 
-  // -------- Settings UI (logo + panel) ----------
-  // Only let user open settings after unlock
-  settingsLogo.addEventListener('click', (e) => {
-    if (!unlocked) return;
-    toggleSettings(true);
-  });
-
+  // --- settings: only open after unlock
+  settingsLogo.addEventListener('click', () => { if (!unlocked) return; toggleSettings(true); });
   settingsClose.addEventListener('click', () => toggleSettings(false));
-
-  // overlay click to close
-  settingsOverlay.addEventListener('click', (e) => {
-    if (e.target === settingsOverlay) toggleSettings(false);
-  });
-
-  // ESC to close panel
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (!settingsOverlay.classList.contains('hidden')) toggleSettings(false);
-    }
-  });
+  settingsOverlay.addEventListener('click', (e) => { if (e.target === settingsOverlay) toggleSettings(false); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleSettings(false); });
 
   function toggleSettings(open) {
     if (open) {
       settingsOverlay.classList.remove('hidden');
-      settingsOverlay.setAttribute('aria-hidden','false');
+      settingsOverlay.setAttribute('aria-hidden', 'false');
       settingsPanel.classList.add('open');
-      // load current bg color
       const savedColor = load('bg_color', null);
       if (savedColor) bgColor.value = savedColor;
     } else {
       settingsPanel.classList.remove('open');
       settingsOverlay.classList.add('hidden');
-      settingsOverlay.setAttribute('aria-hidden','true');
+      settingsOverlay.setAttribute('aria-hidden', 'true');
     }
   }
 
-  // -------- Background picker & image upload ----------
+  // --- background controls
   bgColor.addEventListener('input', (e) => {
     const v = e.target.value;
-    document.body.style.background = `linear-gradient(180deg, ${v}, var(--bg-2))`;
+    document.documentElement.style.setProperty('--bg-1', v);
     save('bg_color', v);
-    // remove image if any
     localStorage.removeItem('bg_image');
     bgPreview.style.backgroundImage = '';
     bgPreview.style.display = 'none';
@@ -184,7 +170,6 @@
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundPosition = 'center';
       save('bg_image', data);
-      // show preview
       bgPreview.style.backgroundImage = `url(${data})`;
       bgPreview.style.display = 'block';
     };
@@ -195,8 +180,7 @@
     document.body.style.background = '';
     localStorage.removeItem('bg_image');
     localStorage.removeItem('bg_color');
-    bgPreview.style.backgroundImage = '';
-    bgPreview.style.display = 'none';
+    if (bgPreview) { bgPreview.style.backgroundImage = ''; bgPreview.style.display = 'none'; }
   });
 
   function applySavedBackground() {
@@ -206,25 +190,14 @@
       document.body.style.backgroundImage = `url(${savedBg})`;
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundPosition = 'center';
-      bgPreview.style.backgroundImage = `url(${savedBg})`;
-      bgPreview.style.display = 'block';
+      if (bgPreview) { bgPreview.style.backgroundImage = `url(${savedBg})`; bgPreview.style.display = 'block'; }
     } else if (savedColor) {
-      document.body.style.background = `linear-gradient(180deg, ${savedColor}, var(--bg-2))`;
-      bgPreview.style.display = 'none';
-    } else {
-      // default
-      document.body.style.background = '';
-      bgPreview.style.display = 'none';
+      document.documentElement.style.setProperty('--bg-1', savedColor);
     }
   }
 
-  // -------- Open apps (stopwatch/timer/alarm) ----------
-  appButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const app = btn.dataset.app;
-      openApp(app);
-    });
-  });
+  // --- open app buttons
+  appButtons.forEach(btn => btn.addEventListener('click', () => openApp(btn.dataset.app)));
 
   function openApp(name) {
     let win;
@@ -234,15 +207,16 @@
     if (!win) return;
     win.classList.remove('hidden');
     win.style.display = 'block';
-    // place near top-left offset so multiple windows don't overlap exactly
-    win.style.left = (50 + Math.random() * 200) + 'px';
-    win.style.top  = (80 + Math.random() * 80) + 'px';
+    // position roughly near top-left with offset
+    win.style.left = (60 + Math.random() * 180) + 'px';
+    win.style.top  = (100 + Math.random() * 40) + 'px';
     makeDraggable(win);
   }
 
-  // -------- Draggable windows helper ----------
+  // --- make draggable helper
   function makeDraggable(el) {
-    if (el.__draggable) return; // already wired
+    if (!el) return;
+    if (el.__draggable) return;
     el.__draggable = true;
     const header = el.querySelector('.window-header');
     header.style.cursor = 'grab';
@@ -251,11 +225,9 @@
     function onDown(e) {
       dragging = true;
       header.style.cursor = 'grabbing';
-      startX = e.clientX;
-      startY = e.clientY;
+      startX = e.clientX; startY = e.clientY;
       const rect = el.getBoundingClientRect();
-      origX = rect.left;
-      origY = rect.top;
+      origX = rect.left; origY = rect.top;
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
       e.preventDefault();
@@ -274,7 +246,7 @@
       document.removeEventListener('mouseup', onUp);
     }
     header.addEventListener('mousedown', onDown);
-    // touch support
+    // touch
     header.addEventListener('touchstart', (ev) => {
       const t = ev.touches[0];
       startX = t.clientX; startY = t.clientY;
@@ -298,7 +270,7 @@
     }
   }
 
-  // -------- Stopwatch implementation ----------
+  // --- stopwatch implementation
   let swStartTs = null, swElapsed = 0, swRaf = null, swRunning = false;
   function swFormat(ms) {
     const total = Math.floor(ms);
@@ -332,18 +304,18 @@
     cancelAnimationFrame(swRaf);
   });
 
-  // -------- Timer implementation ----------
-  let timerHandle = null, timerRemaining = 0;
+  // --- timer
+  let timerHandle = null;
   timerStart.addEventListener('click', () => {
     const mins = parseFloat(timerMin.value || '0');
     if (!mins || mins <= 0) return;
-    timerRemaining = Math.floor(mins * 60);
-    timerStatus.textContent = `Time left: ${timerRemaining}s`;
+    let remaining = Math.floor(mins * 60);
+    timerStatus.textContent = `Time left: ${remaining}s`;
     if (timerHandle) clearInterval(timerHandle);
     timerHandle = setInterval(() => {
-      timerRemaining--;
-      timerStatus.textContent = `Time left: ${timerRemaining}s`;
-      if (timerRemaining <= 0) {
+      remaining--;
+      timerStatus.textContent = `Time left: ${remaining}s`;
+      if (remaining <= 0) {
         clearInterval(timerHandle);
         timerHandle = null;
         timerStatus.textContent = 'Done';
@@ -355,7 +327,7 @@
     if (timerHandle) { clearInterval(timerHandle); timerHandle = null; timerStatus.textContent = 'Stopped'; }
   });
 
-  // -------- Alarm implementation ----------
+  // --- alarm
   let alarmTimeout = null;
   alarmSet.addEventListener('click', () => {
     const t = alarmTime.value;
@@ -364,7 +336,7 @@
     const now = new Date();
     const alarm = new Date();
     alarm.setHours(hh, mm, 0, 0);
-    if (alarm <= now) alarm.setDate(alarm.getDate() + 1); // next day
+    if (alarm <= now) alarm.setDate(alarm.getDate() + 1);
     const ms = alarm - now;
     if (alarmTimeout) clearTimeout(alarmTimeout);
     alarmTimeout = setTimeout(() => {
@@ -376,40 +348,25 @@
   });
   alarmClear.addEventListener('click', () => {
     if (alarmTimeout) clearTimeout(alarmTimeout);
-    alarmTimeout = null;
-    alarmStatus.textContent = 'Cleared';
+    alarmTimeout = null; alarmStatus.textContent = 'Cleared';
   });
 
-  // -------- Persist / load background on boot ----------
+  // --- init load
   function init() {
-    // Hide main-launcher until unlocked
     mainLauncher.classList.add('hidden');
-    // show/hide settings logo initially hidden
     settingsLogo.classList.add('hidden');
-    settingsLogo.style.opacity = '0';
-
-    // attach clickers for app buttons inside panel
-    qsa('.open-app').forEach(b => b.addEventListener('click', (e) => {
-      const which = b.dataset.app;
-      openApp(which);
-    }));
-
-    // load saved background if any (but only apply visually after unlock)
+    settingsOverlay.classList.add('hidden');
+    // load saved background preview
     const savedBg = load('bg_image', null);
     const savedColor = load('bg_color', null);
-    if (savedBg) {
-      bgPreview.style.backgroundImage = `url(${savedBg})`;
-      bgPreview.style.display = 'block';
-    } else if (savedColor) {
-      bgColor.value = savedColor;
-    } else {
-      // defaults left to CSS
-    }
+    if (savedBg && bgPreview) { bgPreview.style.backgroundImage = `url(${savedBg})`; bgPreview.style.display = 'block'; }
+    if (savedColor && bgColor) bgColor.value = savedColor;
+    // initially focus first box
+    if (codeBoxes && codeBoxes[0]) codeBoxes[0].focus();
   }
-
   init();
 
-  // expose a debug API
-  window.appUI = { openApp, toggleSettings, save, load };
+  // small expose for debugging
+  window.launcherUI = { openApp, toggleSettings, load, save };
 
 })();
