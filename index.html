@@ -1,36 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Portal</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Code Launcher</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-    <div class="container">
+  <!-- CLASS CODE SCREEN -->
+  <div id="class-code-screen">
+    <h1>Enter Class Code</h1>
 
-        <h1>Enter Access Code</h1>
-
-        <!-- 5 verification boxes -->
-        <div class="code-boxes">
-            <input maxlength="1" class="code" id="code1">
-            <input maxlength="1" class="code" id="code2">
-            <input maxlength="1" class="code" id="code3">
-            <input maxlength="1" class="code" id="code4">
-            <input maxlength="1" class="code" id="code5">
-        </div>
-
-        <!-- Long text input -->
-        <input type="text" id="longInput" class="long-input" placeholder="Type something here...">
-
-        <!-- Normal-sized button -->
-        <button id="openBtn">OPEN</button>
-
-        <p id="result"></p>
-
+    <div id="code-boxes">
+      <input maxlength="1" class="digit" type="text">
+      <input maxlength="1" class="digit" type="text">
+      <input maxlength="1" class="digit" type="text">
+      <input maxlength="1" class="digit" type="text">
+      <input maxlength="1" class="digit" type="text">
     </div>
 
-    <script src="script.js"></script>
+    <p id="code-error">Incorrect code</p>
+  </div>
+
+  <!-- MAIN PAGE -->
+  <div id="main-page">
+    <div id="url-bar">
+      <input type="text" id="url-input" placeholder="Enter a URL..." />
+      <button id="go-btn">Open</button>
+    </div>
+
+    <iframe id="viewer" src=""></iframe>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
