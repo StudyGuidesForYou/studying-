@@ -20,7 +20,7 @@ codeInputs.forEach((box, index) => {
         }
     });
 
-    // Pressing Enter triggers code submission
+    // Pressing Enter anywhere submits code
     box.addEventListener("keydown", e => {
         if (e.key === "Enter") submitCode();
     });
