@@ -6,7 +6,7 @@
     font-family: "Segoe UI", sans-serif;
 }
 
-/* BODY BACKGROUND (DARK BLUE GRADIENT) */
+/* BODY BACKGROUND (STATIC DARK BLUE GRADIENT) */
 body {
     background: linear-gradient(135deg, #00172e, #00315e, #002346);
     height: 100vh;
@@ -139,8 +139,9 @@ body::before {
 /* IFRAME HOLDER */
 .iframe-holder {
     position: relative;
-    width: 95vw;       /* 95% of viewport width */
-    height: 90vh;      /* 90% of viewport height */
+    width: 95vw;      /* 95% viewport width */
+    max-width: 1400px;
+    height: 90vh;     /* 90% viewport height */
     border-radius: 25px;
     overflow: hidden;
     display: flex;
