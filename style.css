@@ -57,7 +57,7 @@ body::before {
 /* DASHBOARD CONTENT (NO SCROLL) */
 .dash-container {
     width:90%;
-    max-width:1600px; /* wider container */
+    max-width:1600px; /* desktop */
     padding:25px;
     display:flex;
     flex-direction:column;
@@ -80,3 +80,16 @@ body::before {
 .games-grid { display:grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(2, auto); gap:10px; width:100%; }
 .game-btn { padding:12px; border-radius:12px; background: rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2); cursor:pointer; transition:0.25s; text-align:center; font-size:14px; }
 .game-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media screen and (max-width: 768px) {
+    body { background: linear-gradient(135deg, #00122b, #00203f); } /* darker */
+    .code-card { width:90%; }
+    .code-input { width:45px; height:45px; font-size:22px; }
+    .btn { font-size:16px; padding:12px; }
+    .dash-container { width:95%; padding:15px; gap:15px; }
+    .iframe-holder { height:50vh; border-radius:20px; max-width:100%; }
+    .games-grid { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, auto); gap:8px; }
+    #url-input { font-size:16px; padding:10px; }
+    .game-btn { font-size:12px; padding:10px; }
+}
