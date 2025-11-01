@@ -8,50 +8,50 @@
 </head>
 <body>
 
+  <!-- Particles -->
+  <canvas id="particles"></canvas>
+
   <!-- Custom Cursor -->
   <img id="custom-cursor" class="hidden" alt="cursor">
 
-  <!-- Background Particles -->
-  <canvas id="particles"></canvas>
-
-  <!-- CLASS CODE SCREEN -->
-  <div id="class-code-screen" class="center-box">
+  <!-- Class Code Screen -->
+  <div id="class-code-screen" class="card">
     <h1>Enter Class Code</h1>
     <input id="class-code-input" type="text" maxlength="16" autocomplete="off">
-    <button id="class-code-btn">Enter</button>
+    <button id="class-code-btn" class="primary">Enter</button>
     <p id="class-code-error" class="error"></p>
   </div>
 
-  <!-- MAIN LAUNCHER -->
+  <!-- Launcher -->
   <div id="launcher" class="hidden">
     <div class="top-bar">
       <input id="url-input" type="text" placeholder="Enter URL…">
-      <button id="launch-btn">Launch</button>
-      <button id="settings-btn">⚙️</button>
+      <button id="launch-btn" class="primary">Open</button>
+      <button id="settings-btn" class="icon-btn">⚙️</button>
     </div>
 
-    <iframe id="iframe" src=""></iframe>
+    <iframe id="iframe"></iframe>
   </div>
 
-  <!-- SETTINGS PANEL -->
-  <div id="settings" class="hidden settings-panel">
+  <!-- Settings Panel -->
+  <div id="settings-panel" class="side-panel hidden">
     <h2>Settings</h2>
 
-    <label>Custom Cursor URL:</label>
-    <input id="cursor-url" type="text" placeholder="Image URL…">
-    <button id="cursor-apply">Apply Cursor</button>
+    <label>Custom Cursor Image URL</label>
+    <input id="cursor-url" type="text" placeholder="https://...">
+    <button id="cursor-apply" class="primary small">Apply Cursor</button>
 
-    <label>Background Image URL:</label>
-    <input id="bg-url" type="text" placeholder="Image URL…">
-    <button id="bg-apply">Apply Background</button>
+    <label>Background Image URL</label>
+    <input id="bg-url" type="text" placeholder="https://...">
+    <button id="bg-apply" class="primary small">Apply Background</button>
 
-    <label>Particles:</label>
+    <label>Particles</label>
     <select id="particles-toggle">
       <option value="on">On</option>
       <option value="off">Off</option>
     </select>
 
-    <button id="close-settings">Close</button>
+    <button id="close-settings" class="primary small close-button">Close</button>
   </div>
 
   <script src="script.js"></script>
