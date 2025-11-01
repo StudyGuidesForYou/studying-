@@ -1,9 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="theme-color" content="#020f30" />
 <title>Class Code Portal</title>
+
+<!-- CRITICAL INLINE BACKGROUND (prevents white flash) -->
+<style>
+  /* immediate static dark blue gradient so nothing flashes white */
+  html,body {
+    height:100%;
+    margin:0;
+    background: linear-gradient(180deg, #010820 0%, #02132a 40%, #041a40 70%, #052255 100%);
+    background-attachment: fixed;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    color: #fff;
+  }
+</style>
+
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -29,12 +45,12 @@
   <button id="settings-button" style="display:none;">Settings</button>
 
   <!-- Settings Panel -->
-  <div id="settings-panel">
+  <div id="settings-panel" aria-hidden="true">
     <h2 style="color:white;">Settings Panel</h2>
 
     <div class="setting-item">
-      <label style="color:white;" for="gradient-color">Background Gradient</label>
-      <input type="color" id="gradient-color">
+      <label style="color:white;" for="gradient-color">Background Gradient (preview)</label>
+      <input type="color" id="gradient-color" title="Set accent gradient color">
     </div>
 
     <div class="setting-item">
@@ -46,12 +62,11 @@
         <option value="bg3.jpg">Nebula</option>
       </select>
     </div>
-
   </div>
 
   <!-- URL Bar -->
   <div id="url-bar" class="glass">
-    <input type="text" id="url-input" placeholder="Enter URL here..." autocomplete="off">
+    <input type="text" id="url-input" placeholder="Enter URL here..." autocomplete="off" />
     <button id="url-button">Go</button>
   </div>
 
