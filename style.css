@@ -1,110 +1,172 @@
-/* RESET */
+/* ✅ RESET */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    background: linear-gradient(135deg, #00172e, #00315e, #002346);
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #003d6b, #001f3f);
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* ✅ Aurora stays BEHIND EVERYTHING */
-.aurora {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    background: radial-gradient(circle at 20% 30%, rgba(0,255,255,0.25), transparent 60%),
-                radial-gradient(circle at 80% 75%, rgba(0,120,255,0.25), transparent 60%),
-                radial-gradient(circle at 50% 50%, rgba(80,0,255,0.25), transparent 60%);
-    filter: blur(90px);
-    animation: auroraMove 18s infinite alternate ease-in-out;
+/* ✅ CLASS CODE SECTION */
+#class-code-section {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
 }
 
-/* ✅ Screens sit ABOVE aurora */
-.screen {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
+#class-code-section h2 {
+  color: white;
+  margin-bottom: 10px;
 }
 
-.hidden { display: none !important; }
-
-/* ✅ DASHBOARD */
-#dashboard-screen {
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 40px;
+.code-input-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 }
 
-.dash-container {
-    width: 92%;
-    max-width: 1400px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 20px;
-    backdrop-filter: blur(14px);
-    padding: 25px;
+.code-input {
+  width: 50px;
+  height: 40px;
+  font-size: 22px;
+  text-align: center;
+  border-radius: 6px;
+  border: none;
 }
 
-/* ✅ URL BAR */
-.url-bar {
-    display: flex;
-    width: 100%;
-    gap: 10px;
+/* ✅ Hidden until class code entered */
+#game-launcher {
+  display: none;
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 800px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  color: white;
 }
 
+/* ✅ Input + buttons */
 #url-input {
-    flex: 1;
-    padding: 14px;
-    border-radius: 12px;
-    border: 2px solid rgba(255,255,255,0.3);
-    background: rgba(255,255,255,0.1);
-    color: white;
+  width: 100%;
+  height: 38px;
+  border-radius: 8px;
+  border: none;
+  padding: 10px;
+  margin-bottom: 15px;
 }
 
-.btn {
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: none;
-    background: #00aaff;
-    color: white;
-    cursor: pointer;
+button {
+  background: #1da1f2;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-/* ✅ IFRAME CONTAINER NORMAL MODE */
+button:hover {
+  background: #0d8bd6;
+}
+
+/* ✅ Prebuilt game list */
+#games-list button {
+  margin: 4px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+/* ✅ iFrame container (normal mode) */
 #iframe-container {
-    margin-top: 20px;
-    width: 100%;
-    height: 550px;
-    border-radius: 14px;
+  position: absolute;
+  top: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1100px;
+  height: 65vh;
+  display: none;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 10px;
+}
+
+/* ✅ Close + fullscreen buttons */
+#close-iframe, #toggle-fullscreen {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  padding: 8px 14px;
+  font-size: 15px;
+}
+
+/* ✅ FULLSCREEN MODE — FIXED */
+.fullscreen-mode {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 97vw !important;
+  height: 97vh !important;
+  z-index: 9999;
+}
+
+.fullscreen-mode iframe {
+  border-radius: 6px !important;
+}
+
+/* ✅ MOBILE FIXES */
+@media (max-width: 768px) {
+
+  body {
     overflow: hidden;
-    background: black;
-    position: relative;
-    z-index: 3;
-}
+  }
 
-#iframe-container iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-}
+  #class-code-section {
+    top: 10px;
+  }
 
-/* ✅ FULLSCREEN MODE — WORKING PROPERLY */
-#iframe-container.fullscreen {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 97vw;
-    height: 97vh;
-    transform: translate(-50%, -50%);
-    border-radius: 14px;
-    background: black;
-    z-index: 9999;
+  .code-input {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  #game-launcher {
+    width: 92%;
+    padding: 16px;
+    top: 80px;
+  }
+
+  #iframe-container {
+    top: 190px;
+    width: 95%;
+    height: 60vh;
+  }
+
+  button {
+    padding: 8px 12px;
+  }
+
+  #close-iframe, #toggle-fullscreen {
+    top: -36px;
+    font-size: 14px;
+    padding: 6px 10px;
+  }
 }
