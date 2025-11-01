@@ -4,7 +4,6 @@ const enterCodeBtn = document.getElementById("enter-code");
 const classScreen = document.getElementById("class-code-screen");
 const dashScreen = document.getElementById("dashboard-screen");
 const iframe = document.getElementById("game-frame");
-const iframePlaceholder = document.getElementById("iframe-placeholder");
 const urlInput = document.getElementById("url-input");
 const launchBtn = document.getElementById("launch-btn");
 const gameBtns = document.querySelectorAll(".game-btn");
@@ -67,5 +66,4 @@ gameBtns.forEach(btn => {
 function openURL(url) {
     if (!url.startsWith("http")) url = "https://" + url;
     iframe.src = url;
-    if (iframePlaceholder) iframePlaceholder.style.display = "none";
 }
