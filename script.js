@@ -27,7 +27,11 @@ settingsButton.addEventListener('click', () => {
 // --- CLASS CODE INPUTS ---
 codeInputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
+    input.classList.add('aurora-glow'); // add glow on typing
     if(input.value.length>0 && idx < codeInputs.length-1) codeInputs[idx+1].focus();
+  });
+  input.addEventListener('blur', () => {
+    input.classList.remove('aurora-glow'); // remove glow when unfocused
   });
   input.addEventListener('keydown', e=>{
     if(e.key==='Backspace' && input.value==='' && idx>0) codeInputs[idx-1].focus();
@@ -45,6 +49,7 @@ function checkClassCode() {
       classCodeScreen.style.display='none';
       mainScreen.style.display='flex';
       settingsButton.style.display='block';
+      mainScreen.classList.add('show-bg'); // show aurora background
       setTimeout(()=>mainScreen.style.opacity=1,50);
       urlInput.focus();
     },500);
