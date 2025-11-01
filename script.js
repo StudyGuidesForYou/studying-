@@ -4,7 +4,6 @@ const codeInputs = document.querySelectorAll('.code-input');
 const classCodeButton = document.getElementById('class-code-button');
 const codeMessage = document.getElementById('code-message');
 
-const urlForm = document.getElementById('url-bar');
 const urlInput = document.getElementById('url-input');
 const urlButton = document.getElementById('url-button');
 const mainIframe = document.getElementById('main-iframe');
@@ -23,7 +22,7 @@ codeInputs.forEach((input, idx) => {
   });
 });
 
-// Check class code and fade transition
+// Check class code and fade
 function checkClassCode() {
   let enteredCode = '';
   codeInputs.forEach(input => enteredCode += input.value);
@@ -35,7 +34,7 @@ function checkClassCode() {
     // Fade out class code screen
     classCodeScreen.classList.add('fade');
 
-    // Fade in main screen after fade out
+    // Show main screen after fade
     setTimeout(() => {
       mainScreen.style.display = 'flex';
       setTimeout(() => {
@@ -71,7 +70,7 @@ urlButton.addEventListener('click', () => {
   urlInput.value = '';
 });
 
-// Allow Enter key to submit URL
+// Enter key for URL
 urlInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
