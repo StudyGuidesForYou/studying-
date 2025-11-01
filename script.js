@@ -1,215 +1,101 @@
-// ✅ Correct class code
-const CORRECT_CODE = "SIGMA";
-
-// Elements
-const codeInputs = document.querySelectorAll(".digit");
-const errorMsg = document.getElementById("code-error");
-const codeScreen = document.getElementById("class-code-screen");
-const mainPage = document.getElementById("main-page");
-const settingsBtn = document.getElementById("settings-btn");
-const settingsPanel = document.getElementById("settings-panel");
-const settingsOverlay = document.getElementById("settings-overlay");
-
-// Auto-move focus
-codeInputs.forEach((input, index) => {
-  input.addEventListener("input", () => {
-    input.value = input.value.toUpperCase();
-    if (input.value && index < 4) codeInputs[index + 1].focus();
-    checkCode();
-  });
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Backspace" && index > 0 && !input.value) {
-      codeInputs[index - 1].focus();
-    }
-  });
-});
-
-// ✅ Check class code
-function checkCode() {
-  let code = "";
-  codeInputs.forEach(i => code += i.value);
-
-  if (code.length === 5) {
-    if (code === CORRECT_CODE) unlock();
-    else {
-      errorMsg.style.opacity = "1";
-      setTimeout(() => errorMsg.style.opacity = "0", 1200);
-      codeInputs.forEach(i => i.value = "");
-      codeInputs[0].focus();
-    }
-  }
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
-// ✅ Unlock the launcher page
-function unlock() {
-  codeScreen.style.opacity = "0";
-
-  setTimeout(() => {
-    codeScreen.style.display = "none";
-
-    // ✅ Show launcher only AFTER unlock
-    mainPage.style.display = "block";
-    mainPage.style.pointerEvents = "auto";
-    setTimeout(() => (mainPage.style.opacity = "1"), 20);
-
-    // ✅ Show settings button
-    settingsBtn.style.display = "block";
-    setTimeout(() => settingsBtn.style.opacity = "1", 50);
-
-  }, 600);
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
-// ✅ Settings open/close
-settingsBtn.addEventListener("click", toggleSettings);
-settingsOverlay.addEventListener("click", toggleSettings);
-
-function toggleSettings() {
-  const open = settingsPanel.classList.toggle("open");
-  settingsOverlay.style.display = open ? "block" : "none";
-
-  setTimeout(() => {
-    settingsOverlay.style.opacity = open ? "1" : "0";
-  }, 10);
+/* CLASS CODE SCREEN */
+#class-code-screen {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(to bottom right, #1a2a6c, #0f2027); /* dark blue gradient */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: white;
+  transition: opacity 0.5s ease;
+  z-index: 10;
 }
 
-// ✅ URL Launcher
-const goBtn = document.getElementById("go-btn");
-const urlInput = document.getElementById("url-input");
-const viewer = document.getElementById("viewer");
-
-function openURL() {
-  let url = urlInput.value.trim();
-  if (!url.startsWith("http")) url = "https://" + url;
-  viewer.src = url;
+#class-code-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
-goBtn.addEventListener("click", openURL);
-urlInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") openURL();
-});
-
-
-// ✅ Background Settings
-document.getElementById("bg-color-picker").addEventListener("input", (e) => {
-  document.body.style.background = e.target.value;
-});
-
-document.getElementById("bg-image-picker").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    document.body.style.background = `url('${reader.result}') center/cover`;
-  };
-  reader.readAsDataURL(file);
-});
-
-document.getElementById("bg-reset").addEventListener("click", () => {
-  document.body.style.background = "linear-gradient(135deg, #0f1c39, #001d3d, #003566, #002a63)";
-});
-
-
-// ✅ DRAGGABLE WINDOWS + OPEN/CLOSE
-function makeDraggable(win) {
-  let offsetX, offsetY;
-
-  win.querySelector(".window-header").addEventListener("mousedown", (e) => {
-    offsetX = e.clientX - win.offsetLeft;
-    offsetY = e.clientY - win.offsetTop;
-
-    function move(e) {
-      win.style.left = e.clientX - offsetX + "px";
-      win.style.top = e.clientY - offsetY + "px";
-    }
-
-    function stop() {
-      document.removeEventListener("mousemove", move);
-      document.removeEventListener("mouseup", stop);
-    }
-
-    document.addEventListener("mousemove", move);
-    document.addEventListener("mouseup", stop);
-  });
+#class-code-screen input {
+  padding: 10px 15px;
+  font-size: 18px;
+  border-radius: 5px;
+  border: none;
+  margin-bottom: 10px;
+  outline: none;
 }
 
-["stopwatch", "timer", "alarm"].forEach((app) => {
-  const win = document.getElementById(`${app}-window`);
-  makeDraggable(win);
+#class-code-screen button {
+  padding: 10px 20px;
+  font-size: 18px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background-color: #003366;
+  color: white;
+}
 
-  document
-    .querySelector(`[data-app="${app}"]`)
-    .addEventListener("click", () => {
-      win.style.display = "block";
-    });
-});
+/* MAIN SCREEN */
+#main-screen {
+  display: none;
+  width: 100%;
+  height: 100%;
+  background-color: #f0f0f0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 20px;
+}
 
-// ✅ Stopwatch
-let swInterval = null;
-let swTime = 0;
+#url-form {
+  display: flex;
+  width: 90%;
+  max-width: 1000px;
+  margin-bottom: 10px;
+}
 
-document.getElementById("sw-start").onclick = () => {
-  if (swInterval) return;
-  swInterval = setInterval(() => {
-    swTime += 10;
-    const minutes = String(Math.floor(swTime / 60000)).padStart(2, "0");
-    const seconds = String(Math.floor((swTime % 60000) / 1000)).padStart(2, "0");
-    const ms = String(Math.floor((swTime % 1000) / 10)).padStart(2, "0");
-    document.getElementById("stopwatch-display").textContent =
-      `${minutes}:${seconds}.${ms}`;
-  }, 10);
-};
+#url-form input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px 0 0 5px;
+  border: 1px solid #ccc;
+  outline: none;
+}
 
-document.getElementById("sw-stop").onclick = () => {
-  clearInterval(swInterval);
-  swInterval = null;
-};
+#url-form button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 0 5px 5px 0;
+  border: 1px solid #003366;
+  background-color: #003366;
+  color: white;
+  cursor: pointer;
+}
 
-document.getElementById("sw-reset").onclick = () => {
-  swTime = 0;
-  document.getElementById("stopwatch-display").textContent = "00:00.00";
-};
+#iframe-container {
+  width: 95%;
+  height: 90%;
+}
 
-
-// ✅ Timer
-let timerInterval = null;
-
-document.getElementById("timer-start").onclick = () => {
-  const minutes = parseInt(document.getElementById("timer-minutes").value);
-  if (!minutes) return;
-
-  let remaining = minutes * 60;
-
-  timerInterval = setInterval(() => {
-    if (remaining <= 0) {
-      clearInterval(timerInterval);
-      alert("Timer done!");
-    }
-    remaining--;
-  }, 1000);
-};
-
-document.getElementById("timer-stop").onclick = () => {
-  clearInterval(timerInterval);
-};
-
-
-// ✅ Alarm
-document.getElementById("alarm-set").onclick = () => {
-  const time = document.getElementById("alarm-time").value;
-  if (!time) return;
-
-  const [h, m] = time.split(":");
-  const now = new Date();
-  const alarm = new Date();
-
-  alarm.setHours(h, m, 0, 0);
-
-  if (alarm < now) alarm.setDate(alarm.getDate() + 1);
-
-  const delay = alarm - now;
-
-  setTimeout(() => {
-    alert("Alarm ringing!");
-  }, delay);
-};
+#iframe-container iframe {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #003366;
+  border-radius: 5px;
+}
