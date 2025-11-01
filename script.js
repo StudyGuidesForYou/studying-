@@ -1,29 +1,26 @@
-/* Main client JS — settings, UI, cursor, tools, iframe launcher
-   - Centered code screen
-   - Modernized settings panel (sidebar)
-   - Custom cursor with simple white/light background removal (client-side)
-   - No weather (removed)
-   - URL input much longer; iframe non-scrolling container
-   - All settings persisted to localStorage
-*/
+// Modernized script.js — preserves original features but cleaned, reorganized & improved
+// Features: settings sidebar, particles bg, custom cursor with bg removal, volumes, tools (stopwatch/timer/alarm/notes),
+// centered code screen that unlocks a launcher with iframe, localStorage persistence, tasteful tones.
 
 (() => {
-  const qs = s => document.querySelector(s);
-  const qsa = s => Array.from(document.querySelectorAll(s));
+  'use strict';
+
+  // --- tiny helpers ------------------------------------------------------
+  const qs = sel => document.querySelector(sel);
+  const qsa = sel => Array.from(document.querySelectorAll(sel));
   const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
   const load = (k, def = null) => {
-    try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? def : v;
-    } catch (e) { return def; }
+    try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? def : v; } catch (e) { return def; }
   };
 
-  // DOM
+  // --- DOM refs ---------------------------------------------------------
   const logoBtn = qs('#logo-btn');
   const sidePanel = qs('#side-panel');
   const sideClose = qs('#side-close');
   const bgCanvas = qs('#bg-canvas');
   const customCursor = qs('#custom-cursor');
 
-  const codeBoxes = qsa('.code-box');
+  const codeBoxes = qsa('.code-box'); // array-like
   const pasteBtn = qs('#paste-btn');
   const clearBtn = qs('#clear-btn');
   const enterBtn = qs('#enter-btn');
@@ -60,7 +57,7 @@
   const modalBody = qs('#modal-body');
   const modalClose = qs('#modal-close');
 
-  // audio
+  // --- audio context & prefs -------------------------------------------
   const audioCtx = (() => {
     try { return new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
   })();
@@ -69,14 +66,14 @@
   let sfx = load('sfx_vol', 1);
   let iframeVolume = load('frame_vol', 1);
 
-  function uiSetVolumes() {
+  const uiSetVolumes = () => {
     if (masterVol) masterVol.value = Math.round(master * 100);
     if (sfxVol) sfxVol.value = Math.round(sfx * 100);
     if (frameVol) frameVol.value = Math.round(iframeVolume * 100);
     if (masterVal) masterVal.textContent = Math.round(master * 100);
     if (sfxVal) sfxVal.textContent = Math.round(sfx * 100);
     if (frameVal) frameVal.textContent = Math.round(iframeVolume * 100);
-  }
+  };
   uiSetVolumes();
 
   function playTone(freq = 440, time = 0.08, type = 'sine') {
@@ -93,30 +90,31 @@
     o.stop(now + time + 0.02);
   }
 
-  // particles background
+  // --- particles background --------------------------------------------
   (function particles() {
     const c = bgCanvas; if (!c) return;
     const ctx = c.getContext('2d');
-    let w, h, parts = [];
-    function resize() { w = c.width = innerWidth; h = c.height = innerHeight; parts = []; for (let i = 0; i < 60; i++) parts.push({ x: Math.random() * w, y: Math.random() * h, r: 1 + Math.random() * 2, dx: (Math.random() - 0.5) * 0.5, dy: (Math.random() - 0.5) * 0.5 }); }
+    let w = 0, h = 0, parts = [];
+    function resize() { w = c.width = innerWidth; h = c.height = innerHeight; parts = []; const count = Math.floor(Math.max(40, (w * h) / 60000)); for (let i = 0; i < count; i++) parts.push({ x: Math.random() * w, y: Math.random() * h, r: 1 + Math.random() * 2.2, dx: (Math.random() - 0.5) * 0.6, dy: (Math.random() - 0.5) * 0.6 }); }
     function frameF() {
       ctx.clearRect(0, 0, w, h);
+      ctx.globalCompositeOperation = 'lighter';
       parts.forEach(p => {
         p.x += p.dx; p.y += p.dy;
-        if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
-        if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
-        ctx.beginPath(); ctx.fillStyle = 'rgba(255,255,255,0.02)'; ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10;
+        if (p.y < -10) p.y = h + 10; if (p.y > h + 10) p.y = -10;
+        ctx.beginPath(); ctx.fillStyle = 'rgba(40,120,255,0.06)'; ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
       });
       requestAnimationFrame(frameF);
     }
     window.addEventListener('resize', resize); resize(); frameF();
   })();
 
-  // custom cursor: load saved
+  // --- custom cursor ---------------------------------------------------
   let cursorData = load('cursor_data', null);
   let cursorSizeValNum = load('cursor_size', 48);
   if (cursorSize) cursorSize.value = cursorSizeValNum;
-  if (qs('#cursor-size-val')) qs('#cursor-size-val').textContent = cursorSizeValNum;
+  if (cursorSizeVal) cursorSizeVal.textContent = cursorSizeValNum;
   if (cursorData && customCursor) {
     customCursor.src = cursorData;
     customCursor.style.width = cursorSizeValNum + 'px';
@@ -130,43 +128,26 @@
     }
   });
 
-  // cursor upload: remove white/light background on client
+  // remove light background from uploaded image (best-effort)
   if (cursorFile) cursorFile.addEventListener('change', ev => {
     const f = ev.target.files && ev.target.files[0]; if (!f) return;
     const img = new Image();
     const reader = new FileReader();
     reader.onload = () => {
       img.onload = () => {
-        // draw to temporary canvas and remove near-white pixels
-        const c = document.createElement('canvas');
-        c.width = img.width; c.height = img.height;
-        const ctx = c.getContext('2d');
-        ctx.drawImage(img, 0, 0);
         try {
-          const id = ctx.getImageData(0, 0, c.width, c.height);
-          const data = id.data;
+          const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+          const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
+          const id = ctx.getImageData(0, 0, c.width, c.height); const data = id.data;
           for (let i = 0; i < data.length; i += 4) {
             const r = data[i], g = data[i + 1], b = data[i + 2];
-            // if pixel is light (near-white), make it transparent
-            if (r > 230 && g > 230 && b > 230) {
-              data[i + 3] = 0;
-            }
+            if (r > 230 && g > 230 && b > 230) data[i + 3] = 0;
           }
-          ctx.putImageData(id, 0, 0);
-          const out = c.toDataURL('image/png');
-          cursorData = out;
-          save('cursor_data', cursorData);
-          if (customCursor) {
-            customCursor.src = out;
-            const s = +(cursorSize && cursorSize.value || 48);
-            customCursor.style.width = s + 'px';
-            customCursor.classList.remove('hidden');
-            document.body.classList.add('has-custom-cursor');
-          }
+          ctx.putImageData(id, 0, 0); const out = c.toDataURL('image/png'); cursorData = out; save('cursor_data', out);
+          if (customCursor) { customCursor.src = out; customCursor.style.width = (cursorSize && +cursorSize.value || 48) + 'px'; customCursor.classList.remove('hidden'); document.body.classList.add('has-custom-cursor'); }
         } catch (e) {
-          // fallback if CORS or large images: use original
-          cursorData = reader.result;
-          save('cursor_data', cursorData);
+          // CORS/large images fallback
+          cursorData = reader.result; save('cursor_data', cursorData);
           if (customCursor) { customCursor.src = cursorData; customCursor.classList.remove('hidden'); document.body.classList.add('has-custom-cursor'); }
         }
       };
@@ -175,15 +156,11 @@
     reader.readAsDataURL(f);
   });
 
-  if (cursorSize) cursorSize.addEventListener('input', e => {
-    const v = +e.target.value; save('cursor_size', v); if (qs('#cursor-size-val')) qs('#cursor-size-val').textContent = v; if (customCursor) customCursor.style.width = v + 'px';
-  });
+  if (cursorSize) cursorSize.addEventListener('input', e => { const v = +e.target.value; save('cursor_size', v); if (cursorSizeVal) cursorSizeVal.textContent = v; if (customCursor) customCursor.style.width = v + 'px'; });
 
-  if (cursorClear) cursorClear.addEventListener('click', () => {
-    cursorData = null; save('cursor_data', null); if (customCursor) { customCursor.classList.add('hidden'); document.body.classList.remove('has-custom-cursor'); } if (cursorFile) cursorFile.value = '';
-  });
+  if (cursorClear) cursorClear.addEventListener('click', () => { cursorData = null; save('cursor_data', null); if (customCursor) { customCursor.classList.add('hidden'); document.body.classList.remove('has-custom-cursor'); } if (cursorFile) cursorFile.value = ''; });
 
-  // side panel toggle by logo button
+  // --- sidebar / logo button -------------------------------------------
   if (logoBtn) logoBtn.addEventListener('click', () => {
     const opening = !sidePanel.classList.contains('open');
     logoBtn.classList.toggle('open', opening);
@@ -193,49 +170,45 @@
   });
   if (sideClose) sideClose.addEventListener('click', () => { sidePanel.classList.remove('open'); logoBtn.classList.remove('open'); });
 
-  // background settings
+  // --- background settings ---------------------------------------------
   const savedBg = load('bg_image', null);
   const savedBgColor = load('bg_color', null);
   if (savedBgColor) {
     if (bgColor) bgColor.value = savedBgColor;
-    document.body.style.background = `linear-gradient(180deg, ${savedBgColor}, var(--bg-2))`;
+    document.body.style.background = `linear-gradient(180deg, ${savedBgColor}, #07102a)`;
   }
   if (savedBg) {
     document.body.style.backgroundImage = `url(${savedBg})`;
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundPosition = 'center';
   }
-  if (bgColor) bgColor.addEventListener('input', e => { save('bg_color', e.target.value); document.body.style.background = `linear-gradient(180deg, ${e.target.value}, var(--bg-2))`; });
+  if (bgColor) bgColor.addEventListener('input', e => { save('bg_color', e.target.value); document.body.style.background = `linear-gradient(180deg, ${e.target.value}, #07102a)`; });
   if (bgFile) bgFile.addEventListener('change', ev => {
     const f = ev.target.files && ev.target.files[0]; if (!f) return;
     const r = new FileReader(); r.onload = () => { save('bg_image', r.result); document.body.style.backgroundImage = `url(${r.result})`; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundPosition = 'center'; }; r.readAsDataURL(f);
   });
-  if (bgClear) bgClear.addEventListener('click', () => { localStorage.removeItem('bg_image'); localStorage.removeItem('bg_color'); document.body.style.background = ''; if (bgFile) bgFile.value = ''; if (bgColor) bgColor.value = '#000000'; });
+  if (bgClear) bgClear.addEventListener('click', () => { localStorage.removeItem('bg_image'); localStorage.removeItem('bg_color'); document.body.style.background = ''; if (bgFile) bgFile.value = ''; if (bgColor) bgColor.value = '#07102a'; });
 
-  // volume controls
+  // --- volume controls -------------------------------------------------
   if (masterVol) masterVol.addEventListener('input', e => { master = e.target.value / 100; save('master_vol', master); if (masterVal) masterVal.textContent = e.target.value; });
   if (sfxVol) sfxVol.addEventListener('input', e => { sfx = e.target.value / 100; save('sfx_vol', sfx); if (sfxVal) sfxVal.textContent = e.target.value; });
-  if (frameVol) frameVol.addEventListener('input', e => { iframeVolume = e.target.value / 100; save('frame_vol', iframeVolume); if (frameVal) frameVal.textContent = e.target.value; try { if (frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'set-volume', volume: iframeVolume }, '*'); } catch (e) { } });
+  if (frameVol) frameVol.addEventListener('input', e => { iframeVolume = e.target.value / 100; save('frame_vol', iframeVolume); if (frameVal) frameVal.textContent = e.target.value; try { if (frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'set-volume', volume: iframeVolume }, '*'); } catch (e) { /* ignore */ } });
 
   uiSetVolumes();
-  function uiSetVolumes() {
-    if (masterVal) masterVal.textContent = Math.round((load('master_vol', master)) * 100);
-    if (sfxVal) sfxVal.textContent = Math.round((load('sfx_vol', sfx)) * 100);
-    if (frameVal) frameVal.textContent = Math.round((load('frame_vol', iframeVolume)) * 100);
-  }
+  function uiSetVolumes() { if (masterVal) masterVal.textContent = Math.round((load('master_vol', master)) * 100); if (sfxVal) sfxVal.textContent = Math.round((load('sfx_vol', sfx)) * 100); if (frameVal) frameVal.textContent = Math.round((load('frame_vol', iframeVolume)) * 100); }
 
-  // modal helpers
+  // --- modal helpers ---------------------------------------------------
   function openModal(html) { if (!modal) return; modalBody.innerHTML = html; modal.classList.remove('hidden'); }
   function closeModal() { if (!modal) return; modal.classList.add('hidden'); setTimeout(() => modalBody.innerHTML = '', 300); }
   if (modalClose) modalClose.addEventListener('click', closeModal);
 
-  // tools: stopwatch/timer/alarm/notes
+  // --- tools: stopwatch, timer, alarm, notes ---------------------------
   if (openStopwatch) openStopwatch.addEventListener('click', () => {
     openModal(`<h3>Stopwatch</h3><div id="sw-time" style="font-size:28px;margin:10px 0">00:00.00</div><div style="display:flex;gap:8px"><button id="sw-start" class="tool-btn">Start</button><button id="sw-stop" class="tool-btn">Stop</button><button id="sw-reset" class="tool-btn">Reset</button></div>`);
     let start = 0, raf = 0, running = false;
     const out = qs('#sw-time');
     const startBtn = qs('#sw-start'), stopBtn = qs('#sw-stop'), resetBtn = qs('#sw-reset');
-    function fmt(t) { const ms = Math.floor(t % 1000 / 10); const s = Math.floor(t / 1000) % 60; const m = Math.floor(t / 60000); return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms).padStart(2, '0')}`; }
+    function fmt(t) { const ms = Math.floor(t % 1000 / 10); const s = Math.floor(t / 1000) % 60; const m = Math.floor(t / 60000); return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(2,'0')}`; }
     function tick() { if (!running) return; const now = performance.now() - start; out.textContent = fmt(now); raf = requestAnimationFrame(tick); }
     function parseTime(s) { const parts = s.split(/[:.]/); if (parts.length < 3) return 0; return (parseInt(parts[0]) * 60000 + parseInt(parts[1]) * 1000 + parseInt(parts[2]) * 10); }
     startBtn.addEventListener('click', () => { if (!running) { running = true; start = performance.now() - (parseTime(out.textContent) || 0); tick(); playTone(880, 0.06, 'sine'); } });
@@ -264,45 +237,55 @@
 
   if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-  // ---- CODE SCREEN logic ----
-  const CORRECT = 'sigma'; // class code
+  // --- code screen logic -----------------------------------------------
+  const CORRECT = 'sigma';
   if (codeBoxes && codeBoxes.length) {
     codeBoxes[0].focus();
     codeBoxes.forEach((box, idx) => {
       box.addEventListener('input', () => {
-        box.value = box.value.replace(/[^a-zA-Z]/g, '').slice(0, 1);
+        box.value = box.value.replace(/[^a-zA-Z]/g, '').slice(0,1).toUpperCase();
         if (box.value && idx < codeBoxes.length - 1) codeBoxes[idx + 1].focus();
       });
       box.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !box.value && idx > 0) codeBoxes[idx - 1].focus();
+        if (e.key === 'Backspace' && !box.value && idx > 0) { codeBoxes[idx - 1].focus(); }
         if (e.key === 'Enter') trySubmit();
       });
     });
   }
 
+  // optional paste button
   if (pasteBtn) pasteBtn.addEventListener('click', async () => {
     try {
       const txt = await navigator.clipboard.readText();
-      const t = txt.trim().toLowerCase().replace(/[^a-z]/g, '').slice(0, 5);
+      const t = txt.trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0,5);
       for (let i = 0; i < 5; i++) codeBoxes[i].value = t[i] || '';
       playTone(720, 0.06, 'triangle');
-    } catch (e) { playTone(180, 0.06, 'sawtooth'); }
+    } catch (e) {
+      playTone(180, 0.06, 'sawtooth');
+    }
   });
-  if (clearBtn) clearBtn.addEventListener('click', () => { codeBoxes.forEach(b => b.value = ''); codeBoxes[0].focus(); playTone(180, 0.04, 'sine'); });
+
+  if (clearBtn) clearBtn.addEventListener('click', () => { codeBoxes.forEach(b => b.value = ''); codeBoxes[0].focus(); playTone(180, 0.04, 'sine'); if (statusLine) { statusLine.textContent = ''; statusLine.style.color = ''; } });
   if (enterBtn) enterBtn.addEventListener('click', trySubmit);
 
   function trySubmit() {
     const code = codeBoxes.map(b => b.value || '').join('').toLowerCase();
+    if (code.length < 5) {
+      if (statusLine) { statusLine.textContent = 'Enter 5 letters'; statusLine.style.color = 'var(--muted)'; }
+      playTone(220, 0.06, 'sawtooth');
+      return;
+    }
     if (code !== CORRECT) {
       if (statusLine) { statusLine.textContent = 'Incorrect code'; statusLine.style.color = 'var(--danger)'; }
       if (codeRow) codeRow.classList.add('shake');
       playTone(220, 0.12, 'sawtooth');
-      setTimeout(() => { if (codeRow) codeRow.classList.remove('shake'); codeBoxes.forEach(b => b.value = ''); codeBoxes[0].focus(); }, 450);
+      setTimeout(() => { if (codeRow) codeRow.classList.remove('shake'); codeBoxes.forEach(b => b.value = ''); codeBoxes[0].focus(); }, 475);
       return;
     }
-    if (statusLine) { statusLine.textContent = 'Correct!'; statusLine.style.color = 'var(--accent)'; }
+
+    // success
+    if (statusLine) { statusLine.textContent = 'Correct! Unlocking...'; statusLine.style.color = 'var(--accent)'; }
     playTone(880, 0.12, 'sine');
-    // transition
     if (codeScreen) { codeScreen.style.transition = 'opacity .45s ease, transform .45s ease'; codeScreen.style.opacity = '0'; codeScreen.style.transform = 'translateY(-8px)'; }
     setTimeout(() => {
       if (codeScreen) codeScreen.classList.add('hidden');
@@ -312,18 +295,18 @@
     }, 480);
   }
 
-  // ---- LAUNCHER open URL ----
+  // --- launcher open URL -----------------------------------------------
   if (goBtn) goBtn.addEventListener('click', () => {
-    let url = urlInput.value.trim();
+    let url = (urlInput && urlInput.value || '').trim();
     if (!url) return;
     if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
     if (frame) frame.src = url;
-    try { if (frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'set-volume', volume: iframeVolume }, '*'); } catch (e) { }
+    try { if (frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'set-volume', volume: iframeVolume }, '*'); } catch (e) { /* ignore */ }
     playTone(660, 0.06, 'triangle');
   });
   if (urlInput) urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') goBtn.click(); });
 
-  // prevent page scroll (launcher area fixed)
+  // prevent page scroll
   document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
 
@@ -338,7 +321,7 @@
     const cs = load('cursor_size', 48); if (cursorSize) cursorSize.value = cs; if (cursorSizeVal) cursorSizeVal.textContent = cs; if (customCursor) customCursor.style.width = cs + 'px';
   })();
 
-  // modal ESC to close & sidebar ESC
+  // ESC closes modal or panel
   window.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (modal && !modal.classList.contains('hidden')) closeModal();
@@ -354,7 +337,7 @@
   save('sfx_vol', sfx);
   save('frame_vol', iframeVolume);
 
-  // expose debug
+  // debug
   window.__app = { save, load };
 
 })();
