@@ -1,78 +1,82 @@
-// =============== CONFIG =============== //
-const CORRECT_CODE = "SIGMA";   // <-- YOU CAN CHANGE THIS ANY TIME
+// =========================
+// CONFIG
+// =========================
+const CLASS_CODE = "SIGMA"; // <-- Change this if you want
 
-// =============== DOM =============== //
-const codeScreen = document.getElementById("class-code-screen");
-const codeInput = document.getElementById("class-code-input");
-const codeBtn = document.getElementById("class-code-btn");
-const codeError = document.getElementById("class-code-error");
+// =========================
+// DOM ELEMENTS
+// =========================
+const classScreen = document.getElementById("class-code-screen");
+const classInput = document.getElementById("class-code-input");
+const classBtn = document.getElementById("class-code-btn");
+const classError = document.getElementById("class-code-error");
 
 const launcher = document.getElementById("launcher");
 const iframe = document.getElementById("iframe");
-const launchBtn = document.getElementById("launch-btn");
 const urlInput = document.getElementById("url-input");
+const launchBtn = document.getElementById("launch-btn");
 
-const settings = document.getElementById("settings");
+const settingsPanel = document.getElementById("settings-panel");
 const settingsBtn = document.getElementById("settings-btn");
 const closeSettings = document.getElementById("close-settings");
 
+const cursorUrl = document.getElementById("cursor-url");
 const cursorApply = document.getElementById("cursor-apply");
-const cursorUrlInput = document.getElementById("cursor-url");
 const cursorImg = document.getElementById("custom-cursor");
 
+const bgUrl = document.getElementById("bg-url");
 const bgApply = document.getElementById("bg-apply");
-const bgUrlInput = document.getElementById("bg-url");
 
-const particlesToggle = document.getElementById("particles-toggle");
 const particlesCanvas = document.getElementById("particles");
-const ctx = particlesCanvas.getContext("2d");
+const particlesCtx = particlesCanvas.getContext("2d");
+const particlesToggle = document.getElementById("particles-toggle");
 
-// =============== CLASS CODE LOGIN =============== //
-function checkClassCode() {
-  const value = codeInput.value.trim().toUpperCase();
-
-  if (value === CORRECT_CODE) {
-    codeScreen.classList.add("hidden");
+// =========================
+// CLASS CODE LOGIN
+// =========================
+function checkCode() {
+  if (classInput.value.trim().toUpperCase() === CLASS_CODE) {
+    classScreen.classList.add("hidden");
     launcher.classList.remove("hidden");
-    codeError.textContent = "";
   } else {
-    codeError.textContent = "Incorrect code.";
+    classError.textContent = "Incorrect code.";
   }
 }
 
-codeBtn.addEventListener("click", checkClassCode);
-codeInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") checkClassCode();
+classBtn.addEventListener("click", checkCode);
+classInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") checkCode();
 });
 
-// =============== URL LAUNCHER =============== //
+// =========================
+// URL LAUNCHER
+// =========================
 launchBtn.addEventListener("click", () => {
   let url = urlInput.value.trim();
-
-  if (!url.startsWith("http")) {
-    url = "https://" + url;
-  }
-
+  if (!url.startsWith("http")) url = "https://" + url;
   iframe.src = url;
 });
 
-// =============== SETTINGS TOGGLE =============== //
+// =========================
+// SETTINGS PANEL
+// =========================
 settingsBtn.addEventListener("click", () => {
-  settings.classList.remove("hidden");
+  settingsPanel.classList.remove("hidden");
 });
 
 closeSettings.addEventListener("click", () => {
-  settings.classList.add("hidden");
+  settingsPanel.classList.add("hidden");
 });
 
-// =============== CUSTOM CURSOR =============== //
+// =========================
+// CUSTOM CURSOR
+// =========================
 cursorApply.addEventListener("click", () => {
-  const url = cursorUrlInput.value.trim();
+  const url = cursorUrl.value.trim();
   if (!url) return;
 
   cursorImg.src = url;
   cursorImg.classList.remove("hidden");
-
   document.body.style.cursor = "none";
 
   document.addEventListener("mousemove", e => {
@@ -81,9 +85,11 @@ cursorApply.addEventListener("click", () => {
   });
 });
 
-// =============== BACKGROUND IMAGE =============== //
+// =========================
+// BACKGROUND IMAGE
+// =========================
 bgApply.addEventListener("click", () => {
-  const url = bgUrlInput.value.trim();
+  const url = bgUrl.value.trim();
   if (!url) return;
 
   document.body.style.backgroundImage = `url(${url})`;
@@ -91,54 +97,57 @@ bgApply.addEventListener("click", () => {
   document.body.style.backgroundPosition = "center";
 });
 
-// =============== PARTICLES =============== //
+// =========================
+// PARTICLES ENGINE
+// =========================
 let particles = [];
-let particlesOn = true;
+let enabled = true;
 
 function resizeCanvas() {
   particlesCanvas.width = window.innerWidth;
   particlesCanvas.height = window.innerHeight;
 }
-resizeCanvas();
 
+resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-function createParticles() {
+function makeParticles() {
   particles = [];
   for (let i = 0; i < 60; i++) {
     particles.push({
       x: Math.random() * particlesCanvas.width,
       y: Math.random() * particlesCanvas.height,
       size: Math.random() * 3 + 1,
-      speed: Math.random() * 0.6 + 0.2
+      speed: Math.random() * 0.6 + 0.3
     });
   }
 }
 
-function drawParticles() {
-  ctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+function draw() {
+  if (!enabled) return;
+
+  particlesCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
 
   particles.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(130,180,255,0.6)";
-    ctx.fill();
+    particlesCtx.beginPath();
+    particlesCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    particlesCtx.fillStyle = "rgba(130,180,255,0.6)";
+    particlesCtx.fill();
 
     p.y += p.speed;
     if (p.y > particlesCanvas.height) {
-      p.y = -10;
+      p.y = -5;
       p.x = Math.random() * particlesCanvas.width;
     }
   });
 
-  if (particlesOn) requestAnimationFrame(drawParticles);
+  requestAnimationFrame(draw);
 }
 
-createParticles();
-drawParticles();
+makeParticles();
+draw();
 
 particlesToggle.addEventListener("change", () => {
-  particlesOn = particlesToggle.value === "on";
-
-  if (particlesOn) drawParticles();
+  enabled = particlesToggle.value === "on";
+  if (enabled) draw();
 });
