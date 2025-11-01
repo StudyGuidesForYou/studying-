@@ -1,111 +1,169 @@
-// --- CLASS CODE ---
+// ===== element refs =====
 const classCodeScreen = document.getElementById('class-code-screen');
-const mainScreen = document.getElementById('main-screen');
-const codeInputs = document.querySelectorAll('.code-input');
+const codeInputs = Array.from(document.querySelectorAll('.code-input'));
 const classCodeButton = document.getElementById('class-code-button');
 const codeMessage = document.getElementById('code-message');
 
-// --- URL LAUNCHER ---
+const mainScreen = document.getElementById('main-screen');
+const settingsButton = document.getElementById('settings-button');
+const settingsPanel = document.getElementById('settings-panel');
+
 const urlInput = document.getElementById('url-input');
 const urlButton = document.getElementById('url-button');
 const mainIframe = document.getElementById('main-iframe');
 
-// --- SETTINGS ---
-const settingsButton = document.getElementById('settings-button');
-const settingsPanel = document.getElementById('settings-panel');
+const gameButtons = Array.from(document.querySelectorAll('.game-button'));
 const gradientColorPicker = document.getElementById('gradient-color');
 const bgSelect = document.getElementById('bg-select');
 
-// --- GAME BUTTONS ---
-const gameButtons = document.querySelectorAll('.game-button');
+// ===== helpers =====
+function showMessage(msg, isError = false){
+  codeMessage.textContent = msg;
+  codeMessage.style.color = isError ? '#ff9b9b' : '#bff0ff';
+}
 
-// --- SETTINGS PANEL TOGGLE ---
-settingsButton.addEventListener('click', () => {
-  settingsPanel.classList.toggle('open');
+// ===== code input UX: auto-advance, backspace =====
+codeInputs.forEach((inp, idx) => {
+  // only allow a single visible char
+  inp.addEventListener('input', e => {
+    // remove any extra characters (paste safety)
+    if (inp.value.length > 1) inp.value = inp.value.slice(0,1);
+    if (inp.value.length === 1 && idx < codeInputs.length - 1) {
+      codeInputs[idx+1].focus();
+    }
+  });
+
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace') {
+      if (inp.value === '' && idx > 0) {
+        codeInputs[idx-1].focus();
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      checkClassCode();
+    }
+  });
 });
 
-// --- CLASS CODE INPUTS ---
-codeInputs.forEach((input, idx) => {
-  input.addEventListener('input', () => {
-    if(input.value.length>0 && idx < codeInputs.length-1) codeInputs[idx+1].focus();
-  });
-  input.addEventListener('keydown', e=>{
-    if(e.key==='Backspace' && input.value==='' && idx>0) codeInputs[idx-1].focus();
-  });
-});
-
-// --- CHECK CLASS CODE ---
-function checkClassCode() {
-  let code = '';
-  codeInputs.forEach(i=>code+=i.value);
-  if(code.toLowerCase()==='sigma'){
-    codeMessage.textContent='✅ Code accepted!';
-    classCodeScreen.style.opacity=0;
-    setTimeout(()=>{
-      classCodeScreen.style.display='none';
-      mainScreen.style.display='flex';
-      settingsButton.style.display='block';
-      mainScreen.style.opacity=1;
-      urlInput.focus();
-    },500);
+// ===== check class code and fade transition =====
+function checkClassCode(){
+  const code = codeInputs.map(i => i.value).join('');
+  if (code.toLowerCase() === 'sigma') {
+    showMessage('✅ Code accepted!');
+    // fade out class screen
+    classCodeScreen.style.transition = 'opacity 400ms ease';
+    classCodeScreen.style.opacity = '0';
+    setTimeout(()=> {
+      classCodeScreen.style.display = 'none';
+      // show main screen
+      mainScreen.style.display = 'flex';
+      mainScreen.style.opacity = '0';
+      // small delay to allow layout, then fade in
+      setTimeout(()=> {
+        mainScreen.style.transition = 'opacity 350ms ease';
+        mainScreen.style.opacity = '1';
+        // show settings button
+        settingsButton.style.display = 'block';
+        settingsButton.style.opacity = '1';
+      }, 50);
+      // focus url input
+      if (urlInput) urlInput.focus();
+    }, 420);
   } else {
-    codeMessage.textContent='❌ Incorrect code!';
-    codeInputs.forEach(i=>i.value='');
-    codeInputs[0].focus();
+    showMessage('❌ Incorrect code', true);
+    // clear inputs quickly
+    setTimeout(()=> {
+      codeInputs.forEach(i => i.value = '');
+      codeInputs[0].focus();
+    }, 300);
+  }
+}
+classCodeButton.addEventListener('click', checkClassCode);
+
+// allow pressing Enter when focused on any code input -> handled above
+
+// ===== settings toggling & behavior =====
+settingsButton.addEventListener('click', () => {
+  const open = settingsPanel.style.display === 'flex';
+  settingsPanel.style.display = open ? 'none' : 'flex';
+  settingsPanel.setAttribute('aria-hidden', open ? 'true' : 'false');
+});
+
+// gradient color preview (applies subtle overlay to aurora outline)
+if (gradientColorPicker) {
+  gradientColorPicker.addEventListener('input', () => {
+    const v = gradientColorPicker.value;
+    document.documentElement.style.setProperty('--accent', v);
+    // update glass outline colors by toggling ::before via CSS variable not used here; simple approach:
+    // change a subtle tint on the page by applying box-shadow on .glass when color changes (kept simple)
+  });
+}
+
+// background image selector (local images folder)
+if (bgSelect) {
+  bgSelect.addEventListener('change', () => {
+    const val = bgSelect.value;
+    if (!val) {
+      document.getElementById('aurora-bg').style.backgroundImage = '';
+    } else {
+      document.getElementById('aurora-bg').style.backgroundImage = `url('./images/${val}')`;
+      document.getElementById('aurora-bg').style.backgroundSize = 'cover';
+      document.getElementById('aurora-bg').style.backgroundPosition = 'center';
+    }
+  });
+}
+
+// ===== url launcher =====
+function normalizeUrl(u){
+  if(!u) return '';
+  try {
+    const url = new URL(u);
+    return url.href;
+  } catch(e){
+    // try adding https
+    try { return new URL('https://' + u).href; } catch(e2){ return ''; }
   }
 }
 
-classCodeButton.addEventListener('click', checkClassCode);
-codeInputs.forEach(i=>i.addEventListener('keypress', e=>{
-  if(e.key==='Enter'){ e.preventDefault(); checkClassCode(); }
-}));
-
-// --- LAUNCH URL ---
 function launchURL(){
-  let url = urlInput.value.trim();
-  if(!url) return;
-  if(!/^https?:\/\//i.test(url)) url='https://'+url;
-  mainIframe.src=url;
-  urlInput.value='';
+  let raw = (urlInput.value || '').trim();
+  const normalized = normalizeUrl(raw);
+  if (!normalized) return;
+  mainIframe.src = normalized;
+  urlInput.value = '';
 }
-
 urlButton.addEventListener('click', launchURL);
-urlInput.addEventListener('keypress', e=>{
-  if(e.key==='Enter'){ e.preventDefault(); launchURL(); }
+urlInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    launchURL();
+  }
 });
 
-// --- SETTINGS PANEL FUNCTIONALITY ---
-gradientColorPicker.addEventListener('input',()=>{
-  document.body.style.background = gradientColorPicker.value;
-});
-bgSelect.addEventListener('change',()=>{
-  const val = bgSelect.value;
-  if(val){
-    document.body.style.backgroundImage=`url('./images/${val}')`;
-    document.body.style.backgroundSize='cover';
-    document.body.style.backgroundBlendMode='overlay';
-  } else document.body.style.backgroundImage='';
-});
-
-// --- GAME BUTTONS ---
-gameButtons.forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const url=btn.getAttribute('data-url');
-    urlInput.value=url;
+// ===== game buttons =====
+gameButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const url = btn.dataset.url;
+    if (!url) return;
+    urlInput.value = url;
     launchURL();
   });
 });
 
-// --- IFRAME REDIRECT WARNING ---
-mainIframe.addEventListener('load', ()=>{
-  try{
-    const iframeWindow = mainIframe.contentWindow;
-    iframeWindow.open = function(url,name,specs){
-      const proceed = confirm(`⚠️ The page inside the iframe is trying to open a new window:\n${url}\nDo you want to proceed?`);
-      if(proceed) return window.open(url,name,specs);
-      else return null;
+// ===== iframe redirect warning (best-effort override) =====
+mainIframe.addEventListener('load', () => {
+  try {
+    const w = mainIframe.contentWindow;
+    // override window.open inside iframe (same-origin only)
+    if (w && typeof w.open === 'function') {
+      w.open = function(url, name, specs){
+        const proceed = confirm(`⚠️ The page inside the iframe is trying to open a new window:\n${url}\nProceed?`);
+        if (proceed) return window.open(url, name, specs);
+        return null;
+      };
     }
-  }catch(e){
-    console.log('Redirect override not available for cross-origin iframe');
+  } catch(err){
+    // cross-origin prevented — can't override
+    console.debug('iframe open override unavailable (cross-origin).');
   }
 });
