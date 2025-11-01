@@ -1,4 +1,4 @@
-/* GENERAL RESET */
+/* RESET */
 * {
     margin: 0;
     padding: 0;
@@ -6,7 +6,7 @@
     font-family: "Segoe UI", sans-serif;
 }
 
-/* ✅ DARK BLUE GRADIENT BACKGROUND (STATIC, NOT WHITE, NOT FADING) */
+/* ✅ DARK BLUE GRADIENT */
 body {
     background: linear-gradient(135deg, #00172e, #00315e, #002346);
     height: 100vh;
@@ -14,7 +14,7 @@ body {
     position: relative;
 }
 
-/* ✅ AURORA ANIMATED OVERLAY */
+/* ✅ AURORA */
 .aurora {
     position: absolute;
     inset: 0;
@@ -31,7 +31,7 @@ body {
     100% { transform: translate(10%, 10%) scale(1.3); }
 }
 
-/* ✅ FULL-SCREEN CONTAINERS */
+/* Screens */
 .screen {
     width: 100%;
     height: 100%;
@@ -39,29 +39,25 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
+    opacity: 1;
+    transition: opacity 0.35s ease;
 }
 
-/* ✅ HIDDEN FORCE */
+/* Hide class */
 .hidden {
     display: none !important;
 }
 
-/* ✅ GLASS UI ELEMENTS */
+/* ✅ GLASS */
 .glass {
     background: rgba(255,255,255,0.08);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 20px;
     padding: 30px;
-    animation: fadeIn 0.4s ease;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ✅ CLASS CODE */
+/* CLASS CODE CARD */
 .code-card {
     width: 380px;
     text-align: center;
@@ -91,14 +87,13 @@ body {
     transition: 0.25s;
 }
 
-/* ✅ AURORA GLOW ON FOCUS */
 .code-input:focus {
-    outline: none;
     border-color: cyan;
     box-shadow: 0 0 20px 6px rgba(0,255,255,0.6);
+    outline: none;
 }
 
-/* ✅ BUTTONS */
+/* BUTTONS */
 .btn {
     width: 100%;
     margin-top: 25px;
@@ -122,14 +117,14 @@ body {
     margin-left: 10px;
 }
 
-/* ✅ DASHBOARD */
+/* DASHBOARD */
 .dash-container {
     width: 90%;
     max-width: 1200px;
     padding: 25px;
 }
 
-/* URL BAR */
+/* URL bar */
 .url-bar {
     display: flex;
     margin-bottom: 25px;
@@ -145,7 +140,25 @@ body {
     color: white;
 }
 
-/* PREBUILT GAMES */
+/* ✅ IFRAME HOLDER RIGHT BELOW URL BAR */
+.iframe-holder {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+#iframe-screen iframe,
+#iframe-holder iframe,
+#game-frame {
+    width: 95%;
+    height: 70vh;
+    border: none;
+    border-radius: 15px;
+    background: #000;
+}
+
+/* Games */
 .games-title {
     color: white;
     margin-bottom: 15px;
@@ -169,21 +182,4 @@ body {
 
 .game-btn:hover {
     background: rgba(255,255,255,0.2);
-}
-
-/* ✅ IFRAME */
-.iframe-wrapper {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-#iframe-screen iframe {
-    width: 95vw;
-    height: 90vh;
-    border: none;
-    border-radius: 15px;
-    margin: auto;
-    display: block;
-    background: #000;
 }
