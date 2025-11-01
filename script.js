@@ -13,9 +13,8 @@ const mainIframe = document.getElementById('main-iframe');
 // SETTINGS PANEL
 const settingsButton = document.getElementById('settings-button');
 const settingsPanel = document.getElementById('settings-panel');
-const mainColorPicker = document.getElementById('main-color');
 const gradientColorPicker = document.getElementById('gradient-color');
-const bgImageInput = document.getElementById('bg-image');
+const bgSelect = document.getElementById('bg-select');
 
 // Toggle settings panel
 settingsButton.addEventListener('click', () => {
@@ -76,14 +75,17 @@ urlInput.addEventListener('keypress', e=>{
 });
 
 // SETTINGS PANEL FUNCTIONALITY
-mainColorPicker.addEventListener('input', () => {
-  document.getElementById('aurora-bg').style.backgroundColor = mainColorPicker.value;
-});
-
 gradientColorPicker.addEventListener('input', () => {
   document.getElementById('aurora-bg').style.background = `linear-gradient(135deg, ${gradientColorPicker.value}, #12324a)`;
 });
 
-bgImageInput.addEventListener('change', () => {
-  document.getElementById('aurora-bg').style.backgroundImage = `url(${bgImageInput.value})`;
+bgSelect.addEventListener('change', () => {
+  const val = bgSelect.value;
+  if(val){
+    document.getElementById('aurora-bg').style.backgroundImage = `url('./images/${val}')`;
+    document.getElementById('aurora-bg').style.backgroundSize = 'cover';
+    document.getElementById('aurora-bg').style.backgroundBlendMode = 'overlay';
+  } else {
+    document.getElementById('aurora-bg').style.backgroundImage = '';
+  }
 });
