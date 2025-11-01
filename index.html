@@ -1,97 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<meta name="theme-color" content="#020f30" />
-<title>Class Code Portal</title>
-
-<!-- CRITICAL INLINE BACKGROUND (prevents white flash) -->
-<style>
-  /* immediate static dark blue gradient so nothing flashes white */
-  html,body {
-    height:100%;
-    margin:0;
-    background: linear-gradient(180deg, #010820 0%, #02132a 40%, #041a40 70%, #052255 100%);
-    background-attachment: fixed;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    color: #fff;
-  }
-</style>
-
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Class Code → Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Class Code Screen -->
-<div id="class-code-screen" class="glass">
-  <h1>Enter Class Code</h1>
-  <div id="code-boxes">
-    <input type="text" maxlength="1" class="code-input" placeholder=" ">
-    <input type="text" maxlength="1" class="code-input" placeholder=" ">
-    <input type="text" maxlength="1" class="code-input" placeholder=" ">
-    <input type="text" maxlength="1" class="code-input" placeholder=" ">
-    <input type="text" maxlength="1" class="code-input" placeholder=" ">
-  </div>
-  <button id="class-code-button">Enter</button>
-  <p id="code-message"></p>
-</div>
+  <!-- CLASS CODE SCREEN -->
+  <div id="class-code-screen">
+    <h1 id="class-code-title">Enter Class Code</h1>
 
-<!-- Main Screen / Dashboard -->
-<div id="main-screen">
-
-  <!-- Settings Button -->
-  <button id="settings-button" style="display:none;">Settings</button>
-
-  <!-- Settings Panel -->
-  <div id="settings-panel" aria-hidden="true">
-    <h2 style="color:white;">Settings Panel</h2>
-
-    <div class="setting-item">
-      <label style="color:white;" for="gradient-color">Background Gradient (preview)</label>
-      <input type="color" id="gradient-color" title="Set accent gradient color">
+    <div class="code-boxes">
+      <input maxlength="1" class="code-input">
+      <input maxlength="1" class="code-input">
+      <input maxlength="1" class="code-input">
+      <input maxlength="1" class="code-input">
+      <input maxlength="1" class="code-input">
     </div>
 
-    <div class="setting-item">
-      <label style="color:white;" for="bg-select">Background Image</label>
-      <select id="bg-select">
-        <option value="">None</option>
-        <option value="bg1.jpg">Aurora</option>
-        <option value="bg2.jpg">Galaxy</option>
-        <option value="bg3.jpg">Nebula</option>
-      </select>
+    <p id="code-error"></p>
+  </div>
+
+  <!-- DASHBOARD SCREEN -->
+  <div id="dashboard">
+
+    <!-- SETTINGS BUTTON -->
+    <button id="settings-btn" class="glass-button">⚙️ Settings</button>
+
+    <!-- URL LAUNCHER -->
+    <div id="launcher" class="glass">
+      <input id="url-input" placeholder="Enter URL…">
+      <button id="go-btn" class="glass-button">Launch</button>
     </div>
+
+    <!-- IFRAME VIEWER -->
+    <div id="viewer" class="glass">
+      <iframe id="webframe"></iframe>
+    </div>
+
+    <!-- GAME BUTTON GRID -->
+    <div id="game-buttons" class="glass">
+      <button class="game-button" data-url="https://slowroads.io">Slow Roads</button>
+      <button class="game-button" data-url="https://bloxd.io">Bloxd.io</button>
+      <button class="game-button" data-url="https://diep.io">Diep.io</button>
+      <button class="game-button" data-url="https://ev.io">EV.io</button>
+      <button class="game-button" data-url="https://jellymar.io">Jellymar.io</button>
+      <button class="game-button" data-url="https://slopeonline.online">Slope Online</button>
+      <button class="game-button" data-url="https://ethonion10.neocities.org">Ethonion10</button>
+      <button class="game-button" data-url="https://emulatorgames.online">Emulator Games</button>
+      <button class="game-button" data-url="https://sandboxels.r74n.com">Sandboxels</button>
+      <button class="game-button" data-url="https://wplace.live">WPlace</button>
+      <button class="game-button" data-url="https://azgames.io">AZGames</button>
+      <button class="game-button" data-url="https://www.miniplay.com">Miniplay</button>
+    </div>
+
   </div>
 
-  <!-- URL Bar -->
-  <div id="url-bar" class="glass">
-    <input type="text" id="url-input" placeholder="Enter URL here..." autocomplete="off" />
-    <button id="url-button">Go</button>
-  </div>
-
-  <!-- Iframe Container -->
-  <div id="iframe-container" class="glass">
-    <iframe id="main-iframe" src="" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
-  </div>
-
-  <!-- Prebuilt Game Buttons Grid -->
-  <div id="game-buttons" class="glass">
-    <button class="game-button" data-url="https://slowroads.io">Slow Roads</button>
-    <button class="game-button" data-url="https://bloxd.io">Bloxd.io</button>
-    <button class="game-button" data-url="https://diep.io">Diep.io</button>
-    <button class="game-button" data-url="https://ev.io">EV.io</button>
-    <button class="game-button" data-url="https://jellymar.io">Jellymar.io</button>
-    <button class="game-button" data-url="https://slopeonline.online">Slope Online</button>
-    <button class="game-button" data-url="https://ethonion10.neocities.org">Ethonion10</button>
-    <button class="game-button" data-url="https://emulatorgames.online">Emulator Games</button>
-    <button class="game-button" data-url="https://sandboxels.r74n.com">Sandboxels</button>
-    <button class="game-button" data-url="https://wplace.live">WPlace</button>
-    <button class="game-button" data-url="https://azgames.io">AZGames</button>
-  </div>
-
-</div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
