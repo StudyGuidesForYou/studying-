@@ -8,21 +8,17 @@ const urlInput = document.getElementById('url-input');
 const urlButton = document.getElementById('url-button');
 const mainIframe = document.getElementById('main-iframe');
 
-// Auto-focus between code inputs
+// Auto-focus code inputs with backspace support
 codeInputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
-    if (input.value.length > 0 && idx < codeInputs.length - 1) {
-      codeInputs[idx + 1].focus();
-    }
+    if (input.value.length > 0 && idx < codeInputs.length - 1) codeInputs[idx + 1].focus();
   });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace' && input.value === '' && idx > 0) {
-      codeInputs[idx - 1].focus();
-    }
+    if (e.key === 'Backspace' && input.value === '' && idx > 0) codeInputs[idx - 1].focus();
   });
 });
 
-// Check class code and fade
+// Check class code
 function checkClassCode() {
   let enteredCode = '';
   codeInputs.forEach(input => enteredCode += input.value);
@@ -34,13 +30,12 @@ function checkClassCode() {
     // Fade out class code screen
     classCodeScreen.classList.add('fade');
 
-    // Display main screen after fade
+    // Show main screen with scale-in animation
     setTimeout(() => {
       mainScreen.style.display = 'flex';
-      // small delay to trigger fade-in transition
+      mainScreen.classList.add('scale-in');
       setTimeout(() => {
-        mainScreen.style.transition = 'opacity 0.7s ease';
-        mainScreen.style.opacity = 1;
+        mainScreen.classList.add('visible');
       }, 50);
     }, 700);
 
@@ -52,29 +47,28 @@ function checkClassCode() {
   }
 }
 
+// Event listeners
 classCodeButton.addEventListener('click', checkClassCode);
-codeInputs.forEach(input => {
-  input.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      checkClassCode();
-    }
-  });
-});
+codeInputs.forEach(input => input.addEventListener('keypress', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    checkClassCode();
+  }
+}));
 
-// URL Launcher
-urlButton.addEventListener('click', () => {
+// URL launcher
+function launchURL() {
   let url = urlInput.value.trim();
   if (!url) return;
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   mainIframe.src = url;
   urlInput.value = '';
-});
+}
 
-// Enter key for URL
-urlInput.addEventListener('keypress', (e) => {
+urlButton.addEventListener('click', launchURL);
+urlInput.addEventListener('keypress', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
-    urlButton.click();
+    launchURL();
   }
 });
