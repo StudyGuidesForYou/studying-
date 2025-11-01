@@ -17,10 +17,18 @@ codeInputs.forEach((box, index) => {
             codeInputs[index + 1].focus();
         }
     });
+
+    // ✅ Allow pressing Enter in last box to submit code
+    box.addEventListener("keydown", e => {
+        if (e.key === "Enter") submitCode();
+    });
 });
 
-// Submit class code
-enterCodeBtn.addEventListener("click", () => {
+// Enter button click
+enterCodeBtn.addEventListener("click", submitCode);
+
+// Submit class code function
+function submitCode() {
     let entered = "";
     codeInputs.forEach(box => entered += box.value.toUpperCase());
     if (entered === CORRECT_CODE) {
@@ -30,8 +38,10 @@ enterCodeBtn.addEventListener("click", () => {
             dashScreen.classList.remove("hidden");
             dashScreen.style.opacity = "1";
         }, 300);
+    } else {
+        alert("Incorrect code!");
     }
-});
+}
 
 // URL launch
 launchBtn.addEventListener("click", () => openURL(urlInput.value));
