@@ -13,7 +13,7 @@ codeInputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     if (input.value.length > 0 && idx < codeInputs.length - 1) codeInputs[idx + 1].focus();
   });
-  input.addEventListener('keydown', (e) => {
+  input.addEventListener('keydown', e => {
     if (e.key === 'Backspace' && input.value === '' && idx > 0) codeInputs[idx - 1].focus();
   });
 });
@@ -24,7 +24,8 @@ function checkClassCode() {
   codeInputs.forEach(input => code += input.value);
   if (code.toLowerCase() === 'sigma') {
     codeMessage.textContent = '✅ Code accepted!';
-    codeMessage.style.color = '#00ff00';
+    codeMessage.style.color = '#00ffcc';
+    classCodeScreen.style.transition = 'opacity 0.7s ease';
     classCodeScreen.style.opacity = 0;
     setTimeout(() => {
       classCodeScreen.style.display = 'none';
