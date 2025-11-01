@@ -27,7 +27,7 @@
         <div class="aurora"></div>
     </div>
 
-    <!-- ✅ DASHBOARD SCREEN (URL bar + IFRAME + Games together) -->
+    <!-- ✅ DASHBOARD SCREEN -->
     <div id="dashboard-screen" class="screen hidden">
         <div class="glass dash-container">
 
@@ -37,9 +37,12 @@
                 <button id="launch-btn" class="btn small">Launch</button>
             </div>
 
-            <!-- IFRAME ALWAYS HERE -->
-            <div class="iframe-holder">
-                <iframe id="game-frame"></iframe>
+            <!-- IFRAME glass holder -->
+            <div class="glass iframe-holder">
+                <iframe id="game-frame" src=""></iframe>
+                <div id="iframe-placeholder" class="iframe-placeholder">
+                    <p>Enter or select a game to launch...</p>
+                </div>
             </div>
 
             <!-- Games -->
