@@ -36,6 +36,7 @@
             <div class="url-bar">
                 <input id="url-input" placeholder="Enter URL..." />
                 <button id="launch-btn" class="btn small">Launch</button>
+                <button id="fullscreen-btn" class="btn small">Fullscreen</button>
             </div>
 
             <!-- IFRAME -->
@@ -58,12 +59,14 @@
                 <button class="game-btn" data-url="https://wplace.live">wPlace</button>
                 <button class="game-btn" data-url="https://miniplay.com">Miniplay</button>
                 <button class="game-btn" data-url="https://azgames.io">AZGames</button>
-                <button class="game-btn" data-url="http://163-192-96-222.nip.io">163-192-96-222</button>
             </div>
         </div>
 
         <div class="aurora"></div>
     </div>
+
+    <!-- Overlay for fullscreen iframe -->
+    <div id="fullscreen-overlay" class="hidden"></div>
 
     <script src="script.js"></script>
 </body>
