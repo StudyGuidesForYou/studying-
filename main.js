@@ -1,265 +1,407 @@
-// main.js (diagnostic + cleaned, duplicates removed)
-// --------------------------------------------------
-// Full working main with verbose console diagnostics
-// --------------------------------------------------
-
+// main.js — improved car visuals & pseudo-physics + diagnostics
 import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
 import World from './world.js';
 import { applyMode, updateEnvironment } from './environment.js';
 import { GraphicsPresets, getPresetByName, getPresetNames } from './graphicsPresets.js';
 import { initSettingsUI } from './settings.js';
 
-// Global debug helpers
-window.__UR_DEBUG__ = window.__UR_DEBUG__ || {};
+// DEBUG helpers
 const DEBUG = true;
-function safeLog(...args) { if (DEBUG) console.log('[UR]', ...args); }
-function safeWarn(...args) { if (DEBUG) console.warn('[UR]', ...args); }
-function safeError(...args) { if (DEBUG) console.error('[UR]', ...args); }
+const log = (...a) => { if (DEBUG) console.log('[UR]', ...a); };
+const warn = (...a) => { if (DEBUG) console.warn('[UR]', ...a); };
+const error = (...a) => { if (DEBUG) console.error('[UR]', ...a); };
 
-safeLog('main module loaded');
+window.addEventListener('error', e => error('window.error', e.message, e.filename, e.lineno));
+window.addEventListener('unhandledrejection', e => error('unhandledrejection', e.reason));
 
-// Global state
+// Globals
 let renderer, scene, camera;
-let world, car;
+let world, carRoot;
 let lastTime = performance.now();
 let t = 0;
-const input = { forward:false, backward:false, left:false, right:false };
+const input = { forward:false, backward:false, left:false, right:false, handbrake:false };
+let carState = { speed: 0, maxSpeed: 26, accel: 28, brake: 48, handbrakeSlide: 0.0 };
+let cameraMode = 'third'; // 'third' or 'cockpit'
+let debugOverlayEl = null;
 
-// Install global error handlers so everything reports to console
-window.addEventListener('error', (ev) => {
-  safeError('window.error', ev.message, ev.filename, ev.lineno, ev.colno, ev.error);
+// init
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    init();
+    requestAnimationFrame(loop);
+  } catch (err) {
+    error('init error', err);
+  }
 });
-window.addEventListener('unhandledrejection', (ev) => {
-  safeError('unhandledrejection', ev.reason);
-});
 
-// Utility to show current objects counts
-function reportSceneSummary() {
-  if (!scene) return;
-  const counts = { meshes:0, points:0, instanced:0, lights:0 };
-  scene.traverse(obj => {
-    if (obj.isMesh) counts.meshes++;
-    if (obj.isPoints) counts.points++;
-    if (obj.isInstancedMesh) counts.instanced++;
-    if (obj.isLight) counts.lights++;
-  });
-  safeLog('scene summary', counts);
-  return counts;
-}
+// --------------------------- Setup ---------------------------
+function init(){
+  log('init start');
 
-// -------------------- Renderer / Scene / Lights / Car --------------------
-function setupRenderer() {
+  // renderer
   const canvas = document.getElementById('gameCanvas');
   renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio || 1);
-  safeLog('renderer created', { pixelRatio: renderer.getPixelRatio() });
-}
 
-function setupScene() {
+  // scene + camera
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1200);
-  camera.position.set(0, 4, -8);
-  safeLog('scene & camera created');
-}
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 2000);
+  camera.position.set(0, 3, -8);
 
-function setupLights() {
+  // lights
   const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-  sun.position.set(50, 200, 50);
-  sun.castShadow = false;
+  sun.position.set(50,200,50);
   scene.add(sun);
   scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-  safeLog('lights added');
-}
 
-function createCar() {
-  const geo = new THREE.BoxGeometry(1.6, 0.7, 3.2);
-  const mat = new THREE.MeshStandardMaterial({ color: 0xff3333 });
-  car = new THREE.Mesh(geo, mat);
-  car.position.set(0, 1, 0);
-  car.name = 'player_car';
-  scene.add(car);
-  safeLog('car created');
-}
-
-// -------------------- Input --------------------
-function setupInput() {
-  window.addEventListener('keydown', (e) => {
-    if (['w','ArrowUp'].includes(e.key)) input.forward = true;
-    if (['s','ArrowDown'].includes(e.key)) input.backward = true;
-    if (['a','ArrowLeft'].includes(e.key)) input.left = true;
-    if (['d','ArrowRight'].includes(e.key)) input.right = true;
-  });
-  window.addEventListener('keyup', (e) => {
-    if (['w','ArrowUp'].includes(e.key)) input.forward = false;
-    if (['s','ArrowDown'].includes(e.key)) input.backward = false;
-    if (['a','ArrowLeft'].includes(e.key)) input.left = false;
-    if (['d','ArrowRight'].includes(e.key)) input.right = false;
-  });
-  safeLog('input handlers set');
-}
-
-// -------------------- Terrain sampling --------------------
-function getTerrainHeightAt(x, z) {
-  try {
-    const g = scene.getObjectByName('sr_ground');
-    if (!g) return 0;
-    const pos = g.geometry.attributes.position;
-    let best = -Infinity;
-    for (let i = 0; i < pos.count; i++) {
-      const vx = pos.getX(i) + g.position.x;
-      const vz = pos.getZ(i) + g.position.z;
-      if (Math.abs(vx - x) < 4 && Math.abs(vz - z) < 4) {
-        const vy = pos.getY(i) + g.position.y;
-        if (vy > best) best = vy;
-      }
-    }
-    if (best === -Infinity) return g.position.y;
-    return best;
-  } catch (err) {
-    safeError('getTerrainHeightAt error', err);
-    return 0;
-  }
-}
-
-// -------------------- Car dynamics --------------------
-let carState = { speed: 0 };
-function updateCar(dt) {
-  // acceleration/brake
-  if (input.forward) carState.speed += 18 * dt;
-  if (input.backward) carState.speed -= 22 * dt;
-  carState.speed *= 0.97; // drag
-  carState.speed = THREE.MathUtils.clamp(carState.speed, -8, 32);
-
-  // steering scaled by speed
-  if (input.left) car.rotation.y += 1.2 * dt * (carState.speed / 8);
-  if (input.right) car.rotation.y -= 1.2 * dt * (carState.speed / 8);
-
-  // move
-  const forward = new THREE.Vector3(0, 0, 1).applyEuler(car.rotation);
-  car.position.add(forward.multiplyScalar(carState.speed * dt));
-
-  // sample terrain & lock
-  const terrainY = getTerrainHeightAt(car.position.x, car.position.z);
-  car.position.y = terrainY + 0.5;
-
-  // debug output each second (throttled)
-  if (Math.floor(t) % 1 === 0) {
-    safeLog('car pos', car.position.toArray().map(v => v.toFixed(2)), 'speed', carState.speed.toFixed(2));
-  }
-}
-
-// -------------------- Camera --------------------
-function updateCamera(dt) {
-  const behind = new THREE.Vector3(0, 2.0, -6).applyEuler(car.rotation).add(car.position);
-  camera.position.lerp(behind, 4 * dt);
-  camera.lookAt(car.position.clone().add(new THREE.Vector3(0, 1.2, 6).applyEuler(car.rotation)));
-}
-
-// -------------------- Graphics / LOD --------------------
-function applyPreset(preset) {
-  safeLog('Applying preset', preset.name ?? preset);
-  const targetPR = Math.min(2.5, (window.devicePixelRatio || 1) * (preset.renderScale || 1));
-  renderer.setPixelRatio(targetPR);
-  camera.far = preset.viewDistance || 1000;
-  camera.updateProjectionMatrix();
-
-  // tell environment to build using preset specifications
-  try {
-    applyMode(scene, preset, { worldMode: preset.worldMode ?? 'natural' });
-    safeLog('applyMode returned');
-  } catch (err) {
-    safeError('applyMode failed', err);
-  }
-
-  reportSceneSummary();
-}
-
-function startProgressiveLoad() {
-  safeLog('starting progressive LOD sequence');
-  applyPreset(GraphicsPresets[0]); // Potato
-  setTimeout(() => { safeLog('upgrading to medium'); applyPreset(GraphicsPresets[2]); }, 1500);
-  setTimeout(() => { safeLog('upgrading to high (CPU Destroyer)'); applyPreset(GraphicsPresets[5]); }, 4500);
-}
-
-// -------------------- UI --------------------
-function setupUI() {
-  const btn = document.getElementById('graphicsBtn');
-  const panel = document.getElementById('graphicsPanel');
-  btn?.addEventListener('click', () => panel.classList.toggle('hidden'));
-
-  const sel = document.getElementById('presetSelect');
-  if (sel) {
-    getPresetNames().forEach(name => {
-      const o = document.createElement('option');
-      o.value = name; o.textContent = name;
-      sel.appendChild(o);
-    });
-    document.getElementById('applySettings')?.addEventListener('click', () => {
-      const v = sel.value;
-      const p = getPresetByName(v);
-      if (p) applyPreset(p);
-      safeLog('manual preset apply from UI', v);
-    });
-  }
-}
-
-// -------------------- INIT / ANIMATE --------------------
-function init() {
-  safeLog('init start');
-  setupRenderer();
-  setupScene();
-  setupLights();
-  setupInput();
-  setupUI();
-
-  // Create world and car
+  // world + environment
   world = new World(scene);
-  createCar();
+  applyMode(scene, getPresetByName('Normal Human') || GraphicsPresets[2]);
 
-  // settings UI
-  initSettingsUI((preset) => {
-    safeLog('settings UI applied preset', preset.name);
+  // create car (chassis + wheels)
+  createCarVisual();
+
+  // input
+  setupInput();
+
+  // UI + debug overlay
+  setupUI();
+  createDebugOverlay();
+
+  // settings UI hooks
+  initSettingsUI(preset => {
+    log('settings UI applied preset', preset.name);
     applyPreset(preset);
   });
 
   // progressive LOD
   startProgressiveLoad();
 
-  // final log
-  safeLog('init complete - entering loop');
+  // resize
+  window.addEventListener('resize', onResize);
+
+  log('init complete');
 }
 
-function animate(now = performance.now()) {
+// --------------------------- Car visuals & wheel config ---------------------------
+const wheelParams = {
+  radius: 0.35,
+  width: 0.2,
+  axleOffsetX: 0.9,   // half track
+  axleOffsetZ: 1.1    // half wheelbase forward/back
+};
+
+function createCarVisual(){
+  carRoot = new THREE.Group();
+  carRoot.name = 'carRoot';
+
+  // chassis
+  const chassisGeo = new THREE.BoxGeometry(1.6, 0.45, 3.0);
+  const chassisMat = new THREE.MeshStandardMaterial({ color: 0xff3333, metalness:0.2, roughness:0.6 });
+  const chassis = new THREE.Mesh(chassisGeo, chassisMat);
+  chassis.position.set(0, 0.5, 0);
+  chassis.castShadow = true;
+  carRoot.add(chassis);
+
+  // wheels (front-left, front-right, back-left, back-right)
+  const wheelGeo = new THREE.CylinderGeometry(wheelParams.radius, wheelParams.radius, wheelParams.width, 16);
+  wheelGeo.rotateZ(Math.PI / 2); // cylinders along X axis
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness:0.1, roughness:0.9 });
+
+  const wheelOffsets = [
+    {name:'fl', x: -wheelParams.axleOffsetX, z: -wheelParams.axleOffsetZ},
+    {name:'fr', x: wheelParams.axleOffsetX, z: -wheelParams.axleOffsetZ},
+    {name:'bl', x: -wheelParams.axleOffsetX, z: wheelParams.axleOffsetZ},
+    {name:'br', x: wheelParams.axleOffsetX, z: wheelParams.axleOffsetZ},
+  ];
+
+  carRoot.userData.wheels = [];
+
+  wheelOffsets.forEach(w => {
+    const mw = new THREE.Mesh(wheelGeo, wheelMat);
+    mw.position.set(w.x, wheelParams.radius, w.z);
+    mw.name = 'wheel_' + w.name;
+    mw.castShadow = true;
+
+    // create a pivot for steering (for front wheels)
+    const pivot = new THREE.Object3D();
+    pivot.position.set(w.x, 0, w.z);
+    pivot.add(mw);
+    carRoot.add(pivot);
+
+    carRoot.userData.wheels.push({ mesh: mw, pivot: pivot, offset: new THREE.Vector3(w.x, 0, w.z) });
+  });
+
+  // small visual: steering wheel inside (optional)
+  scene.add(carRoot);
+  log('car visuals created, wheels:', carRoot.userData.wheels.length);
+}
+
+// --------------------------- Input ---------------------------
+function setupInput(){
+  window.addEventListener('keydown', e => {
+    if (e.code === 'KeyW') input.forward = true;
+    if (e.code === 'KeyS') input.backward = true;
+    if (e.code === 'KeyA') input.left = true;
+    if (e.code === 'KeyD') input.right = true;
+    if (e.code === 'Space') input.handbrake = true;
+    if (e.code === 'KeyC') { cameraMode = (cameraMode === 'third') ? 'cockpit' : 'third'; }
+  });
+  window.addEventListener('keyup', e => {
+    if (e.code === 'KeyW') input.forward = false;
+    if (e.code === 'KeyS') input.backward = false;
+    if (e.code === 'KeyA') input.left = false;
+    if (e.code === 'KeyD') input.right = false;
+    if (e.code === 'Space') input.handbrake = false;
+  });
+  log('input set (WASD, Space=handbrake, C=camera toggle)');
+}
+
+// --------------------------- Terrain sampling ---------------------------
+function getTerrainHeightAt(x,z){
+  const g = scene.getObjectByName('sr_ground');
+  if (!g) return 0;
+  const pos = g.geometry.attributes.position;
+  let best = -Infinity;
+  // coarse search optimisation: sample every N vertices if large
+  const step = 4; // keep modest
+  for (let i = 0; i < pos.count; i += step) {
+    const vx = pos.getX(i) + g.position.x;
+    const vz = pos.getZ(i) + g.position.z;
+    if (Math.abs(vx - x) < 6 && Math.abs(vz - z) < 6) {
+      const vy = pos.getY(i) + g.position.y;
+      if (vy > best) best = vy;
+    }
+  }
+  if (best === -Infinity) return g.position.y;
+  return best;
+}
+
+// get approximate normal at a point — used for chassis orientation smoothing
+function estimateNormalAt(x,z){
+  const eps = 2.5;
+  const hC = getTerrainHeightAt(x,z);
+  const hx = getTerrainHeightAt(x+eps, z);
+  const hz = getTerrainHeightAt(x, z+eps);
+  const nx = new THREE.Vector3(eps, hx - hC, 0).normalize();
+  const nz = new THREE.Vector3(0, hz - hC, eps).normalize();
+  const n = new THREE.Vector3().crossVectors(nx, nz).normalize();
+  return n;
+}
+
+// --------------------------- Car physics (pseudo) ---------------------------
+function updateCar(dt){
+  // acceleration/brake influences speed
+  const forward = input.forward ? 1 : 0;
+  const backward = input.backward ? 1 : 0;
+  const handbrake = input.handbrake ? 1 : 0;
+
+  // apply throttle/brake
+  if (forward) carState.speed += carState.accel * dt;
+  if (backward) carState.speed -= carState.brake * dt * 0.6;
+
+  // natural drag
+  const drag = 6 + Math.abs(carState.speed) * 0.6;
+  carState.speed -= Math.sign(carState.speed) * drag * dt * 0.6;
+
+  // clamp speed
+  carState.speed = THREE.MathUtils.clamp(carState.speed, -12, carState.maxSpeed);
+
+  // steering - speed-dependent
+  const steerInput = (input.left ? 1 : 0) - (input.right ? 1 : 0);
+  const steerStrength = THREE.MathUtils.clamp(1.4 * (1 - Math.abs(carState.speed) / carState.maxSpeed), 0.18, 1.4);
+  carRoot.rotation.y += steerInput * steerStrength * dt * (Math.abs(carState.speed) / 8 + 0.2);
+
+  // compute forward vector and move
+  const localForward = new THREE.Vector3(0,0,1).applyEuler(carRoot.rotation);
+  carRoot.position.add(localForward.multiplyScalar(carState.speed * dt));
+
+  // wheel visuals: rotate wheels by speed
+  carRoot.userData.wheels.forEach(w => {
+    w.mesh.rotation.x += carState.speed * dt * 4;
+  });
+
+  // Suspension: sample each wheel's world position to compute wheel heights
+  const wheelWorldPositions = carRoot.userData.wheels.map(w => {
+    const local = w.offset.clone();
+    local.y = 0;
+    const worldPos = local.clone().applyEuler(carRoot.rotation).add(carRoot.position);
+    return { w, worldPos };
+  });
+
+  // get heights for each wheel
+  const wheelHeights = wheelWorldPositions.map(o => {
+    const h = getTerrainHeightAt(o.worldPos.x, o.worldPos.z);
+    return h + wheelParams.radius; // wheel touches top
+  });
+
+  // compute desired chassis Y as average of wheel heights + small suspension offset
+  const avgWheelY = wheelHeights.reduce((a,b)=>a+b,0) / wheelHeights.length;
+  // smooth chassis Y
+  const currentY = carRoot.position.y;
+  const desiredY = avgWheelY + 0.15; // small clearance
+  carRoot.position.y = THREE.MathUtils.lerp(currentY, desiredY, THREE.MathUtils.clamp(dt * 6, 0, 1));
+
+  // compute approximate pitch and roll from wheel heights:
+  // front wheels index 0,1; back wheels 2,3
+  const frontAvg = (wheelHeights[0] + wheelHeights[1]) / 2;
+  const backAvg = (wheelHeights[2] + wheelHeights[3]) / 2;
+  const leftAvg = (wheelHeights[0] + wheelHeights[2]) / 2;
+  const rightAvg = (wheelHeights[1] + wheelHeights[3]) / 2;
+  const wheelbase = (wheelParams.axleOffsetZ*2);
+  const track = (wheelParams.axleOffsetX*2);
+
+  const pitch = Math.atan2(frontAvg - backAvg, wheelbase);
+  const roll = Math.atan2(rightAvg - leftAvg, track);
+
+  // smoothly lerp current rotation.x/z to match pitch/roll (so chassis tilts)
+  carRoot.rotation.x = THREE.MathUtils.lerp(carRoot.rotation.x, pitch, THREE.MathUtils.clamp(dt*6,0,1));
+  carRoot.rotation.z = THREE.MathUtils.lerp(carRoot.rotation.z, -roll, THREE.MathUtils.clamp(dt*6,0,1));
+
+  // optionally simulate a bit of slide when handbrake applied
+  if (handbrake) {
+    carState.speed *= 0.985;
+    carState.handbrakeSlide = Math.min(1, (carState.handbrakeSlide || 0) + dt * 2.5);
+  } else {
+    carState.handbrakeSlide = Math.max(0, (carState.handbrakeSlide || 0) - dt * 2.0);
+  }
+}
+
+// --------------------------- Camera ---------------------------
+function updateCamera(dt){
+  if (!carRoot) return;
+  if (cameraMode === 'third') {
+    const behindLocal = new THREE.Vector3(0, 2.2, -6.5);
+    behindLocal.applyEuler(carRoot.rotation);
+    const target = carRoot.position.clone().add(behindLocal);
+    // add a bit of lookahead depending on speed
+    const forward = new THREE.Vector3(0,0,1).applyEuler(carRoot.rotation);
+    target.add(forward.multiplyScalar(Math.min(8, Math.abs(carState.speed) * 0.6)));
+    camera.position.lerp(target, THREE.MathUtils.clamp(dt * 4, 0, 1));
+    const lookAt = carRoot.position.clone().add(new THREE.Vector3(0, 1.2, 1.6).applyEuler(carRoot.rotation));
+    camera.lookAt(lookAt);
+  } else {
+    // cockpit: slightly above chassis and forward
+    const cockpitLocal = new THREE.Vector3(0, 1.0, 0.6).applyEuler(carRoot.rotation);
+    const target = carRoot.position.clone().add(cockpitLocal);
+    camera.position.lerp(target, THREE.MathUtils.clamp(dt * 8,0,1));
+    const lookAt = carRoot.position.clone().add(new THREE.Vector3(0, 1.2, 10).applyEuler(carRoot.rotation));
+    camera.lookAt(lookAt);
+  }
+}
+
+// --------------------------- Presets / LOD ---------------------------
+function applyPreset(preset){
+  log('Applying preset', preset.name);
+  const targetPR = Math.min(2.5, (window.devicePixelRatio || 1) * (preset.renderScale || 1));
+  renderer.setPixelRatio(targetPR);
+  camera.far = preset.viewDistance || 1000;
+  camera.updateProjectionMatrix();
+
+  // environment will use preset fields to build ground/trees/snow
+  try {
+    applyMode(scene, preset, { worldMode: preset.worldMode ?? 'natural' });
+    log('applyMode finished for preset', preset.name);
+  } catch (err) {
+    error('applyMode error', err);
+  }
+
+  // debug scene
+  reportSceneSummary();
+}
+
+function startProgressiveLoad(){
+  applyPreset(GraphicsPresets[0]);
+  setTimeout(()=>applyPreset(GraphicsPresets[2]), 1200);
+  setTimeout(()=>applyPreset(GraphicsPresets[5]), 4200);
+}
+
+// --------------------------- UI + overlay ---------------------------
+function setupUI(){
+  const btn = document.getElementById('graphicsBtn');
+  const panel = document.getElementById('graphicsPanel');
+  btn?.addEventListener('click', ()=>panel.classList.toggle('hidden'));
+
+  const sel = document.getElementById('presetSelect');
+  if (sel) {
+    getPresetNames().forEach(name => {
+      const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o);
+    });
+    document.getElementById('applySettings')?.addEventListener('click', ()=>{
+      const p = getPresetByName(sel.value);
+      if (p) applyPreset(p);
+    });
+  }
+}
+
+function createDebugOverlay(){
+  debugOverlayEl = document.createElement('div');
+  debugOverlayEl.style.position = 'fixed';
+  debugOverlayEl.style.right = '10px';
+  debugOverlayEl.style.top = '10px';
+  debugOverlayEl.style.padding = '8px 10px';
+  debugOverlayEl.style.background = 'rgba(0,0,0,0.55)';
+  debugOverlayEl.style.color = 'white';
+  debugOverlayEl.style.fontFamily = 'monospace';
+  debugOverlayEl.style.fontSize = '12px';
+  debugOverlayEl.style.zIndex = 9999;
+  debugOverlayEl.style.borderRadius = '6px';
+  debugOverlayEl.innerHTML = 'debug overlay';
+  document.body.appendChild(debugOverlayEl);
+}
+
+function updateDebugOverlay(){
+  if (!debugOverlayEl || !carRoot) return;
+  const pos = carRoot.position;
+  debugOverlayEl.innerHTML =
+    `spd: ${carState.speed.toFixed(2)} m/s<br>` +
+    `pos: ${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}<br>` +
+    `cam: ${cameraMode}<br>` +
+    `preset: ${localStorage.getItem('graphicsPreset') || 'Normal Human'}`;
+}
+
+// --------------------------- Resize ---------------------------
+function onResize(){
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// --------------------------- Main loop ---------------------------
+function loop(now = performance.now()){
   const dt = Math.min(0.05, (now - lastTime) / 1000);
   lastTime = now;
   t += dt;
 
-  // Update systems (each wrapped to log errors)
-  try { updateCar(dt); } catch (err) { safeError('updateCar error', err); }
-  try { updateCamera(dt); } catch (err) { safeError('updateCamera error', err); }
-  try { updateEnvironment(dt, t); } catch (err) { safeError('updateEnvironment error', err); }
-  try { if (world && typeof world.update === 'function') world.update(dt); } catch (err) { safeError('world.update error', err); }
+  // update systems
+  try { updateCar(dt); } catch (e) { error('updateCar:', e); }
+  try { updateCamera(dt); } catch (e) { error('updateCamera:', e); }
+  try { updateEnvironment(dt, t); } catch (e) { error('updateEnvironment:', e); }
+  try { if (world && typeof world.update === 'function') world.update(dt); } catch (e) { error('world.update:', e); }
 
+  // update wheels steering hinge visuals (front wheels)
+  // front wheel steering angle:
+  const steerAngle = (input.left ? 0.45 : 0) - (input.right ? 0.45 : 0);
+  carRoot.userData.wheels.forEach((w, i) => {
+    if (i === 0 || i === 1) { // front wheels pivot rotation.y for steering
+      w.pivot.rotation.y = THREE.MathUtils.lerp(w.pivot.rotation.y, steerAngle, Math.min(1, dt * 8));
+    } else {
+      w.pivot.rotation.y = THREE.MathUtils.lerp(w.pivot.rotation.y, 0, Math.min(1, dt * 8));
+    }
+  });
+
+  // render + overlay update
   renderer.render(scene, camera);
+  updateDebugOverlay();
 
-  // basic periodic stats
-  if (Math.floor(t) % 3 === 0) {
-    const mem = performance && performance.memory ? performance.memory : null;
-    safeLog('tick', { t: t.toFixed(2), rendererInfo: renderer.info.render, memory: mem });
-  }
-
-  requestAnimationFrame(animate);
+  requestAnimationFrame(loop);
 }
 
-// DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    init();
-    requestAnimationFrame(animate);
-  } catch (err) {
-    safeError('init or animate top-level error', err);
-  }
-});
+// --------------------------- Start everything ---------------------------
+(function bootstrap(){
+  init(); // builds scene + car + UI
+  startProgressiveLoad();
+})();
 
-safeLog('main.js executed');
+log('main.js loaded and bootstrap executed');
