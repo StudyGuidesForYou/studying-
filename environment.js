@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
 
-let ground, treeInstanced, snowPoints;
+let treeInstanced, snowPoints;
 const cachedMaterials = {};
 
 function ensureMaterials() {
@@ -19,7 +19,6 @@ export function applyMode(scene, mode = 'natural', opts = {}) {
 
   cleanup(scene);
 
-  // Background & fog
   if (mode === 'winter') {
     scene.background = new THREE.Color(0xEAF6FF);
     scene.fog = new THREE.FogExp2(0xDDEEFF, 0.0009);
@@ -28,11 +27,11 @@ export function applyMode(scene, mode = 'natural', opts = {}) {
     scene.fog = new THREE.FogExp2(scene.background.getHex(), 0.0006);
   }
 
-  // Trees
   const treeGeo = new THREE.ConeGeometry(3 * detail, 12 * detail, 8);
   const matTree = mode === 'winter' ? cachedMaterials.treeWinter : cachedMaterials.tree;
   const treeCount = Math.min(500, Math.floor(200 * treeDensity));
   treeInstanced = new THREE.InstancedMesh(treeGeo, matTree, treeCount);
+
   const dummy = new THREE.Object3D();
   for (let i = 0; i < treeCount; i++) {
     dummy.position.set((Math.random() - 0.5) * 800, 6, (Math.random() - 0.5) * 800);
