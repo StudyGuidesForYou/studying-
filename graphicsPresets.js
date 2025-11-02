@@ -1,4 +1,4 @@
-window.GraphicsPresets = [
+export const GraphicsPresets = [
   {
     name: "Potato",
     renderScale: 0.5,
@@ -49,5 +49,5 @@ window.GraphicsPresets = [
   }
 ];
 
-window.getPresetByName = name => GraphicsPresets.find(p=>p.name===name);
-window.getPresetNames = () => GraphicsPresets.map(p=>p.name);
+export const getPresetByName = name => GraphicsPresets.find(p => p.name === name);
+export const getPresetNames = () => GraphicsPresets.map(p => p.name);
