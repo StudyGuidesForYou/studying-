@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>UltraRoads - Debug Build</title>
+  <title>UltraRoads — Fixed Build</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -15,9 +15,9 @@
     </div>
   </div>
 
-  <canvas id="gameCanvas"></canvas>
+  <canvas id="gameCanvas" style="display:block; width:100vw; height:100vh;"></canvas>
 
-  <!-- LOAD only main as module. main imports everything else. -->
+  <!-- Load main as module. This must be EXACT and case-sensitive -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>
