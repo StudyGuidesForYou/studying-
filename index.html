@@ -1,20 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>UltraRoads</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>UltraRoads - Debug Build</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
   <div id="ui">
     <button id="graphicsBtn">Graphics</button>
-    <div id="graphicsPanel" class="hidden"></div>
+    <div id="graphicsPanel" class="hidden">
+      <select id="presetSelect"></select>
+      <button id="applySettings">Apply</button>
+    </div>
   </div>
 
   <canvas id="gameCanvas"></canvas>
 
-  <script type="module" src="main.js"></script>
+  <!-- LOAD only main as module. main imports everything else. -->
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
