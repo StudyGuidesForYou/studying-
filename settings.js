@@ -1,14 +1,18 @@
 import { getPresetNames, getPresetByName } from './graphicsPresets.js';
 
 const $ = id => document.getElementById(id);
-function setText(id, txt){ const el = $(id); if(el) el.textContent = txt; }
 
-function initUI(){
+export function initSettingsUI(applyCallback) {
   const presetSelect = $('presetSelect');
-  getPresetNames().forEach(n=>{
-    const o=document.createElement('option');
-    o.value=n; o.textContent=n;
+  getPresetNames().forEach(name => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
     presetSelect.appendChild(o);
   });
+
+  $('applySettings').addEventListener('click', () => {
+    const preset = getPresetByName(presetSelect.value);
+    if (!preset) return;
+    applyCallback(preset);
+  });
 }
-window.addEventListener('DOMContentLoaded', initUI);
