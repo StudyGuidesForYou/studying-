@@ -5,15 +5,9 @@ export class World {
   constructor(scene, opts = {}) {
     this.scene = scene;
     this.opts = opts;
-    this.segmentLength = 50;
 
-    // Generate curved road
     this.createRoad();
-
-    // Generate terrain
     this.createTerrain();
-
-    // Apply environment (trees, snow)
     applyMode(this.scene, opts.worldMode || 'natural', opts);
   }
 
@@ -21,7 +15,6 @@ export class World {
     const geom = new THREE.PlaneGeometry(2000, 2000, 64, 64);
     geom.rotateX(-Math.PI / 2);
 
-    // Random heights
     for (let i = 0; i < geom.attributes.position.count; i++) {
       geom.attributes.position.setY(i, Math.random() * 5);
     }
@@ -46,8 +39,10 @@ export class World {
     const shape = new THREE.Shape();
     shape.moveTo(-5, 0);
     shape.lineTo(5, 0);
+
     const extrudeSettings = { steps: 200, bevelEnabled: false, extrudePath: curve };
     const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
     const mat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 });
     this.road = new THREE.Mesh(geo, mat);
     this.road.receiveShadow = true;
@@ -55,7 +50,6 @@ export class World {
   }
 
   update(playerZ, dt) {
-    // Move terrain forward for illusion
     this.terrain.position.z = playerZ;
   }
 }
