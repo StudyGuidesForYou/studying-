@@ -3,32 +3,32 @@ import { getPresetNames, getPresetByName } from './graphicsPresets.js';
 
 const $ = id => document.getElementById(id);
 
+/**
+ * initSettingsUI(callback)
+ * callback receives the chosen preset object when "Apply" clicked
+ */
 export function initSettingsUI(onApplyCallback = null) {
   console.log('[settings] initSettingsUI called');
-
   const presetSelect = $('presetSelect');
   if (!presetSelect) {
-    console.warn('[settings] #presetSelect not found in DOM');
+    console.warn('[settings] presetSelect not found');
     return;
   }
 
-  // populate
+  // populate presets
   getPresetNames().forEach(name => {
     const o = document.createElement('option');
-    o.value = name; o.textContent = name;
+    o.value = name;
+    o.textContent = name;
     presetSelect.appendChild(o);
   });
 
-  // hook apply button
+  // apply button
   const applyBtn = $('applySettings');
-  if (applyBtn) {
-    applyBtn.addEventListener('click', () => {
-      const selected = presetSelect.value;
-      console.log('[settings] apply clicked, preset:', selected);
-      const preset = getPresetByName(selected);
-      if (onApplyCallback && preset) onApplyCallback(preset);
-    });
-  } else {
-    console.warn('[settings] applySettings button missing');
-  }
+  applyBtn?.addEventListener('click', () => {
+    const sel = presetSelect.value;
+    const p = getPresetByName(sel);
+    console.log('[settings] apply clicked ->', sel);
+    if (onApplyCallback && p) onApplyCallback(p);
+  });
 }
