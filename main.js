@@ -27,23 +27,28 @@ function init() {
   scene.add(light);
   scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-  // 1️⃣ Load world with low detail first
-  const lowDetailOpts = { worldMode: 'natural', dayNight: 'day', detail: 0.3, treeDensity: 0.1 };
-  world = new World(scene, lowDetailOpts);
+  // Progressive LOD steps
+  const lodSteps = [
+    { detail: 0.2, treeDensity: 0.05, delay: 0 },   // Step 1: Very low detail
+    { detail: 0.5, treeDensity: 0.3, delay: 1000 }, // Step 2: Medium detail
+    { detail: 1.0, treeDensity: 1.0, delay: 2500 }  // Step 3: Full detail
+  ];
 
-  applyMode(scene, 'natural', lowDetailOpts);
+  lodSteps.forEach(step => {
+    setTimeout(() => {
+      // Clean previous world if exists
+      if (world) world.scene.children.forEach(obj => { 
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+      });
 
-  // 2️⃣ After 2 seconds, upgrade to default
-  setTimeout(() => {
-    const defaultOpts = { worldMode: 'natural', dayNight: 'day', detail: 1, treeDensity: 1 };
-    world = new World(scene, defaultOpts);
-    applyMode(scene, 'natural', defaultOpts);
+      // Create new world at this detail
+      world = new World(scene, { worldMode: 'natural', dayNight: 'day', detail: step.detail, treeDensity: step.treeDensity });
+      applyMode(scene, 'natural', { detail: step.detail, treeDensity: step.treeDensity });
+    }, step.delay);
+  });
 
-    // Update camera far plane based on preset
-    camera.far = GraphicsPresets[2].viewDistance;
-    camera.updateProjectionMatrix();
-  }, 2000); // 2 seconds delay, you can increase if needed
-
+  // UI button
   const btn = document.getElementById('graphicsBtn');
   const panel = document.getElementById('graphicsPanel');
   btn.addEventListener('click', () => panel.classList.toggle('hidden'));
@@ -55,7 +60,7 @@ function animate(time = 0) {
   lastTime = time;
 
   playerZ += 50 * dt;
-  world.update(playerZ, dt);
+  if (world) world.update(playerZ, dt);
   updateEnvironment(dt);
 
   camera.position.z = playerZ - 10;
