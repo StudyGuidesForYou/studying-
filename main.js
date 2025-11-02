@@ -15,7 +15,6 @@ function init() {
   const canvas = document.getElementById("gameCanvas");
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(GraphicsPresets[2].resolution);
 
   scene = new THREE.Scene();
 
@@ -28,7 +27,22 @@ function init() {
   scene.add(light);
   scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-  world = new World(scene, { worldMode: 'natural', dayNight: 'day', detail: 1, treeDensity: 1 });
+  // 1️⃣ Load world with low detail first
+  const lowDetailOpts = { worldMode: 'natural', dayNight: 'day', detail: 0.3, treeDensity: 0.1 };
+  world = new World(scene, lowDetailOpts);
+
+  applyMode(scene, 'natural', lowDetailOpts);
+
+  // 2️⃣ After 2 seconds, upgrade to default
+  setTimeout(() => {
+    const defaultOpts = { worldMode: 'natural', dayNight: 'day', detail: 1, treeDensity: 1 };
+    world = new World(scene, defaultOpts);
+    applyMode(scene, 'natural', defaultOpts);
+
+    // Update camera far plane based on preset
+    camera.far = GraphicsPresets[2].viewDistance;
+    camera.updateProjectionMatrix();
+  }, 2000); // 2 seconds delay, you can increase if needed
 
   const btn = document.getElementById('graphicsBtn');
   const panel = document.getElementById('graphicsPanel');
