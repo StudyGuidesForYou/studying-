@@ -22,7 +22,6 @@ export function applyMode(scene, mode='natural', opts={}) {
   scene.background = new THREE.Color(mode==='winter'?0xEAF6FF:(dayNight==='night'?0x07122a:0x8FCFFF));
   scene.fog = new THREE.FogExp2(scene.background.getHex(), mode==='winter'?0.0009:0.0006);
 
-  // Trees
   const treeGeo = new THREE.ConeGeometry(3*detail,12*detail,8);
   const matTree = mode==='winter'?cachedMaterials.treeWinter:cachedMaterials.tree;
   const treeCount = Math.min(1200, Math.floor(250*treeDensity));
@@ -72,8 +71,8 @@ export function cleanup(scene){
   ['sr_trees','sr_snow'].forEach(name=>{
     const obj = scene.getObjectByName(name);
     if(!obj) return;
-    if(obj.geometry) obj.geometry.dispose();
-    if(obj.material) obj.material.dispose();
+    if(obj.geometry)obj.geometry.dispose();
+    if(obj.material)obj.material.dispose();
     scene.remove(obj);
   });
 }
