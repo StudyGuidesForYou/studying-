@@ -1,0 +1,42 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: black;
+  height: 100%;
+}
+
+#gameCanvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+#ui {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+#graphicsBtn {
+  padding: 10px 18px;
+  background: rgba(40,40,40,0.7);
+  border: 1px solid white;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+#graphicsPanel.hidden {
+  display: none;
+}
+
+#graphicsPanel {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(30,30,30,0.85);
+  color: white;
+  width: 200px;
+  border-radius: 10px;
+}
