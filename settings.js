@@ -1,4 +1,3 @@
-// settings.js
 import { getPresetNames, getPresetByName } from './graphicsPresets.js';
 
 const $ = id => document.getElementById(id);
@@ -12,7 +11,7 @@ export function initSettingsUI() {
     presetSelect.appendChild(o);
   });
 
-  const state = window.sr && window.sr.state ? window.sr.state : {
+  const state = window.sr?.state ?? {
     detail:1, viewDistance:1800, renderScale:1, nativePixel:false, framerateLimit:0,
     worldMode:'natural', dayNight:'day', treeDensity:1, cameraSmoothing:0.06, fov:70, fovEffects:true,
     preset:'Normal Human'
@@ -32,7 +31,7 @@ export function initSettingsUI() {
   $('presetSelect').value = state.preset ?? 'Normal Human';
 
   function setOutputs(){
-    setText('viewDistanceVal', $('viewDistance').value + 'm');
+    setText('viewDistanceVal', $('viewDistance').value+'m');
     setText('detailVal', parseFloat($('detail').value).toFixed(1));
     setText('renderScaleVal', Math.round($('renderScale').value*100)+'%');
     setText('treeDensityVal', $('treeDensity').value);
@@ -44,7 +43,7 @@ export function initSettingsUI() {
     $(id).addEventListener('input', setOutputs);
   });
 
-  $('presetSelect').addEventListener('change', (e)=>{
+  $('presetSelect').addEventListener('change', e=>{
     const p = getPresetByName(e.target.value);
     if(!p) return;
     $('detail').value = p.terrainDetail;
