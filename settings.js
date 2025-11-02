@@ -1,44 +1,43 @@
-// settings.js
-export function initSettingsUI() {
-  const panel = document.createElement('div');
-  panel.id = 'settings-panel';
+// settings.js — graphics + sound UI
+export function setupUI({ renderer, camera, car, scene }) {
+    const ui = document.createElement('div');
+    ui.id = 'sr_ui';
+    ui.innerHTML = `
+        <button id="sr_toggleSettings">Settings</button>
+        <div id="sr_settingsPanel">
+            <label>Render Scale: <input type="range" id="sr_renderScale" min="0.5" max="2" step="0.1" value="1"></label>
+            <label>Shadow Quality: <select id="sr_shadowQuality">
+                <option value="0">Low</option>
+                <option value="1" selected>Medium</option>
+                <option value="2">High</option>
+            </select></label>
+            <label>Sound: <input type="checkbox" id="sr_sound" checked></label>
+        </div>
+    `;
+    document.body.appendChild(ui);
 
-  panel.innerHTML = `
-    <h3>Settings</h3>
-    <label>Graphics Quality:
-      <select id="graphics-quality">
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high" selected>High</option>
-        <option value="ultra">Ultra</option>
-      </select>
-    </label>
-    <br/>
-    <label>Sound:
-      <input type="checkbox" id="sound-toggle" checked>
-    </label>
-    <br/>
-    <button id="close-settings">Close</button>
-  `;
-
-  document.body.appendChild(panel);
-
-  // Event listeners
-  document.getElementById('graphics-quality').addEventListener('change', e => {
-    const val = e.target.value;
-    console.log('[Settings] Graphics:', val);
-    window.applyGraphicsPreset(val); // You’ll define this in main.js
-  });
-
-  document.getElementById('sound-toggle').addEventListener('change', e => {
-    const enabled = e.target.checked;
-    console.log('[Settings] Sound enabled:', enabled);
-    window.toggleSound(enabled); // You’ll define this in main.js
-  });
-
-  document.getElementById('close-settings').addEventListener('click', () => {
+    const panel = document.getElementById('sr_settingsPanel');
     panel.style.display = 'none';
-  });
 
-  console.log('[Settings] UI initialized');
+    document.getElementById('sr_toggleSettings').addEventListener('click', () => {
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.getElementById('sr_renderScale').addEventListener('input', e => {
+        renderer.setPixelRatio(window.devicePixelRatio * parseFloat(e.target.value));
+    });
+
+    document.getElementById('sr_shadowQuality').addEventListener('change', e => {
+        const val = parseInt(e.target.value);
+        renderer.shadowMap.enabled = val > 0;
+    });
+
+    document.getElementById('sr_sound').addEventListener('change', e => {
+        if(e.target.checked) playEngineSound();
+        else stopEngineSound();
+    });
 }
+
+// Placeholder
+function playEngineSound() { console.log('Engine sound ON'); }
+function stopEngineSound() { console.log('Engine sound OFF'); }
