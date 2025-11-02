@@ -16,25 +16,19 @@ export function ensureMaterials() {
 }
 
 export function applyMode(scene, preset = { terrainDetail:48, treeDensity:1, snowParticles:0 }, opts = {}) {
-  console.log('[environment] applyMode called, preset:', preset.name ?? preset);
   ensureMaterials();
-
-  // cleanup
   cleanup(scene);
 
-  // background / fog
   const isWinter = preset.name?.toLowerCase().includes('snow') || false;
   const dayNight = opts.dayNight ?? 'day';
   scene.background = new THREE.Color(isWinter ? 0xEAF6FF : (dayNight === 'night' ? 0x07122a : 0x8FCFFF));
   scene.fog = new THREE.FogExp2(scene.background.getHex(), isWinter ? 0.0009 : 0.0006);
 
-  // ground geometry scaled by terrainDetail
+  // Ground
   const size = 2000;
   const seg = Math.max(8, Math.floor(preset.terrainDetail || 48));
   const geom = new THREE.PlaneGeometry(size, size, seg, seg);
   geom.rotateX(-Math.PI/2);
-
-  // seeded heights
   const pos = geom.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
@@ -43,14 +37,13 @@ export function applyMode(scene, preset = { terrainDetail:48, treeDensity:1, sno
     pos.setY(i, y);
   }
   geom.computeVertexNormals();
-
   const mat = isWinter ? cachedMaterials.groundSnow : cachedMaterials.groundNat;
   ground = new THREE.Mesh(geom, mat);
   ground.receiveShadow = true;
   ground.name = 'sr_ground';
   scene.add(ground);
 
-  // trees (instanced)
+  // Trees
   const treeCount = Math.min(3000, Math.floor(250 * (preset.treeDensity || 1)));
   const treeGeo = new THREE.ConeGeometry(3, 12, 8);
   const treeMat = isWinter ? cachedMaterials.treeWinter : cachedMaterials.tree;
@@ -67,11 +60,10 @@ export function applyMode(scene, preset = { terrainDetail:48, treeDensity:1, sno
   treeInstanced.name = 'sr_trees';
   scene.add(treeInstanced);
 
-  // snow
+  // Snow
   const snowCount = Math.max(0, preset.snowParticles || 0);
   if (snowCount > 0) spawnSnow(scene, snowCount);
-
-  console.log(`[environment] created ground seg=${seg}, trees=${treeCount}, snow=${snowCount}`);
+  console.log(`[environment] ground seg=${seg}, trees=${treeCount}, snow=${snowCount}`);
 }
 
 function spawnSnow(scene, count) {
@@ -88,7 +80,6 @@ function spawnSnow(scene, count) {
   snowPoints = new THREE.Points(geo, mat);
   snowPoints.name = 'sr_snow';
   scene.add(snowPoints);
-  console.log('[environment] spawnSnow count=', count);
 }
 
 export function updateEnvironment(dt, time = performance.now() * 0.001) {
@@ -120,10 +111,7 @@ export function cleanup(scene) {
     try {
       if (obj.geometry) obj.geometry.dispose();
       if (obj.material && !Object.values(cachedMaterials).includes(obj.material)) obj.material.dispose();
-    } catch (e) { console.warn('[environment] cleanup error', e); }
+    } catch(e){ console.warn('[environment] cleanup error', e); }
     scene.remove(obj);
   });
-  console.log('[environment] cleanup done');
 }
-
-console.log('[environment] module loaded');
