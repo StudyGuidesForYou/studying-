@@ -1,23 +1,26 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>UltraRoads — Fixed Build</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slow Roads — Demo</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="ui">
-    <button id="graphicsBtn">Graphics</button>
-    <div id="graphicsPanel" class="hidden">
-      <select id="presetSelect"></select>
-      <button id="applySettings">Apply</button>
-    </div>
+  <!-- Game Canvas -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Graphics Preset UI -->
+  <div id="graphicsPanel" class="hidden">
+    <label for="presetSelect">Graphics Preset:</label>
+    <select id="presetSelect"></select>
+    <button id="applySettings">Apply</button>
   </div>
+  <button id="graphicsBtn">Graphics Settings</button>
 
-  <canvas id="gameCanvas" style="display:block; width:100vw; height:100vh;"></canvas>
+  <!-- Optional overlay will be injected by main.js -->
 
-  <!-- Load main as module. This must be EXACT and case-sensitive -->
+  <!-- Scripts -->
   <script type="module" src="./main.js"></script>
 </body>
 </html>
