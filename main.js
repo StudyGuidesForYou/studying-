@@ -1,6 +1,4 @@
 // main.js — Slow Roads style: relaxed driving + smooth suspension + improved graphics
-// Full drop-in replacement for your repo's main.js
-
 import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
 import World from './world.js';
 import { applyMode, updateEnvironment } from './environment.js';
@@ -8,32 +6,35 @@ import { GraphicsPresets, getPresetByName, getPresetNames } from './graphicsPres
 import { initSettingsUI } from './settings.js';
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
 
-// --------------------------------------------------
-// SlowRoads-style config: smooth, floaty, infinite-ish
-// --------------------------------------------------
+// --------------------
+// Debug
+// --------------------
 const DEBUG = true;
 const log = (...a) => { if (DEBUG) console.log('[UR]', ...a); };
 const warn = (...a) => { if (DEBUG) console.warn('[UR]', ...a); };
 const error = (...a) => { if (DEBUG) console.error('[UR]', ...a); };
 
-// Global state
+// --------------------
+// Global State
+// --------------------
 let renderer, scene, camera;
-let worldVisual = null;     // World (visual)
-let physWorld = null;       // CANNON world
-let vehicle = null;         // RaycastVehicle
+let worldVisual = null;
+let physWorld = null;
+let vehicle = null;
 let chassisBody = null;
-let threeCar = null;        // three.js visuals group (car)
-let wheelBodies = [];       // ghost bodies (used as placeholders for wheel hits)
+let threeCar = null;
+let wheelBodies = [];
 let lastTime = performance.now();
 let t = 0;
 let overlayEl = null;
-let cameraMode = 'third';   // 'third' | 'cockpit'
+let cameraMode = 'third';
 
 const input = { forward:false, backward:false, left:false, right:false, handbrake:false };
-
 window.__UR_DEBUG__ = {};
 
-// ---------- Entry ----------
+// --------------------
+// Entry
+// --------------------
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     await bootstrap();
@@ -45,7 +46,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// ---------- Bootstrap ----------
+// --------------------
+// Bootstrap
+// --------------------
 async function bootstrap() {
   initRenderer();
   initScene();
@@ -60,12 +63,10 @@ async function bootstrap() {
   buildPhysicsHeightfieldFromVisualGround();
 
   createCarVisualAndVehicle();
-
   setupInput();
   initSettingsUI(p => applyPresetByName(p.name));
   createOverlay();
   setupUI();
-
   startProgressiveLoad();
 
   window.__UR_DEBUG__.physWorld = physWorld;
@@ -73,13 +74,15 @@ async function bootstrap() {
   window.addEventListener('resize', onResize);
 }
 
-// ---------- Renderer & Scene ----------
+// --------------------
+// Renderer & Scene
+// --------------------
 function initRenderer(){
   const canvas = document.getElementById('gameCanvas');
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  try { renderer.outputColorSpace = THREE.SRGBColorSpace; } catch(e) {} // older three poly
+  try { renderer.outputColorSpace = THREE.SRGBColorSpace; } catch(e) {}
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
@@ -108,7 +111,9 @@ function initLights(){
   log('lights added');
 }
 
-// ---------- Physics (Cannon-es) ----------
+// --------------------
+// Physics
+// --------------------
 function initPhysics(){
   physWorld = new CANNON.World();
   physWorld.gravity.set(0, -9.82, 0);
@@ -117,7 +122,6 @@ function initPhysics(){
   physWorld.defaultContactMaterial.friction = 0.6;
   physWorld.defaultContactMaterial.restitution = 0;
 
-  // fallback ground plane (in case heightfield not ready)
   const groundMat = new CANNON.Material('ground');
   const body = new CANNON.Body({ mass: 0, material: groundMat });
   body.addShape(new CANNON.Plane());
@@ -128,7 +132,9 @@ function initPhysics(){
   log('physics ready');
 }
 
-// Build heightfield from visual ground (best-effort)
+// --------------------
+// Heightfield from ground
+// --------------------
 function buildPhysicsHeightfieldFromVisualGround(){
   try {
     const g = scene.getObjectByName('sr_ground');
@@ -140,13 +146,11 @@ function buildPhysicsHeightfieldFromVisualGround(){
     if (!isFinite(seg)) return;
     const segX = Math.round(seg);
 
-    // bounds
     let minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity;
     for(let i=0;i<pos.count;i++){ const x=pos.getX(i), z=pos.getZ(i); minX=Math.min(minX,x); maxX=Math.max(maxX,x); minZ=Math.min(minZ,z); maxZ=Math.max(maxZ,z);}
     const width = maxX-minX;
     const dx = width/segX || 1;
 
-    // matrix rows along X
     const matrix = [];
     for(let xi=0; xi<=segX; xi++){
       const row = [];
@@ -163,17 +167,17 @@ function buildPhysicsHeightfieldFromVisualGround(){
     hfBody.addShape(hfShape);
     hfBody.position.set(minX, 0, minZ);
     hfBody.quaternion.setFromEuler(-Math.PI/2, 0, 0);
-    // remove previous heightfields (if any)
+
     physWorld.bodies.filter(b=>b && b.shapes && b.shapes[0] instanceof CANNON.Heightfield).forEach(b=>physWorld.removeBody(b));
     physWorld.addBody(hfBody);
     log('heightfield created', {rows: matrix.length, dx});
-
   } catch(e){ error('buildHF failed', e); }
 }
 
-// ---------- Car visuals + physics vehicle (SlowRoads tune) ----------
+// --------------------
+// Car visuals & vehicle
+// --------------------
 function createCarVisualAndVehicle(){
-  // three.js visual
   threeCar = new THREE.Group();
   threeCar.name = 'threeCar';
   const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.6,0.45,3.0), new THREE.MeshStandardMaterial({color:0xff4444, metalness:0.2, roughness:0.5}));
@@ -181,7 +185,6 @@ function createCarVisualAndVehicle(){
   chassis.castShadow = true;
   threeCar.add(chassis);
 
-  // wheels
   const wheelGeo = new THREE.CylinderGeometry(0.34,0.34,0.22,20);
   wheelGeo.rotateZ(Math.PI/2);
   const wheelMat = new THREE.MeshStandardMaterial({color:0x111111, roughness:0.9});
@@ -195,21 +198,18 @@ function createCarVisualAndVehicle(){
   }
   scene.add(threeCar);
 
-  // cannon chassis body
-  const chassisShape = new CANNON.Box(new CANNON.Vec3(0.8,0.225,1.5));
   chassisBody = new CANNON.Body({ mass: 140 });
-  chassisBody.addShape(chassisShape);
+  chassisBody.addShape(new CANNON.Box(new CANNON.Vec3(0.8,0.225,1.5)));
   chassisBody.position.set(0,2,0);
-  chassisBody.angularDamping = 0.6; // SlowRoads floaty
+  chassisBody.angularDamping = 0.6;
   physWorld.addBody(chassisBody);
 
-  // raycast vehicle
   vehicle = new CANNON.RaycastVehicle({ chassisBody, indexRightAxis:0, indexUpAxis:1, indexForwardAxis:2 });
 
   const wheelOptions = {
     radius: 0.34,
     directionLocal: new CANNON.Vec3(0,-1,0),
-    suspensionStiffness: 30,   // softer for floaty
+    suspensionStiffness: 30,
     suspensionRestLength: 0.35,
     frictionSlip: 4.2,
     dampingRelaxation: 2.3,
@@ -231,15 +231,17 @@ function createCarVisualAndVehicle(){
   for(let i=0;i<wheelConnectors.length;i++){ const opt = Object.assign({}, wheelOptions); opt.chassisConnectionPointLocal = wheelConnectors[i]; vehicle.addWheel(opt);}  
   vehicle.addToWorld(physWorld);
 
-  // ghost wheel bodies for rayhits (if needed)
   wheelBodies = [];
   for(let i=0;i<vehicle.wheelInfos.length;i++){ const wb = new CANNON.Body({ mass:0 }); wheelBodies.push(wb); physWorld.addBody(wb); }
 
-  window.__UR_DEBUG__.vehicle = vehicle; window.__UR_DEBUG__.chassisBody = chassisBody;
+  window.__UR_DEBUG__.vehicle = vehicle;
+  window.__UR_DEBUG__.chassisBody = chassisBody;
   log('vehicle ready (SlowRoads-tuned)');
 }
 
-// ---------- Input ----------
+// --------------------
+// Input
+// --------------------
 function setupInput(){
   window.addEventListener('keydown', e => {
     if(['KeyW','ArrowUp'].includes(e.code)) input.forward = true;
@@ -259,10 +261,14 @@ function setupInput(){
   log('input ready');
 }
 
-// ---------- Car driver params (SlowRoads feel) ----------
+// --------------------
+// Driver params
+// --------------------
 const driver = { maxEngineForce: 2200, maxBreakingForce: 1200, maxSteerVal: 0.55 };
 
-// ---------- Apply presets and progressive load ----------
+// --------------------
+// Graphics presets
+// --------------------
 function applyPresetByName(name){
   const preset = getPresetByName(name);
   if(!preset){ warn('preset not found', name); return; }
@@ -280,28 +286,58 @@ function startProgressiveLoad(){
   setTimeout(()=>applyPresetByName('CPU Destroyer'), 4800);
 }
 
-// ---------- Overlay & UI ----------
-function createOverlay(){ overlayEl = document.createElement('div'); overlayEl.style.cssText = 'position:fixed;left:10px;top:10px;padding:8px 10px;background:rgba(0,0,0,0.6);color:white;font:12px monospace;z-index:99999;border-radius:6px'; document.body.appendChild(overlayEl); }
-function updateOverlay(){ if(!overlayEl) return; const pos = chassisBody ? chassisBody.position : {x:0,y:0,z:0}; overlayEl.innerHTML = `pos: ${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}<br>spd: ${chassisBody?chassisBody.velocity.length().toFixed(2):'0'} m/s<br>cam: ${cameraMode}<br>preset: ${localStorage.getItem('graphicsPreset')||'Normal Human'}`; }
+// --------------------
+// Overlay & UI
+// --------------------
+function createOverlay(){ 
+  overlayEl = document.createElement('div'); 
+  overlayEl.style.cssText = 'position:fixed;left:10px;top:10px;padding:8px 10px;background:rgba(0,0,0,0.6);color:white;font:12px monospace;z-index:99999;border-radius:6px'; 
+  document.body.appendChild(overlayEl); 
+}
+function updateOverlay(){ 
+  if(!overlayEl) return; 
+  const pos = chassisBody ? chassisBody.position : {x:0,y:0,z:0}; 
+  overlayEl.innerHTML = `pos: ${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}<br>spd: ${chassisBody?chassisBody.velocity.length().toFixed(2):'0'} m/s<br>cam: ${cameraMode}<br>preset: ${localStorage.getItem('graphicsPreset')||'Normal Human'}`; 
+}
 
-function setupUI(){ const btn = document.getElementById('graphicsBtn'); const panel = document.getElementById('graphicsPanel'); btn?.addEventListener('click', ()=>panel.classList.toggle('hidden')); const sel = document.getElementById('presetSelect'); if(sel){ getPresetNames().forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); }); document.getElementById('applySettings')?.addEventListener('click', ()=>{ const p=getPresetByName(sel.value); if(p) applyPresetByName(p.name); }); } }
+function setupUI(){ 
+  const btn = document.getElementById('graphicsBtn'); 
+  const panel = document.getElementById('graphicsPanel'); 
+  btn?.addEventListener('click', ()=>panel.classList.toggle('hidden')); 
+  const sel = document.getElementById('presetSelect'); 
+  if(sel){ 
+    getPresetNames().forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); }); 
+    document.getElementById('applySettings')?.addEventListener('click', ()=>{ 
+      const p=getPresetByName(sel.value); 
+      if(p) applyPresetByName(p.name); 
+    }); 
+  } 
+}
 
-// ---------- Visual sync ----------
+// --------------------
+// Visual sync
+// --------------------
 function syncVisualsFromPhysics(){
-  // chassis
   const threeChassis = scene.getObjectByName('threeCar');
-  if(threeChassis && chassisBody){ threeChassis.position.copy(chassisBody.position); threeChassis.quaternion.copy(chassisBody.quaternion); }
+  if(threeChassis && chassisBody){ 
+    threeChassis.position.copy(chassisBody.position); 
+    threeChassis.quaternion.copy(chassisBody.quaternion); 
+  }
 
-  // wheels
   for(let i=0;i<vehicle.wheelInfos.length;i++){
     vehicle.updateWheelTransform(i);
     const wt = vehicle.wheelInfos[i].worldTransform;
     const visWheel = threeChassis?.userData?.wheels?.[i];
-    if(visWheel){ visWheel.pivot.position.set(wt.position.x, wt.position.y, wt.position.z); visWheel.pivot.quaternion.set(wt.quaternion.x, wt.quaternion.y, wt.quaternion.z, wt.quaternion.w); }
+    if(visWheel){ 
+      visWheel.pivot.position.set(wt.position.x, wt.position.y, wt.position.z); 
+      visWheel.pivot.quaternion.set(wt.quaternion.x, wt.quaternion.y, wt.quaternion.z, wt.quaternion.w); 
+    }
   }
 }
 
-// ---------- Camera ----------
+// --------------------
+// Camera
+// --------------------
 function updateCamera(dt){
   if(!chassisBody) return;
   const pos = new THREE.Vector3(chassisBody.position.x, chassisBody.position.y, chassisBody.position.z);
@@ -319,30 +355,37 @@ function updateCamera(dt){
   }
 }
 
-// ---------- Loop ----------
+// --------------------
+// Loop
+// --------------------
 function loop(now = performance.now()){
   requestAnimationFrame(loop);
   const dt = Math.min(0.05, (now - lastTime)/1000);
   lastTime = now; t += dt;
 
-  // controls -> vehicle
+  // controls
   try {
     const engine = input.forward ? driver.maxEngineForce : 0;
     const brake = input.backward ? driver.maxBreakingForce : 0;
     let steer = 0; if(input.left) steer = driver.maxSteerVal; if(input.right) steer = -driver.maxSteerVal;
-    if(vehicle){ vehicle.setSteeringValue(steer, 0); vehicle.setSteeringValue(steer, 1); vehicle.applyEngineForce(engine, 2); vehicle.applyEngineForce(engine, 3); vehicle.setBrake(brake,0); vehicle.setBrake(brake,1); vehicle.setBrake(brake,2); vehicle.setBrake(brake,3); for(let i=0;i<vehicle.wheelInfos.length;i++){ vehicle.wheelInfos[i].frictionSlip = input.handbrake ? 0.8 : 4.2; } }
+    if(vehicle){
+      vehicle.setSteeringValue(steer, 0); vehicle.setSteeringValue(steer, 1);
+      vehicle.applyEngineForce(engine, 2); vehicle.applyEngineForce(engine, 3);
+      vehicle.setBrake(brake,0); vehicle.setBrake(brake,1); vehicle.setBrake(brake,2); vehicle.setBrake(brake,3);
+      for(let i=0;i<vehicle.wheelInfos.length;i++){ vehicle.wheelInfos[i].frictionSlip = input.handbrake ? 0.8 : 4.2; }
+    }
   } catch(e){ warn('vehicle control', e); }
 
-  // physics step
+  // physics
   try { physWorld.step(1/60, dt, 3); } catch(e){ error('phys step', e); }
 
-  // sync visuals
+  // visuals
   try { syncVisualsFromPhysics(); } catch(e){ error('sync visuals', e); }
 
   // camera
   try { updateCamera(dt); } catch(e){ error('camera', e); }
 
-  // world updates
+  // environment
   try { updateEnvironment(dt, t); } catch(e){ error('env', e); }
 
   // render
@@ -352,24 +395,38 @@ function loop(now = performance.now()){
   try { updateOverlay(); } catch(e){}
 }
 
-// ---------- Utilities & debug ----------
+// --------------------
+// Utilities
+// --------------------
 function reportSceneSummary(sceneObj, worldObj, opts={}){
   try{
     console.group('[DEBUG] Scene Summary');
     if(renderer){ const pr = renderer.getPixelRatio(); const size = renderer.getSize(new THREE.Vector2()); console.log('Renderer pixelRatio:', pr, 'size:', size); } else console.log('no renderer');
     if(camera) console.log('Camera', camera.position.clone(), 'far', camera.far);
-    if(sceneObj){ const counts = {meshes:0,points:0,instanced:0,lights:0,others:0}; sceneObj.traverse(o=>{ if(o.isMesh) counts.meshes++; else if(o.isPoints) counts.points++; else if(o.isInstancedMesh) counts.instanced++; else if(o.isLight) counts.lights++; else counts.others++; }); console.log('Scene counts', counts); console.log('Top level', sceneObj.children.map(c=>c.name||c.type)); }
+    if(sceneObj){ 
+      const counts = {meshes:0,points:0,instanced:0,lights:0,others:0}; 
+      sceneObj.traverse(o=>{ if(o.isMesh) counts.meshes++; else if(o.isPoints) counts.points++; else if(o.isInstancedMesh) counts.instanced++; else if(o.isLight) counts.lights++; else counts.others++; }); 
+      console.log('Scene counts', counts); 
+      console.log('Top level', sceneObj.children.map(c=>c.name||c.type)); 
+    }
     if(worldObj) console.log('World summary', {hasRoad:!!worldObj.road, opts: worldObj.opts||null});
     console.log('Preset', opts.presetName||localStorage.getItem('graphicsPreset')||'unknown');
     console.groupEnd();
   } catch(e){ error('report failed', e); }
 }
 
-function onResize(){ if(!camera||!renderer) return; camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+function onResize(){ 
+  if(!camera||!renderer) return; 
+  camera.aspect = window.innerWidth/window.innerHeight; 
+  camera.updateProjectionMatrix(); 
+  renderer.setSize(window.innerWidth, window.innerHeight); 
+}
 
 function rebuildHeightfield(){ buildPhysicsHeightfieldFromVisualGround(); }
 
-// ---------- Expose helpful globals ----------
+// --------------------
+// Expose globals
+// --------------------
 window.__UR_DEBUG__.applyPresetByName = applyPresetByName;
 window.__UR_DEBUG__.rebuildHeightfield = rebuildHeightfield;
 
