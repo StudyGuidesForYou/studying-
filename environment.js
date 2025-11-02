@@ -15,28 +15,26 @@ export function ensureMaterials() {
   console.log('[environment] materials cached');
 }
 
-// applyMode: preset is the object from GraphicsPresets; supports progressive updates
-export function applyMode(scene, preset = { terrainDetail: 48, treeDensity: 1, snowParticles: 0 }, opts = {}) {
-  // opts reserved for future flags; keep API simple
+export function applyMode(scene, preset = { terrainDetail:48, treeDensity:1, snowParticles:0 }, opts = {}) {
   console.log('[environment] applyMode called, preset:', preset.name ?? preset);
   ensureMaterials();
 
-  // remove previous (keeps cachedMaterials)
+  // cleanup
   cleanup(scene);
 
   // background / fog
+  const isWinter = preset.name?.toLowerCase().includes('snow') || false;
   const dayNight = opts.dayNight ?? 'day';
-  const isWinter = opts.worldMode === 'winter' || preset.name?.toLowerCase().includes('snow') || false;
   scene.background = new THREE.Color(isWinter ? 0xEAF6FF : (dayNight === 'night' ? 0x07122a : 0x8FCFFF));
   scene.fog = new THREE.FogExp2(scene.background.getHex(), isWinter ? 0.0009 : 0.0006);
 
-  // ground creation with segments derived from preset
+  // ground geometry scaled by terrainDetail
   const size = 2000;
   const seg = Math.max(8, Math.floor(preset.terrainDetail || 48));
   const geom = new THREE.PlaneGeometry(size, size, seg, seg);
   geom.rotateX(-Math.PI/2);
 
-  // initial (seeded) heights - we keep them deterministic-ish
+  // seeded heights
   const pos = geom.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
@@ -53,12 +51,10 @@ export function applyMode(scene, preset = { terrainDetail: 48, treeDensity: 1, s
   scene.add(ground);
 
   // trees (instanced)
-  const detail = 1.0;
   const treeCount = Math.min(3000, Math.floor(250 * (preset.treeDensity || 1)));
-  const treeGeo = new THREE.ConeGeometry(3 * detail, 12 * detail, 8);
+  const treeGeo = new THREE.ConeGeometry(3, 12, 8);
   const treeMat = isWinter ? cachedMaterials.treeWinter : cachedMaterials.tree;
   treeInstanced = new THREE.InstancedMesh(treeGeo, treeMat, treeCount);
-  treeInstanced.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   const dummy = new THREE.Object3D();
   const spread = 800;
   for (let i = 0; i < treeCount; i++) {
@@ -71,23 +67,23 @@ export function applyMode(scene, preset = { terrainDetail: 48, treeDensity: 1, s
   treeInstanced.name = 'sr_trees';
   scene.add(treeInstanced);
 
-  // snow particles if requested
+  // snow
   const snowCount = Math.max(0, preset.snowParticles || 0);
-  if (isWinter && snowCount > 0) spawnSnow(scene, snowCount);
+  if (snowCount > 0) spawnSnow(scene, snowCount);
 
   console.log(`[environment] created ground seg=${seg}, trees=${treeCount}, snow=${snowCount}`);
 }
 
 function spawnSnow(scene, count) {
-  const pos = new Float32Array(count * 3);
+  const posArr = new Float32Array(count * 3);
   const spread = 1500;
   for (let i = 0; i < count; i++) {
-    pos[i * 3 + 0] = (Math.random() - 0.5) * spread;
-    pos[i * 3 + 1] = Math.random() * 400 + 20;
-    pos[i * 3 + 2] = (Math.random() - 0.5) * spread;
+    posArr[i*3+0] = (Math.random() - 0.5) * spread;
+    posArr[i*3+1] = Math.random() * 400 + 20;
+    posArr[i*3+2] = (Math.random() - 0.5) * spread;
   }
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
   const mat = new THREE.PointsMaterial({ size: 1.5, color: 0xffffff, transparent: true });
   snowPoints = new THREE.Points(geo, mat);
   snowPoints.name = 'sr_snow';
@@ -96,7 +92,6 @@ function spawnSnow(scene, count) {
 }
 
 export function updateEnvironment(dt, time = performance.now() * 0.001) {
-  // snow animate
   if (snowPoints) {
     const arr = snowPoints.geometry.attributes.position.array;
     for (let i = 1; i < arr.length; i += 3) {
@@ -105,7 +100,6 @@ export function updateEnvironment(dt, time = performance.now() * 0.001) {
     }
     snowPoints.geometry.attributes.position.needsUpdate = true;
   }
-  // animate ground a little bit (waviness)
   if (ground) {
     const pos = ground.geometry.attributes.position;
     for (let i = 0; i < pos.count; i++) {
@@ -120,19 +114,14 @@ export function updateEnvironment(dt, time = performance.now() * 0.001) {
 }
 
 export function cleanup(scene) {
-  ['sr_trees', 'sr_snow', 'sr_ground'].forEach(name => {
-    const o = scene.getObjectByName(name);
-    if (!o) return;
+  ['sr_trees','sr_snow','sr_ground'].forEach(name => {
+    const obj = scene.getObjectByName(name);
+    if (!obj) return;
     try {
-      if (o.geometry) o.geometry.dispose();
-      if (o.material) {
-        // instanced mesh material is shared — avoid disposing shared cachedMaterials
-        if (!Object.values(cachedMaterials).includes(o.material)) o.material.dispose();
-      }
-    } catch (e) {
-      console.warn('[environment] cleanup issue', e);
-    }
-    scene.remove(o);
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material && !Object.values(cachedMaterials).includes(obj.material)) obj.material.dispose();
+    } catch (e) { console.warn('[environment] cleanup error', e); }
+    scene.remove(obj);
   });
   console.log('[environment] cleanup done');
 }
