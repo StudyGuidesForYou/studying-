@@ -1,202 +1,309 @@
-// =============================================================
-// MAIN.JS — FULL WORKING VERSION
-// Camera fixed, car fixed, imports fixed,
-// progressive LOD, everything stabilized
-// =============================================================
+// main.js (diagnostic + fixed imports)
+// --------------------------------------------------
+// Full working main with verbose console diagnostics
+// --------------------------------------------------
 
-// ✅ IMPORTS
 import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
-import { World } from './world.js';
-import { updateEnvironment } from './environment.js';
-import { getPresetByName } from './graphicsPresets.js';
+import World from './world.js';
+import { applyMode, updateEnvironment } from './environment.js';
+import { GraphicsPresets, getPresetByName, getPresetNames } from './graphicsPresets.js';
 import { initSettingsUI } from './settings.js';
 
+// Global debug helpers
+window.__UR_DEBUG__ = window.__UR_DEBUG__ || {};
+const DEBUG = true;
 
-// =============================================================
-// GLOBALS
-// =============================================================
+function safeLog(...args) { if (DEBUG) console.log('[UR]', ...args); }
+function safeWarn(...args) { if (DEBUG) console.warn('[UR]', ...args); }
+function safeError(...args) { if (DEBUG) console.error('[UR]', ...args); }
+
+safeLog('main module loaded');
+
+// Global state
 let renderer, scene, camera;
-let world;
-let car;
-let velocity = 0;
-let steering = 0;
+let world, car;
+let lastTime = performance.now();
+let t = 0;
+const input = { forward:false, backward:false, left:false, right:false };
 
-const keys = { w:false, s:false, a:false, d:false };
+// Install global error handlers so everything reports to console
+window.addEventListener('error', (ev) => {
+  safeError('window.error', ev.message, ev.filename, ev.lineno, ev.colno, ev.error);
+});
+window.addEventListener('unhandledrejection', (ev) => {
+  safeError('unhandledrejection', ev.reason);
+});
 
+// Utility to show current objects counts
+function reportSceneSummary() {
+  if (!scene) return;
+  const counts = { meshes:0, points:0, instanced:0, lights:0 };
+  scene.traverse(obj => {
+    if (obj.isMesh) counts.meshes++;
+    if (obj.isPoints) counts.points++;
+    if (obj.isInstancedMesh) counts.instanced++;
+    if (obj.isLight) counts.lights++;
+  });
+  safeLog('scene summary', counts);
+  return counts;
+}
 
-// =============================================================
-// INIT
-// =============================================================
-export function init() {
+// Initialize renderer, scene, camera
+function setupRenderer() {
+  const canvas = document.getElementById('gameCanvas');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  safeLog('renderer created', { pixelRatio: renderer.getPixelRatio() });
+}
 
-    // Canvas
-    const canvas = document.getElementById('gameCanvas');
+function setupScene() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1200);
+  camera.position.set(0, 4, -8);
+  safeLog('scene & camera created');
+}
 
-    // Renderer
-    renderer = new THREE.WebGLRenderer({
-        canvas,
-        antialias: true,
-        powerPreference: "high-performance"
+function setupLights() {
+  const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+  sun.position.set(50, 200, 50);
+  sun.castShadow = false;
+  scene.add(sun);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  safeLog('lights added');
+}
+
+function createCar() {
+  const geo = new THREE.BoxGeometry(1.6, 0.7, 3.2);
+  const mat = new THREE.MeshStandardMaterial({ color: 0xff3333 });
+  car = new THREE.Mesh(geo, mat);
+  car.position.set(0, 1, 0);
+  car.name = 'player_car';
+  scene.add(car);
+  safeLog('car created');
+}
+
+// Input handling
+function setupInput() {
+  window.addEventListener('keydown', (e) => {
+    if (['w','ArrowUp'].includes(e.key)) input.forward = true;
+    if (['s','ArrowDown'].includes(e.key)) input.backward = true;
+    if (['a','ArrowLeft'].includes(e.key)) input.left = true;
+    if (['d','ArrowRight'].includes(e.key)) input.right = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    if (['w','ArrowUp'].includes(e.key)) input.forward = false;
+    if (['s','ArrowDown'].includes(e.key)) input.backward = false;
+    if (['a','ArrowLeft'].includes(e.key)) input.left = false;
+    if (['d','ArrowRight'].includes(e.key)) input.right = false;
+  });
+  safeLog('input handlers set');
+}
+
+// Terrain height sample: nearest vertex approx
+function getTerrainHeightAt(x, z) {
+  try {
+    const g = scene.getObjectByName('sr_ground');
+    if (!g) return 0;
+    const pos = g.geometry.attributes.position;
+    let best = -Infinity;
+    for (let i = 0; i < pos.count; i++) {
+      const vx = pos.getX(i) + g.position.x;
+      const vz = pos.getZ(i) + g.position.z;
+      if (Math.abs(vx - x) < 4 && Math.abs(vz - z) < 4) {
+        const vy = pos.getY(i) + g.position.y;
+        if (vy > best) best = vy;
+      }
+    }
+    if (best === -Infinity) return g.position.y;
+    return best;
+  } catch (err) {
+    safeError('getTerrainHeightAt error', err);
+    return 0;
+  }
+}
+
+// Car simple dynamics / height lock
+let carState = { speed: 0, heading: 0 };
+function updateCar(dt) {
+  // acceleration/brake
+  if (input.forward) carState.speed += 18 * dt;
+  if (input.backward) carState.speed -= 22 * dt;
+  carState.speed *= 0.97; // drag
+  carState.speed = THREE.MathUtils.clamp(carState.speed, -8, 32);
+
+  // steering scaled by speed
+  if (input.left) car.rotation.y += 1.2 * dt * (carState.speed / 8);
+  if (input.right) car.rotation.y -= 1.2 * dt * (carState.speed / 8);
+
+  // move
+  const forward = new THREE.Vector3(0, 0, 1).applyEuler(car.rotation);
+  car.position.add(forward.multiplyScalar(carState.speed * dt));
+
+  // sample terrain & lock
+  const terrainY = getTerrainHeightAt(car.position.x, car.position.z);
+  car.position.y = terrainY + 0.5;
+
+  // debug output each second
+  if (Math.floor(t) % 1 === 0) {
+    safeLog('car pos', car.position.toArray().map(v => v.toFixed(2)), 'speed', carState.speed.toFixed(2));
+  }
+}
+
+// Smooth chase camera behind car
+function updateCamera(dt) {
+  const behind = new THREE.Vector3(0, 2.0, -6).applyEuler(car.rotation).add(car.position);
+  camera.position.lerp(behind, 4 * dt);
+  camera.lookAt(car.position.clone().add(new THREE.Vector3(0, 1.2, 6).applyEuler(car.rotation)));
+}
+
+// Apply a graphics preset (progressive friendly)
+function applyPreset(preset) {
+  safeLog('Applying preset', preset.name ?? preset);
+  // pixel ratio (clamped)
+  const targetPR = Math.min(2.5, (window.devicePixelRatio || 1) * (preset.renderScale || 1));
+  renderer.setPixelRatio(targetPR);
+  camera.far = preset.viewDistance || 1000;
+  camera.updateProjectionMatrix();
+
+  // tell environment to build using preset specifications
+  try {
+    applyMode(scene, preset, { worldMode: preset.worldMode ?? 'natural' });
+    safeLog('applyMode returned');
+  } catch (err) {
+    safeError('applyMode failed', err);
+  }
+
+  // scene summary
+  reportSceneSummary();
+}
+
+// Progressive LOD sequence logic
+function startProgressiveLoad() {
+  safeLog('starting progressive LOD sequence');
+  // immediate low preset
+  applyPreset(GraphicsPresets[0]); // Potato
+  setTimeout(() => { safeLog('upgrading to medium'); applyPreset(GraphicsPresets[2]); }, 1500);
+  setTimeout(() => { safeLog('upgrading to high (CPU Destroyer)'); applyPreset(GraphicsPresets[5]); }, 4500);
+}
+
+// Setup UI hooks
+function setupUI() {
+  const btn = document.getElementById('graphicsBtn');
+  const panel = document.getElementById('graphicsPanel');
+  btn?.addEventListener('click', () => panel.classList.toggle('hidden'));
+
+  // populate preset select
+  const sel = document.getElementById('presetSelect');
+  if (sel) {
+    getPresetNames().forEach(name => {
+      const o = document.createElement('option');
+      o.value = name; o.textContent = name;
+      sel.appendChild(o);
     });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    // Scene
-    scene = new THREE.Scene();
-
-    // Camera
-    camera = new THREE.PerspectiveCamera(
-        70, 
-        window.innerWidth / window.innerHeight,
-        0.1, 
-        2000
-    );
-    camera.position.set(0, 3, 6);
-
-    // World
-    world = new World(scene);
-
-    // Car
-    const carGeo = new THREE.BoxGeometry(1, 0.5, 2);
-    const carMat = new THREE.MeshStandardMaterial({ color: 0xff3333 });
-    car = new THREE.Mesh(carGeo, carMat);
-    car.position.set(0, 0.5, 0);
-    scene.add(car);
-
-    // Lighting
-    const sun = new THREE.DirectionalLight(0xffffff, 1);
-    sun.position.set(50, 200, 50);
-    scene.add(sun);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-
-
-    // Load default preset FIRST in ultra-low quality
-    applyGraphicsPreset("Potato");
-
-    // After load, smoothly upgrade to saved / real preset
-    setTimeout(() => {
-        const saved = localStorage.getItem("graphicsPreset") || "Normal Human";
-        applyGraphicsPreset(saved);
-    }, 1500);
-
-
-    // Setup UI
-    initSettingsUI();
-
-
-    // Key listeners
-    window.addEventListener('keydown', e => {
-        if (keys[e.key] !== undefined) keys[e.key] = true;
+    document.getElementById('applySettings')?.addEventListener('click', () => {
+      const v = sel.value;
+      const p = getPresetByName(v);
+      if (p) applyPreset(p);
+      safeLog('manual preset apply from UI', v);
     });
-    window.addEventListener('keyup', e => {
-        if (keys[e.key] !== undefined) keys[e.key] = false;
-    });
-
-    // Resize
-    window.addEventListener('resize', onResize);
-
-    animate();
+  }
 }
 
+// Main init
+function init() {
+  safeLog('init start');
+  setupRenderer();
+  setupScene();
+  setupLights();
+  setupInput();
+  setupUI();
 
-// =============================================================
-// APPLY PRESET
-// =============================================================
-export function applyGraphicsPreset(name) {
-    const preset = getPresetByName(name);
-    if (!preset) return;
+  // Create world and car
+  world = new World(scene);
+  createCar();
 
-    // Save for settings menu
-    localStorage.setItem("graphicsPreset", name);
+  // settings UI
+  initSettingsUI((preset) => {
+    safeLog('settings UI applied preset', preset.name);
+    applyPreset(preset);
+  });
 
-    // Render scale
-    renderer.setPixelRatio(window.devicePixelRatio * preset.renderScale);
+  // progressive LOD
+  startProgressiveLoad();
 
-    // Camera far plane for long view distances
-    camera.far = preset.viewDistance;
-    camera.updateProjectionMatrix();
-
-    // Environment tells world & effects to scale quality
-    updateEnvironment(preset);
-
-    console.log("✅ Graphics preset applied:", preset.name);
+  // final log
+  safeLog('init complete - entering loop');
 }
 
-
-// =============================================================
-// RESIZE HANDLING
-// =============================================================
-function onResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+function setupRenderer() {
+  const canvas = document.getElementById('gameCanvas');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  safeLog('renderer initialized', { pixelRatio: renderer.getPixelRatio() });
 }
 
-
-// =============================================================
-// CAR PHYSICS + CAMERA FOLLOW
-// =============================================================
-function updateCar(delta) {
-
-    // Acceleration / braking
-    if (keys.w) velocity += 12 * delta;
-    if (keys.s) velocity -= 12 * delta;
-
-    // Drag
-    velocity *= 0.99;
-
-    // Limit speed
-    velocity = THREE.MathUtils.clamp(velocity, -6, 19);
-
-    // Steering
-    if (keys.a) steering += 2 * delta;
-    if (keys.d) steering -= 2 * delta;
-    steering *= 0.92;
-
-    // Move car
-    car.rotation.y += steering;
-    car.position.x += Math.sin(car.rotation.y) * velocity * delta;
-    car.position.z += Math.cos(car.rotation.y) * velocity * delta;
-
-    // Terrain height lock (simple)
-    car.position.y = 0.5;
+function setupScene() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000);
+  camera.position.set(0, 4, -8);
 }
 
-
-// =============================================================
-// CAMERA FOLLOW SYSTEM
-// =============================================================
-function updateCamera(delta) {
-    const targetPos = new THREE.Vector3(
-        car.position.x - Math.sin(car.rotation.y) * 6,
-        car.position.y + 3,
-        car.position.z - Math.cos(car.rotation.y) * 6
-    );
-
-    camera.position.lerp(targetPos, 4 * delta);
-    camera.lookAt(car.position);
+function setupLights() {
+  const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+  sun.position.set(50, 200, 50);
+  scene.add(sun);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 }
 
+// Animation frame
+function animate(now = performance.now()) {
+  const dt = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+  t += dt;
 
-// =============================================================
-// ANIMATION LOOP
-// =============================================================
-function animate() {
+  // Update systems
+  try {
+    updateCar(dt);
+  } catch (err) {
+    safeError('updateCar error', err);
+  }
+  try {
+    updateCamera(dt);
+  } catch (err) {
+    safeError('updateCamera error', err);
+  }
+  try {
+    updateEnvironment(dt, t);
+  } catch (err) {
+    safeError('updateEnvironment error', err);
+  }
+  try {
+    world.update(dt);
+  } catch (err) {
+    safeError('world.update error', err);
+  }
+
+  renderer.render(scene, camera);
+
+  // print some stats every 3 seconds
+  if (Math.floor(t) % 3 === 0) {
+    const mem = performance && performance.memory ? performance.memory : null;
+    safeLog('tick', { t: t.toFixed(2), rendererInfo: renderer.info.render, memory: mem });
+  }
+
+  requestAnimationFrame(animate);
+}
+
+// On DOM ready (we are module loaded after index, but ensure)
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    init();
     requestAnimationFrame(animate);
+  } catch (err) {
+    safeError('init or animate top-level error', err);
+  }
+});
 
-    const delta = Math.min(0.05, renderer.info.render.frame * 0.001 + 0.016);
-
-    updateCar(delta);
-    updateCamera(delta);
-
-    world.update(delta);
-
-    renderer.render(scene, camera);
-}
-
-
-// =============================================================
-// START
-// =============================================================
-init();
-
+safeLog('main.js executed');
