@@ -1,254 +1,268 @@
-// environment.js - Ultra-Maximal Environment v1.0
-import * as THREE from 'three';
-import { SimplexNoise } from './libs/simplex-noise.js';
+// environment.js — AAA-level terrain, vegetation, weather, and physics
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
+import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js';
+import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
 
-let ground = null;
-let treeGroup = null;
-let propsGroup = null;
+let groundMesh = null;
+let treeMeshes = [];
+let rockMeshes = [];
 let snowPoints = null;
+let waterMesh = null;
+let sunLight = null;
+let ambientLight = null;
+
 const cachedMaterials = {};
-const objectPool = { trees: [], props: [] };
-const simplex = new SimplexNoise();
+const simplex = new SimplexNoise(Math.random);
 
 export function ensureMaterials() {
-    if (cachedMaterials.groundGrass) return;
+  if (cachedMaterials.ground) return;
 
-    cachedMaterials.groundGrass = new THREE.MeshStandardMaterial({
-        color: 0x4c8b3b,
-        roughness: 0.9,
-        metalness: 0,
-        flatShading: false
-    });
+  // Ultra-realistic ground
+  cachedMaterials.ground = new THREE.MeshStandardMaterial({
+    color: 0x2b6b32,
+    roughness: 0.95,
+    metalness: 0.05,
+    flatShading: false,
+  });
 
-    cachedMaterials.groundSnow = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.95,
-        metalness: 0,
-    });
+  cachedMaterials.rock = new THREE.MeshStandardMaterial({
+    color: 0x666666,
+    roughness: 1.0,
+    metalness: 0.0,
+  });
 
-    cachedMaterials.treeBark = new THREE.MeshStandardMaterial({
-        color: 0x5a3b2b,
-        roughness: 0.8,
-    });
+  cachedMaterials.tree = new THREE.MeshStandardMaterial({
+    color: 0x114411,
+    roughness: 0.85,
+    metalness: 0.1,
+  });
 
-    cachedMaterials.treeLeaves = new THREE.MeshStandardMaterial({
-        color: 0x1c5a1c,
-        roughness: 0.7,
-        metalness: 0,
-    });
+  cachedMaterials.treeWinter = new THREE.MeshStandardMaterial({
+    color: 0xeeeeff,
+    roughness: 0.9,
+    metalness: 0.05,
+  });
 
-    cachedMaterials.rock = new THREE.MeshStandardMaterial({
-        color: 0x555555,
-        roughness: 0.85,
-    });
+  cachedMaterials.snow = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 1.5,
+    transparent: true,
+    opacity: 0.85,
+  });
 
-    cachedMaterials.bush = new THREE.MeshStandardMaterial({
-        color: 0x2c6a2c,
-        roughness: 0.9,
-    });
+  cachedMaterials.water = new THREE.MeshStandardMaterial({
+    color: 0x3f76e4,
+    roughness: 0.2,
+    metalness: 0.1,
+    transparent: true,
+    opacity: 0.85,
+  });
 
-    cachedMaterials.snowParticle = new THREE.PointsMaterial({
-        size: 2.0,
-        color: 0xffffff,
-        transparent: true
-    });
-
-    console.log('[environment] materials cached');
+  console.log('[environment] cached materials initialized');
 }
 
-// ------------------------
-// Apply Environment Mode
-// ------------------------
-export function applyMode(scene, preset = { terrainDetail: 128, treeDensity: 1, snowParticles: 0, propDensity: 0.5 }, opts = {}) {
-    ensureMaterials();
-    cleanup(scene);
+// -----------------------------
+// Apply full environment mode
+// -----------------------------
+export function applyMode(scene, preset = {}, opts = {}) {
+  ensureMaterials();
+  cleanup(scene);
 
-    const isWinter = preset.name?.toLowerCase().includes('snow') || false;
-    const dayNight = opts.dayNight ?? 'day';
-    scene.background = new THREE.Color(isWinter ? 0xEAF6FF : dayNight === 'night' ? 0x07122a : 0x87ceeb);
-    scene.fog = new THREE.FogExp2(scene.background.getHex(), isWinter ? 0.0008 : 0.0005);
+  const isWinter = preset.name?.toLowerCase().includes('snow') || false;
+  const dayNight = opts.dayNight ?? 'day';
+  const terrainDetail = preset.terrainDetail || 128;
+  const treeDensity = preset.treeDensity || 1;
+  const snowCount = preset.snowParticles || 0;
 
-    // ---- Ground ----
-    const size = 3000;
-    const seg = Math.max(64, preset.terrainDetail || 128);
-    const geom = new THREE.PlaneGeometry(size, size, seg, seg);
-    geom.rotateX(-Math.PI / 2);
+  // Scene background + fog
+  scene.background = new THREE.Color(isWinter ? 0xeaf6ff : dayNight === 'night' ? 0x07122a : 0x8fcfff);
+  scene.fog = new THREE.FogExp2(scene.background.getHex(), isWinter ? 0.0009 : 0.0006);
 
-    const pos = geom.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const z = pos.getZ(i);
-        // Multi-layered noise for hills, valleys, craters
-        const y = simplex.noise2D(x * 0.002, z * 0.002) * 35 +
-                  simplex.noise2D(x * 0.01, z * 0.01) * 12 +
-                  Math.sin(x * 0.005) * 5 +
-                  Math.cos(z * 0.005) * 5;
-        pos.setY(i, y);
-    }
-    geom.computeVertexNormals();
-    const mat = isWinter ? cachedMaterials.groundSnow : cachedMaterials.groundGrass;
-    ground = new THREE.Mesh(geom, mat);
-    ground.receiveShadow = true;
-    ground.name = 'env_ground';
-    scene.add(ground);
+  // Ground mesh
+  createGround(scene, terrainDetail, isWinter);
 
-    // ---- Trees ----
-    const treeCount = Math.min(5000, Math.floor(500 * (preset.treeDensity || 1)));
-    treeGroup = new THREE.Group();
-    treeGroup.name = 'env_trees';
+  // Trees + rocks
+  createTrees(scene, treeDensity, isWinter);
+  createRocks(scene, terrainDetail);
 
-    for (let i = 0; i < treeCount; i++) {
-        let tree = objectPool.trees.pop();
-        if (!tree) {
-            tree = createTree();
-        }
+  // Snow
+  if (snowCount > 0) spawnSnow(scene, snowCount);
 
-        const spread = size / 2 - 20;
-        tree.position.set(
-            (Math.random() - 0.5) * spread,
-            0,
-            (Math.random() - 0.5) * spread
-        );
-        tree.rotation.y = Math.random() * Math.PI * 2;
-        const scale = 0.7 + Math.random() * 1.3;
-        tree.scale.set(scale, scale, scale);
-        treeGroup.add(tree);
-    }
-    scene.add(treeGroup);
+  // Water
+  createWater(scene);
 
-    // ---- Props: rocks and bushes ----
-    const propCount = Math.floor(400 * (preset.propDensity || 0.5));
-    propsGroup = new THREE.Group();
-    propsGroup.name = 'env_props';
+  // Lights
+  createLights(scene, dayNight);
 
-    for (let i = 0; i < propCount; i++) {
-        let prop = objectPool.props.pop();
-        if (!prop) prop = createProp();
-
-        const spread = size / 2 - 20;
-        prop.position.set(
-            (Math.random() - 0.5) * spread,
-            0,
-            (Math.random() - 0.5) * spread
-        );
-        prop.rotation.y = Math.random() * Math.PI * 2;
-        const scale = 0.5 + Math.random() * 1.5;
-        prop.scale.set(scale, scale, scale);
-        propsGroup.add(prop);
-    }
-    scene.add(propsGroup);
-
-    // ---- Snow ----
-    const snowCount = Math.max(0, preset.snowParticles || 0);
-    if (snowCount > 0) spawnSnow(scene, snowCount);
-
-    console.log(`[environment] terrain seg=${seg}, trees=${treeCount}, props=${propCount}, snow=${snowCount}`);
+  console.log(`[environment] applied: terrain=${terrainDetail}, trees=${treeDensity}, snow=${snowCount}`);
 }
 
-// ------------------------
-// Create a detailed tree
-// ------------------------
-function createTree() {
-    const tree = new THREE.Group();
+// -----------------------------
+// Create procedural ground
+// -----------------------------
+function createGround(scene, segments=128, isWinter=false) {
+  const size = 2000;
+  const geom = new THREE.PlaneGeometry(size, size, segments, segments);
+  geom.rotateX(-Math.PI/2);
 
-    // trunk
-    const trunkGeo = new THREE.CylinderGeometry(0.5, 0.5, 6, 12);
-    const trunkMesh = new THREE.Mesh(trunkGeo, cachedMaterials.treeBark);
-    trunkMesh.position.y = 3;
-    trunkMesh.castShadow = true;
-    tree.add(trunkMesh);
+  const pos = geom.attributes.position;
+  for(let i=0; i<pos.count; i++){
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    let y = sampleHeightAtXY(x,z);
+    pos.setY(i, y);
+  }
+  geom.computeVertexNormals();
 
-    // leaves (LOD)
-    const leavesGeo = new THREE.ConeGeometry(2, 6, 12);
-    const leavesMesh = new THREE.Mesh(leavesGeo, cachedMaterials.treeLeaves);
-    leavesMesh.position.y = 6;
-    leavesMesh.castShadow = true;
-    tree.add(leavesMesh);
-
-    return tree;
+  const mat = cachedMaterials.ground;
+  groundMesh = new THREE.Mesh(geom, mat);
+  groundMesh.receiveShadow = true;
+  groundMesh.name = 'groundMesh';
+  scene.add(groundMesh);
 }
 
-// ------------------------
-// Create rocks/bush props
-// ------------------------
-function createProp() {
-    const type = Math.random() < 0.6 ? 'rock' : 'bush';
-    let mesh;
-    if (type === 'rock') {
-        const geo = new THREE.DodecahedronGeometry(1 + Math.random() * 1.5);
-        mesh = new THREE.Mesh(geo, cachedMaterials.rock);
-    } else {
-        const geo = new THREE.IcosahedronGeometry(1 + Math.random(), 1);
-        mesh = new THREE.Mesh(geo, cachedMaterials.bush);
-    }
-    mesh.castShadow = true;
-    return mesh;
+// -----------------------------
+// Sample terrain height
+// -----------------------------
+export function sampleHeightAtXY(x, z){
+  const scale = 0.003;
+  const y = simplex.noise2D(x*scale, z*scale)*15 + simplex.noise2D(x*scale*2, z*scale*2)*5;
+  return y;
 }
 
-// ------------------------
-// Snow particle system
-// ------------------------
-function spawnSnow(scene, count) {
-    const posArr = new Float32Array(count * 3);
-    const spread = 2000;
-    for (let i = 0; i < count; i++) {
-        posArr[i * 3 + 0] = (Math.random() - 0.5) * spread;
-        posArr[i * 3 + 1] = Math.random() * 400 + 20;
-        posArr[i * 3 + 2] = (Math.random() - 0.5) * spread;
-    }
+// -----------------------------
+// Trees
+// -----------------------------
+function createTrees(scene, density=1, isWinter=false){
+  const count = Math.floor(300 * density);
+  const treeGeo = new THREE.ConeGeometry(3, 12, 16);
+  const treeMat = isWinter ? cachedMaterials.treeWinter : cachedMaterials.tree;
 
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-    snowPoints = new THREE.Points(geo, cachedMaterials.snowParticle);
-    snowPoints.name = 'env_snow';
-    scene.add(snowPoints);
+  for(let i=0; i<count; i++){
+    const mesh = new THREE.Mesh(treeGeo, treeMat);
+    mesh.castShadow=true;
+
+    const x = (Math.random()-0.5)*1600;
+    const z = (Math.random()-0.5)*1600;
+    const y = sampleHeightAtXY(x,z);
+
+    mesh.position.set(x,y,z);
+    mesh.rotation.y = Math.random()*Math.PI*2;
+    mesh.scale.setScalar(0.7+Math.random()*1.2);
+    scene.add(mesh);
+    treeMeshes.push(mesh);
+  }
 }
 
-// ------------------------
-// Animate environment
-// ------------------------
-export function updateEnvironment(dt, time = performance.now() * 0.001) {
-    // sway trees and props
-    if (treeGroup) {
-        treeGroup.children.forEach(tree => {
-            tree.rotation.y += Math.sin(time + tree.position.x * 0.01) * 0.001;
-        });
-    }
+// -----------------------------
+// Rocks
+// -----------------------------
+function createRocks(scene, terrainDetail){
+  const count = 100;
+  const geo = new THREE.DodecahedronGeometry(1,0);
+  const mat = cachedMaterials.rock;
 
-    if (propsGroup) {
-        propsGroup.children.forEach(prop => {
-            prop.rotation.y += Math.sin(time + prop.position.x * 0.01) * 0.0005;
-        });
-    }
-
-    // snow
-    if (snowPoints) {
-        const arr = snowPoints.geometry.attributes.position.array;
-        for (let i = 1; i < arr.length; i += 3) {
-            arr[i] -= 100 * dt;
-            if (arr[i] < 0) arr[i] = 400 + Math.random() * 40;
-        }
-        snowPoints.geometry.attributes.position.needsUpdate = true;
-    }
+  for(let i=0;i<count;i++){
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow=true;
+    const x = (Math.random()-0.5)*1600;
+    const z = (Math.random()-0.5)*1600;
+    const y = sampleHeightAtXY(x,z);
+    mesh.position.set(x,y,z);
+    mesh.scale.setScalar(0.5+Math.random()*1.5);
+    scene.add(mesh);
+    rockMeshes.push(mesh);
+  }
 }
 
-// ------------------------
-// Cleanup and pooling
-// ------------------------
-export function cleanup(scene) {
-    ['env_trees', 'env_props', 'env_ground', 'env_snow'].forEach(name => {
-        const obj = scene.getObjectByName(name);
-        if (!obj) return;
-        try {
-            // pool trees and props
-            if (name === 'env_trees') obj.children.forEach(child => objectPool.trees.push(child));
-            if (name === 'env_props') obj.children.forEach(child => objectPool.props.push(child));
+// -----------------------------
+// Snow particles
+// -----------------------------
+function spawnSnow(scene, count){
+  const posArr = new Float32Array(count*3);
+  const spread = 1500;
+  for(let i=0;i<count;i++){
+    posArr[i*3+0] = (Math.random()-0.5)*spread;
+    posArr[i*3+1] = Math.random()*400+20;
+    posArr[i*3+2] = (Math.random()-0.5)*spread;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(posArr,3));
+  snowPoints = new THREE.Points(geo, cachedMaterials.snow);
+  snowPoints.name='snowPoints';
+  scene.add(snowPoints);
+}
 
-            if (obj.geometry) obj.geometry.dispose();
-            if (obj.material && !Object.values(cachedMaterials).includes(obj.material)) obj.material.dispose();
-        } catch (e) {
-            console.warn('[environment] cleanup error', e);
-        }
-        scene.remove(obj);
-    });
+// -----------------------------
+// Water
+// -----------------------------
+function createWater(scene){
+  const size=2000;
+  const geom = new THREE.PlaneGeometry(size, size, 1, 1);
+  geom.rotateX(-Math.PI/2);
+  const mesh = new THREE.Mesh(geom, cachedMaterials.water);
+  mesh.position.y=-2; // water level
+  mesh.name='waterMesh';
+  mesh.receiveShadow=true;
+  scene.add(mesh);
+  waterMesh = mesh;
+}
+
+// -----------------------------
+// Lights
+// -----------------------------
+function createLights(scene, dayNight){
+  sunLight = new THREE.DirectionalLight(dayNight==='night'?0x8899ff:0xffffff, 1.0);
+  sunLight.position.set(150,200,150);
+  sunLight.castShadow=true;
+  sunLight.shadow.mapSize.set(2048,2048);
+  scene.add(sunLight);
+
+  ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
+  scene.add(ambientLight);
+
+  const hemi = new THREE.HemisphereLight(0x88aaff,0x443322,0.25);
+  scene.add(hemi);
+}
+
+// -----------------------------
+// Environment update (snow + animated ground)
+// -----------------------------
+export function updateEnvironment(dt, time=performance.now()*0.001){
+  // Snow
+  if(snowPoints){
+    const arr = snowPoints.geometry.attributes.position.array;
+    for(let i=1;i<arr.length;i+=3){
+      arr[i]-=50*dt;
+      if(arr[i]<0) arr[i]=400+Math.random()*40;
+    }
+    snowPoints.geometry.attributes.position.needsUpdate=true;
+  }
+
+  // Wavy terrain animation
+  if(groundMesh){
+    const pos = groundMesh.geometry.attributes.position;
+    for(let i=0;i<pos.count;i++){
+      const x = pos.getX(i);
+      const z = pos.getZ(i);
+      pos.setY(i, sampleHeightAtXY(x,z)+Math.sin(x*0.01+time*0.4)*2 + Math.cos(z*0.01+time*0.2)*1);
+    }
+    pos.needsUpdate=true;
+    groundMesh.geometry.computeVertexNormals();
+  }
+}
+
+// -----------------------------
+// Cleanup
+// -----------------------------
+export function cleanup(scene){
+  [groundMesh, waterMesh, snowPoints, ...treeMeshes, ...rockMeshes].forEach(obj=>{
+    if(!obj) return;
+    try{
+      if(obj.geometry) obj.geometry.dispose();
+      if(obj.material && !Object.values(cachedMaterials).includes(obj.material)) obj.material.dispose();
+    }catch(e){}
+    if(scene) scene.remove(obj);
+  });
+  groundMesh=null; waterMesh=null; snowPoints=null; treeMeshes=[]; rockMeshes=[];
 }
