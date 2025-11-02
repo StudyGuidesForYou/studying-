@@ -1,143 +1,175 @@
-// File: main.js
-// Basic ultra-realistic SlowRoads-style setup using Three.js
-// Includes: Natural/Winter modes, detail + viewDistance settings
+// main.js
+import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
+import { OrbitControls } from 'https://unpkg.com/three@0.154.0/examples/jsm/controls/OrbitControls.js';
+import { applyMode, updateEnvironment, cleanup } from './environment.js';
+import { getPresetByName, getPresetNames } from './graphicsPresets.js';
 
-import * as THREE from 'three';
-
-// SETTINGS (you will connect sliders/buttons to these later)
-let WORLD_MODE = 'natural'; // 'natural' or 'winter'
-let DETAIL = 1.0; // 0.5 low, 1 medium, 2 high
-let VIEW_DISTANCE = 2000; // how far the world renders
-
-// SCENE BASICS
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, VIEW_DISTANCE);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+// renderer + scene + camera
+const canvas = document.getElementById('renderCanvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setSize(window.innerWidth, window.innerHeight);
 
-// LIGHTING
-const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-sun.position.set(100, 200, 100);
-sun.castShadow = true;
-scene.add(sun);
+// camera
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 3000);
+camera.position.set(0, 8, 30);
 
-// GROUND
-let groundMesh;
-function createGround() {
-  const size = 20000;
-  const geometry = new THREE.PlaneGeometry(size, size, 256 * DETAIL, 256 * DETAIL);
-  const material = new THREE.MeshStandardMaterial({
-    color: WORLD_MODE === 'winter' ? 0xffffff : 0x88cc66,
-    roughness: 1,
-    metalness: 0
-  });
-  groundMesh = new THREE.Mesh(geometry, material);
-  groundMesh.rotation.x = -Math.PI / 2;
-  groundMesh.receiveShadow = true;
-  scene.add(groundMesh);
+// scene
+const scene = new THREE.Scene();
+scene.matrixAutoUpdate = true;
+
+// lights
+const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6); scene.add(hemi);
+const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+dir.position.set(100, 200, 100); dir.castShadow = true; scene.add(dir);
+
+// controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+// state (defaults)
+let state = {
+  detail: 1.0,
+  viewDistance: 1800,
+  renderScale: 1.0,
+  nativePixel: false,
+  framerateLimit: 0,
+  preset: 'Smooth Gamer',
+  worldMode: 'natural',
+  dayNight: 'day',
+  treeDensity: 1.0,
+  cameraSmoothing: 0.06,
+  fov: 70,
+  fovEffects: true
+};
+
+// adaptive quality helpers
+let lastFrameTimes = [];
+const fpsWindow = 30; // sample frames
+function recordFrameTime(dt) {
+  lastFrameTimes.push(dt);
+  if (lastFrameTimes.length > fpsWindow) lastFrameTimes.shift();
+}
+function getFPS() {
+  if (!lastFrameTimes.length) return 60;
+  const avg = lastFrameTimes.reduce((a, b) => a + b, 0) / lastFrameTimes.length;
+  return 1 / Math.max(avg, 1e-6);
 }
 
-// TREES
-let treeGroup;
-function createTrees() {
-  treeGroup = new THREE.Group();
-  const treeCount = 300 * DETAIL;
+// apply settings
+function applyGraphicsSettings(opts = {}) {
+  Object.assign(state, opts);
 
-  for (let i = 0; i < treeCount; i++) {
-    const tree = new THREE.Mesh(
-      new THREE.ConeGeometry(5 * DETAIL, 20 * DETAIL, 8),
-      new THREE.MeshStandardMaterial({ color: WORLD_MODE === 'winter' ? 0xe0e0e0 : 0x336633 })
-    );
-    tree.castShadow = true;
-    tree.position.set(
-      (Math.random() - 0.5) * 5000,
-      10 * DETAIL,
-      (Math.random() - 0.5) * 5000
-    );
-    treeGroup.add(tree);
-  }
+  // clamp important values
+  state.detail = Math.max(0.3, Math.min(4.0, state.detail));
+  state.viewDistance = Math.max(300, Math.min(7000, state.viewDistance));
+  state.renderScale = Math.max(0.5, Math.min(3.0, state.renderScale));
 
-  scene.add(treeGroup);
+  // camera far
+  camera.far = state.viewDistance; camera.updateProjectionMatrix();
+  camera.fov = state.fov; camera.updateProjectionMatrix();
+
+  // scene
+  applyMode(scene, state.worldMode, { detail: state.detail, treeDensity: state.treeDensity, dayNight: state.dayNight });
+
+  // pixel ratio / render scale: if nativePixel requested, use devicePixelRatio
+  const devicePR = window.devicePixelRatio || 1;
+  const targetPR = state.nativePixel ? devicePR : Math.min(devicePR * state.renderScale, 2.5);
+  renderer.setPixelRatio(targetPR);
+  // safety size update
+  renderer.setSize(window.innerWidth, window.innerHeight, false);
+
+  // store preset name if provided
+  if (opts.preset) state.preset = opts.preset;
+
+  // expose state for UI
+  window.srState = state;
 }
 
-// SNOW PARTICLES (for winter)
-let snowParticles;
-function createSnow() {
-  if (WORLD_MODE !== 'winter') return;
-
-  const count = 2000 * DETAIL;
-  const positions = new Float32Array(count * 3);
-
-  for (let i = 0; i < count; i++) {
-    positions[i * 3 + 0] = (Math.random() - 0.5) * 2000;
-    positions[i * 3 + 1] = Math.random() * 400;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-  snowParticles = new THREE.Points(
-    geometry,
-    new THREE.PointsMaterial({ color: 0xffffff, size: 2 * DETAIL })
-  );
-
-  scene.add(snowParticles);
+// save/load
+function saveGraphicsSettings() {
+  try {
+    localStorage.setItem('sr_settings_v1', JSON.stringify(state));
+  } catch (e) { console.warn('Failed to save settings', e); }
+}
+function loadSavedSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('sr_settings_v1'));
+    if (s) Object.assign(state, s);
+  } catch (e) {}
 }
 
-// SWITCH WORLD MODE
-export function setWorldMode(mode) {
-  WORLD_MODE = mode;
-  resetWorld();
+// quick preset loader
+function loadPresetByName(name) {
+  const p = getPresetByName(name);
+  if (!p) return;
+  applyGraphicsSettings({ detail: p.detail, viewDistance: p.viewDistance, renderScale: p.renderScale, preset: p.name });
 }
 
-// UPDATE DETAIL
-export function setDetail(value) {
-  DETAIL = value;
-  resetWorld();
+// initial load
+loadSavedSettings();
+applyGraphicsSettings(state);
+
+// expose API
+window.sr = {
+  applyGraphicsSettings,
+  saveGraphicsSettings,
+  loadPresetByName,
+  state,
+  scene,
+  camera,
+  renderer
+};
+
+// resize
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 }
+window.addEventListener('resize', onResize);
 
-// UPDATE VIEW DISTANCE
-export function setViewDistance(value) {
-  VIEW_DISTANCE = value;
-  camera.far = VIEW_DISTANCE;
-  camera.updateProjectionMatrix();
-}
+// animation loop with framerate cap and adaptive resolution
+let last = performance.now();
+let acc = 0;
+function loop(now) {
+  const dt = Math.min((now - last) / 1000, 0.1);
+  last = now;
 
-// RESET WORLD (rebuild environment)
-function resetWorld() {
-  if (groundMesh) scene.remove(groundMesh);
-  if (treeGroup) scene.remove(treeGroup);
-  if (snowParticles) scene.remove(snowParticles);
-
-  createGround();
-  createTrees();
-  createSnow();
-}
-
-// INITIAL BUILD
-tresetWorld();
-
-// ANIMATION LOOP
-function animate() {
-  requestAnimationFrame(animate);
-
-  // animate snow falling
-  if (snowParticles) {
-    const arr = snowParticles.geometry.attributes.position.array;
-    for (let i = 1; i < arr.length; i += 3) {
-      arr[i] -= 1;
-      if (arr[i] < 0) arr[i] = 400;
+  // framerate cap
+  if (state.framerateLimit > 0) {
+    const targetDt = 1 / state.framerateLimit;
+    acc += dt;
+    if (acc < targetDt) {
+      requestAnimationFrame(loop);
+      return;
     }
-    snowParticles.geometry.attributes.position.needsUpdate = true;
+    acc = 0;
   }
 
-  camera.position.z -= 0.5 * DETAIL;
+  // update env & controls
+  updateEnvironment(dt);
+  controls.update();
+
+  // adaptive quality: if FPS drops below threshold, lower renderScale automatically
+  recordFrameTime(dt);
+  const fps = getFPS();
+  if (!state.nativePixel) {
+    if (fps < 45 && state.renderScale > 0.75) {
+      state.renderScale = Math.max(0.6, state.renderScale - 0.05);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio * state.renderScale, 2.5));
+    } else if (fps > 65 && state.renderScale < 1.6) {
+      state.renderScale = Math.min(1.6, state.renderScale + 0.02);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio * state.renderScale, 2.5));
+    }
+  }
 
   renderer.render(scene, camera);
+  requestAnimationFrame(loop);
 }
+requestAnimationFrame(loop);
 
-animate();
+// small debug helpers
+console.log('sr ready — api: window.sr');
