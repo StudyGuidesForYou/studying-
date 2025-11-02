@@ -16,6 +16,7 @@ export function ensureMaterials() {
   cachedMaterials.treeWinter = new THREE.MeshStandardMaterial({ color: 0xddddff });
 }
 
+// HEIGHT FUNCTION (exported for world.js)
 export function sampleHeightAtXY(x, z) {
   return Math.sin(x * 0.01) * 6 + Math.cos(z * 0.01) * 3 + noise.noise2D(x/50, z/50)*2;
 }
