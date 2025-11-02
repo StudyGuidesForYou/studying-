@@ -1,29 +1,13 @@
 import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
 import { World } from './world.js';
 import { applyMode, updateEnvironment } from './environment.js';
-import { GraphicsPresets, getPresetByName } from './graphicPresets.js';
+import { GraphicsPresets, getPresetByName } from './graphicsPresets.js';
 import { initSettingsUI } from './settings.js';
 
 let scene, camera, renderer, world, car, lastTime=0, t=0;
 let input = { forward:false, backward:false, left:false, right:false };
 
-function getTerrainHeightAt(x,z){
-    const g = world.scene.getObjectByName('sr_ground');
-    if(!g) return 0;
-    const pos = g.geometry.attributes.position;
-    let closestY = -Infinity;
-    for(let i=0;i<pos.count;i++){
-        const vx=pos.getX(i)+g.position.x;
-        const vz=pos.getZ(i)+g.position.z;
-        if(Math.abs(vx-x)<2 && Math.abs(vz-z)<2){
-            const vy=pos.getY(i)+g.position.y;
-            if(vy>closestY) closestY=vy;
-        }
-    }
-    return closestY===-Infinity?0:closestY;
-}
-
-class Car{
+class Car {
     constructor(scene){
         const geom = new THREE.BoxGeometry(2,1,4);
         const mat = new THREE.MeshStandardMaterial({color:0xff0000});
@@ -40,8 +24,22 @@ class Car{
         if(input.right) this.mesh.rotation.y-=this.turnSpeed*dt*(this.speed/this.maxSpeed);
         const forward = new THREE.Vector3(0,0,1).applyEuler(this.mesh.rotation);
         this.mesh.position.add(forward.multiplyScalar(this.speed*dt));
-        const terrainY = getTerrainHeightAt(this.mesh.position.x,this.mesh.position.z);
-        this.mesh.position.y = terrainY+0.5;
+
+        // Terrain height
+        const g = world.scene.getObjectByName('sr_ground');
+        if(g){
+            const pos = g.geometry.attributes.position;
+            let closestY = -Infinity;
+            for(let i=0;i<pos.count;i++){
+                const vx=pos.getX(i)+g.position.x;
+                const vz=pos.getZ(i)+g.position.z;
+                if(Math.abs(vx-this.mesh.position.x)<2 && Math.abs(vz-this.mesh.position.z)<2){
+                    const vy=pos.getY(i)+g.position.y;
+                    if(vy>closestY) closestY=vy;
+                }
+            }
+            this.mesh.position.y = closestY + 0.5;
+        }
     }
 }
 
@@ -78,10 +76,7 @@ function init(){
     setupInput();
     initSettingsUI();
 
-    // Apply default preset (Normal Human)
-    applyPreset(GraphicsPresets[2]);
-
-    // Progressive LOD upgrade
+    applyPreset(GraphicsPresets[2]); // default preset
     setTimeout(()=>applyPreset(GraphicsPresets[3]),2000);
     setTimeout(()=>applyPreset(GraphicsPresets[5]),5000);
 
@@ -102,13 +97,12 @@ function applyPreset(preset){
 
 function animate(time){
     const dt = (time-lastTime)/1000;
-    lastTime = time;
+    lastTime=time;
     t+=dt;
 
     car.update(dt);
     updateEnvironment(dt,t);
 
-    // Camera follows car
     const offset = new THREE.Vector3(0,5,-12);
     offset.applyEuler(car.mesh.rotation);
     camera.position.copy(car.mesh.position.clone().add(offset));
