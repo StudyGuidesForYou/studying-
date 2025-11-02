@@ -23,6 +23,7 @@ let physWorld = null;       // CANNON world
 let vehicle = null;         // RaycastVehicle
 let chassisBody = null;
 let threeCar = null;        // three.js visuals group (car)
+let wheelBodies = [];       // ghost bodies (used as placeholders for wheel hits)
 let lastTime = performance.now();
 let t = 0;
 let overlayEl = null;
@@ -141,7 +142,7 @@ function buildPhysicsHeightfieldFromVisualGround(){
 
     // bounds
     let minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity;
-    for(let i=0;i<pos.count;i++){ const x=pos.getX(i), z=pos.getZ(i); minX=Math.min(minX,x); maxX=Math.max(maxX,x); minZ=Math.min(minZ,z); maxZ=Math.max(maxZ,z);}    
+    for(let i=0;i<pos.count;i++){ const x=pos.getX(i), z=pos.getZ(i); minX=Math.min(minX,x); maxX=Math.max(maxX,x); minZ=Math.min(minZ,z); maxZ=Math.max(maxZ,z);}
     const width = maxX-minX;
     const dx = width/segX || 1;
 
@@ -231,6 +232,7 @@ function createCarVisualAndVehicle(){
   vehicle.addToWorld(physWorld);
 
   // ghost wheel bodies for rayhits (if needed)
+  wheelBodies = [];
   for(let i=0;i<vehicle.wheelInfos.length;i++){ const wb = new CANNON.Body({ mass:0 }); wheelBodies.push(wb); physWorld.addBody(wb); }
 
   window.__UR_DEBUG__.vehicle = vehicle; window.__UR_DEBUG__.chassisBody = chassisBody;
@@ -366,9 +368,6 @@ function reportSceneSummary(sceneObj, worldObj, opts={}){
 function onResize(){ if(!camera||!renderer) return; camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
 
 function rebuildHeightfield(){ buildPhysicsHeightfieldFromVisualGround(); }
-
-// driver tuning (SlowRoads feel)
-const driver = { maxEngineForce: 2200, maxBreakingForce: 1200, maxSteerVal: 0.55 };
 
 // ---------- Expose helpful globals ----------
 window.__UR_DEBUG__.applyPresetByName = applyPresetByName;
