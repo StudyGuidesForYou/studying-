@@ -1,4 +1,4 @@
-// graphicsPresets.js
+// graphicsPresets.js - exports presets + helpers
 export const GraphicsPresets = [
   { name: "Potato", renderScale: 0.5, viewDistance: 300, terrainDetail: 16, treeDensity: 0.1, snowParticles: 100 },
   { name: "Toaster Mode", renderScale: 0.7, viewDistance: 450, terrainDetail: 32, treeDensity: 0.2, snowParticles: 200 },
@@ -11,4 +11,4 @@ export const GraphicsPresets = [
 export const getPresetByName = (name) => GraphicsPresets.find(p => p.name === name);
 export const getPresetNames = () => GraphicsPresets.map(p => p.name);
 
-console.log('[graphicsPresets] loaded, presets:', GraphicsPresets.map(p => p.name));
+console.log('[graphicsPresets] loaded:', getPresetNames());
