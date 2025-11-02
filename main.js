@@ -30,7 +30,7 @@ function init(){
   scene.add(light);
   scene.add(new THREE.AmbientLight(0xffffff,0.4));
 
-  // Progressive LOD
+  // Progressive LOD steps
   const lodSteps=[
     {detail:0.2, treeDensity:0.05, delay:0},
     {detail:0.5, treeDensity:0.3, delay:800},
@@ -50,7 +50,6 @@ function init(){
     },step.delay);
   });
 
-  // UI
   const btn=document.getElementById('graphicsBtn');
   const panel=document.getElementById('graphicsPanel');
   btn.addEventListener('click',()=>panel.classList.toggle('hidden'));
