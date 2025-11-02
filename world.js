@@ -5,10 +5,9 @@ export class World{
   constructor(scene, opts={}){
     this.scene=scene;
     this.opts=opts;
-    this.segments=[];
     this.createTerrain(opts.detail);
     this.createRoad();
-    applyMode(this.scene,opts.worldMode||'natural',opts);
+    applyMode(this.scene, opts.worldMode||'natural', opts);
   }
 
   createTerrain(detail=1){
