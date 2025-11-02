@@ -1,95 +1,24 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SlowRoads — Remake</title>
-  <link rel="stylesheet" href="/style.css" />
+  <meta charset="UTF-8">
+  <title>UltraRoads</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app-ui">
-    <button id="openSettings" class="ui-btn">⚙️ Graphics</button>
-    <div id="presetQuick" class="preset-quick"></div>
+
+  <div id="ui">
+    <button id="graphicsBtn">Graphics</button>
+    <div id="graphicsPanel" class="hidden"></div>
   </div>
 
-  <canvas id="renderCanvas" style="width:100%;height:100%;display:block;"></canvas>
+  <canvas id="gameCanvas"></canvas>
 
-  <!-- settings overlay markup (paste the same markup from the canvas 'index.html' earlier) -->
-  <!-- ... use the settings overlay HTML you already have in the canvas doc ... -->
-  <div id="settingsOverlay" class="overlay hidden">
-    <div class="overlay__backdrop"></div>
-    <div class="settings-panel">
-      <header class="settings-header">
-        <h2>- GRAPHICS -</h2>
-        <button id="closeSettings" class="close">✕</button>
-      </header>
-      <div class="settings-content">
-        <div class="settings-column">
-          <section class="section">
-            <div class="section-title">GENERAL <button id="resetGeneral" class="reset">reset</button></div>
-            <label class="row"><span>Graphics Preset</span>
-              <select id="presetSelect"></select>
-            </label>
-            <label class="row"><span>View distance</span>
-              <input id="viewDistance" type="range" min="300" max="7000" step="50">
-              <output id="viewDistanceVal"></output>
-            </label>
-            <label class="row"><span>Detail</span>
-              <input id="detail" type="range" min="0.3" max="4" step="0.1">
-              <output id="detailVal"></output>
-            </label>
-            <label class="row"><span>Render scale</span>
-              <input id="renderScale" type="range" min="0.5" max="3" step="0.1">
-              <output id="renderScaleVal"></output>
-            </label>
-            <label class="row small"><input id="nativePixel" type="checkbox"> Use native pixel density</label>
-            <label class="row"><span>Framerate limit</span>
-              <select id="framerateLimit"><option value="0">Unlimited</option><option value="30">30</option><option value="60">60</option><option value="120">120</option></select>
-            </label>
-          </section>
-          <section class="section">
-            <div class="section-title">WORLD <button id="resetWorld" class="reset">reset</button></div>
-            <label class="row"><span>Mode</span>
-              <select id="worldMode"><option value="natural">Natural</option><option value="winter">Winter</option></select>
-            </label>
-            <label class="row"><span>Day / Night</span>
-              <select id="dayNight"><option value="day">Day</option><option value="night">Night</option></select>
-            </label>
-            <label class="row"><span>Tree density</span>
-              <input id="treeDensity" type="range" min="0" max="2" step="0.1">
-              <output id="treeDensityVal"></output>
-            </label>
-          </section>
-        </div>
-
-        <div class="settings-column">
-          <section class="section">
-            <div class="section-title">CAMERA</div>
-            <label class="row"><span>Camera smoothing</span>
-              <input id="cameraSmoothing" type="range" min="0" max="1" step="0.01">
-              <output id="cameraSmoothingVal"></output>
-            </label>
-            <label class="row"><span>Vertical FoV</span>
-              <input id="fov" type="range" min="40" max="90" step="1">
-              <output id="fovVal"></output>
-            </label>
-            <label class="row small"><input id="fovEffects" type="checkbox"> FoV effects (motion blur / dof)</label>
-          </section>
-          <section class="section small-note">
-            <p>For best performance enable hardware acceleration in your browser and try different presets.</p>
-          </section>
-        </div>
-      </div>
-
-      <footer class="settings-footer">
-        <button id="applySettings" class="apply">Apply</button>
-        <button id="saveSettings" class="save">Save</button>
-        <button id="cancelSettings" class="cancel">Cancel</button>
-      </footer>
-    </div>
-  </div>
-
-  <script type="module" src="./main.js"></script>
-  <script type="module" src="./settings.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r146/three.min.js"></script>
+  <script src="graphicsPresets.js"></script>
+  <script src="settings.js"></script>
+  <script src="world.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
