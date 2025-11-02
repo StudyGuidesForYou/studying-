@@ -1,214 +1,204 @@
-// =========================================================
-// main.js — FULL WORKING FILE
-// =========================================================
+// main.js — consolidated final (replace fully)
+import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
+import World from './world.js';
+import { applyMode, updateEnvironment } from './environment.js';
+import { GraphicsPresets, getPresetByName, getPresetNames } from './graphicsPresets.js';
+import { initSettingsUI } from './settings.js';
 
-// ----------------- IMPORTS -----------------
-import * as THREE from "./three.module.js";
-import { World } from "./world.js";
-import { EnvironmentManager } from "./environment.js";
-import { GRAPHICS_PRESETS, getPresetByName } from "./graphicsPresets.js";
-import { initSettingsUI } from "./settings.js";
+// debug helpers
+const DEBUG = true;
+const log = (...a) => { if (DEBUG) console.log('[UR]', ...a); };
+const err = (...a) => { if (DEBUG) console.error('[UR]', ...a); };
 
-// ----------------- GLOBALS -----------------
-let scene, camera, renderer, world, env;
-let car = null;
-let activePreset = "Potato";
-let physicsEnabled = true;
+let renderer, scene, camera, world;
+let carRoot;
+let lastTime = performance.now();
+let t = 0;
+const input = { forward:false, backward:false, left:false, right:false, handbrake:false };
 
-// =========================================================
-// SAFE FULL DEBUG REPORTING
-// =========================================================
-function reportSceneSummary(scene, world, opts = {}) {
-    try {
-        console.group("[DEBUG] Scene Summary");
+window.addEventListener('error', e => err('window.error', e.message, e.filename, e.lineno));
+window.addEventListener('unhandledrejection', e => err('unhandledrejection', e.reason));
 
-        console.log("Renderer:", renderer ? {
-            pixelRatio: window.devicePixelRatio,
-            size: renderer.getSize(new THREE.Vector2())
-        } : "NO RENDERER");
-
-        console.log("Camera:", camera ? {
-            position: camera.position.clone(),
-            rotation: camera.rotation.clone(),
-            fov: camera.fov,
-            near: camera.near,
-            far: camera.far
-        } : "NO CAMERA");
-
-        console.log("World:", world ? {
-            roadPoints: world.points?.length,
-            objectCount: world.group?.children?.length
-        } : "NO WORLD");
-
-        console.log("Scene Objects:", scene.children.map(o => o.type));
-
-        console.log("Preset Applied:", opts.presetName || activePreset);
-
-        console.groupEnd();
-    } catch (err) {
-        console.error("[DEBUG] Summary failed:", err);
-    }
+// helper: report scene summary (safe)
+function reportSceneSummary(sceneObj, worldObj, opts={}) {
+  try {
+    console.group('[DEBUG] Scene Summary');
+    console.log('Camera', camera ? camera.position.clone() : 'no camera');
+    console.log('Renderer pixelRatio', renderer ? renderer.getPixelRatio() : 'no renderer');
+    console.log('Scene children count', sceneObj ? sceneObj.children.length : 0);
+    console.log('Active preset', opts.presetName || 'unknown');
+    console.groupEnd();
+  } catch (e) { err('reportSceneSummary failed', e); }
 }
 
-// =========================================================
-// INITIAL SETUP
-// =========================================================
-function setupRenderer() {
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setClearColor(0x000000);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
+// setup
+function setupRendererAndScene() {
+  const canvas = document.getElementById('gameCanvas');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
 
-    document.body.appendChild(renderer.domElement);
-}
-
-function setupCamera() {
-    camera = new THREE.PerspectiveCamera(
-        70,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        2000
-    );
-    camera.position.set(0, 5, -10);
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 2000);
+  camera.position.set(0, 4, -8);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+  sun.position.set(50, 200, 50);
+  scene.add(sun);
+  log('renderer/scene/camera initialized');
 }
 
 function createCar() {
-    const bodyGeo = new THREE.BoxGeometry(1.5, 0.6, 3);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: "red" });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-
-    car = new THREE.Object3D();
-    car.add(body);
-
-    scene.add(car);
+  carRoot = new THREE.Group();
+  carRoot.name = 'carRoot';
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.6,0.5,3.0), new THREE.MeshStandardMaterial({color:0xff3333}));
+  chassis.position.set(0,0.5,0);
+  carRoot.add(chassis);
+  scene.add(carRoot);
+  log('car created');
 }
 
-// =========================================================
-// APPLY GRAPHICS PRESET
-// =========================================================
-function applyPreset(name) {
-    console.log("[UR] Applying preset", name);
-
-    const preset = getPresetByName(name);
-    if (!preset) {
-        console.error("Preset not found:", name);
-        return;
-    }
-
-    activePreset = name;
-
-    if (env) {
-        env.applyMode(name);
-    }
-
-    if (renderer) {
-        renderer.setPixelRatio(window.devicePixelRatio * preset.renderScale);
-    }
-
-    reportSceneSummary(scene, world, { presetName: name });
-
-    console.log("[UR] applyPreset finished");
+function setupInput() {
+  window.addEventListener('keydown', e => {
+    if (e.code === 'KeyW') input.forward = true;
+    if (e.code === 'KeyS') input.backward = true;
+    if (e.code === 'KeyA') input.left = true;
+    if (e.code === 'KeyD') input.right = true;
+    if (e.code === 'Space') input.handbrake = true;
+    if (e.code === 'KeyC') cameraMode = cameraMode === 'third' ? 'cockpit' : 'third';
+  });
+  window.addEventListener('keyup', e => {
+    if (e.code === 'KeyW') input.forward = false;
+    if (e.code === 'KeyS') input.backward = false;
+    if (e.code === 'KeyA') input.left = false;
+    if (e.code === 'KeyD') input.right = false;
+    if (e.code === 'Space') input.handbrake = false;
+  });
+  log('input set');
 }
 
-// =========================================================
-// MAIN INIT
-// =========================================================
-function init() {
-    console.log("[UR] init start");
-
-    scene = new THREE.Scene();
-
-    setupRenderer();
-    setupCamera();
-
-    env = new EnvironmentManager(scene);
-    world = new World(scene);
-
-    createCar();
-    setupControls();
-
-    initSettingsUI(applyPreset);
-
-    startProgressiveLoad();
+// apply preset: name or preset object
+function applyPreset(presetOrName) {
+  const preset = typeof presetOrName === 'string' ? getPresetByName(presetOrName) : presetOrName;
+  if (!preset) {
+    err('applyPreset: preset not found', presetOrName);
+    return;
+  }
+  log('Applying preset', preset.name);
+  renderer.setPixelRatio(Math.min(2.5, (window.devicePixelRatio||1) * (preset.renderScale || 1)));
+  camera.far = preset.viewDistance || 1000;
+  camera.updateProjectionMatrix();
+  try {
+    applyMode(scene, preset, { worldMode: preset.worldMode ?? 'natural' });
+  } catch (e) { err('applyMode error', e); }
+  reportSceneSummary(scene, world, { presetName: preset.name });
 }
 
-// =========================================================
-// CONTROLS
-// =========================================================
-let keys = {};
-function setupControls() {
-    window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-    window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
-}
-
-// =========================================================
-// PROGRESSIVE LOAD
-// =========================================================
+// progressive LOD
 function startProgressiveLoad() {
-    applyPreset(activePreset);
-    animate();
+  applyPreset('Potato');
+  setTimeout(()=> applyPreset('Normal Human'), 1200);
+  setTimeout(()=> applyPreset('CPU Destroyer'), 4200);
 }
 
-// =========================================================
-// UPDATE LOOP
-// =========================================================
-function updatePhysics(delta) {
-    if (!physicsEnabled || !car) return;
-
-    if (keys["w"]) car.position.z += delta * 6;
-    if (keys["s"]) car.position.z -= delta * 6;
-    if (keys["a"]) car.position.x -= delta * 4;
-    if (keys["d"]) car.position.x += delta * 4;
-
-    // Very basic gravity stabilizer
-    car.position.y = 0.3;
-}
-
-let lastTime = performance.now();
-function animate() {
-    requestAnimationFrame(animate);
-
-    let now = performance.now();
-    let delta = (now - lastTime) / 1000;
-    lastTime = now;
-
-    updatePhysics(delta);
-    updateCamera(delta);
-
-    renderer.render(scene, camera);
-}
-
-function updateCamera() {
-    if (!car || !camera) return;
-    camera.position.lerp(
-        new THREE.Vector3(
-            car.position.x,
-            car.position.y + 3,
-            car.position.z - 8
-        ),
-        0.1
-    );
-    camera.lookAt(car.position);
-}
-
-// =========================================================
-// RESIZE HANDLER
-// =========================================================
-window.addEventListener("resize", () => {
-    if (!camera || !renderer) return;
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-// =========================================================
-// BOOTSTRAP
-// =========================================================
-document.addEventListener("DOMContentLoaded", () => {
-    try {
-        init();
-    } catch (err) {
-        console.error("[UR] init error", err);
+// simple terrain height helper (nearest vertex)
+function getTerrainHeightAt(x,z) {
+  const g = scene.getObjectByName('sr_ground');
+  if (!g) return 0;
+  const pos = g.geometry.attributes.position;
+  let best = -Infinity;
+  for (let i=0;i<pos.count;i+=4) {
+    const vx = pos.getX(i) + g.position.x;
+    const vz = pos.getZ(i) + g.position.z;
+    if (Math.abs(vx-x) < 6 && Math.abs(vz-z) < 6) {
+      const vy = pos.getY(i) + g.position.y;
+      if (vy > best) best = vy;
     }
+  }
+  return best === -Infinity ? g.position.y : best;
+}
+
+// basic pseudo-physics for car (keep light)
+let speed = 0;
+function updateCar(dt) {
+  if (!carRoot) return;
+  if (input.forward) speed += 12 * dt;
+  if (input.backward) speed -= 18 * dt;
+  speed *= 0.98;
+  speed = THREE.MathUtils.clamp(speed, -8, 26);
+
+  // steering
+  if (input.left) carRoot.rotation.y += 1.2 * dt * (speed/8 + 0.2);
+  if (input.right) carRoot.rotation.y -= 1.2 * dt * (speed/8 + 0.2);
+
+  // move
+  const forward = new THREE.Vector3(0,0,1).applyEuler(carRoot.rotation);
+  carRoot.position.add(forward.multiplyScalar(speed * dt));
+
+  // lock to terrain
+  const ty = getTerrainHeightAt(carRoot.position.x, carRoot.position.z);
+  carRoot.position.y = THREE.MathUtils.lerp(carRoot.position.y, ty + 0.5, Math.min(1, dt*6));
+}
+
+let cameraMode = 'third';
+function updateCamera(dt) {
+  if (!carRoot) return;
+  if (cameraMode === 'third') {
+    const behind = new THREE.Vector3(0, 2.2, -6.5).applyEuler(carRoot.rotation).add(carRoot.position);
+    camera.position.lerp(behind, Math.min(1, dt*4));
+    camera.lookAt(carRoot.position.clone().add(new THREE.Vector3(0,1.2,2.0)));
+  } else {
+    const cockpit = carRoot.position.clone().add(new THREE.Vector3(0,1.2,0.6).applyEuler(carRoot.rotation));
+    camera.position.lerp(cockpit, Math.min(1, dt*8));
+    camera.lookAt(carRoot.position.clone().add(new THREE.Vector3(0,1.2,10).applyEuler(carRoot.rotation)));
+  }
+}
+
+// main loop
+function animate(now = performance.now()) {
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.05, (now - lastTime)/1000);
+  lastTime = now;
+  t += dt;
+
+  try { updateCar(dt); } catch (e) { err('updateCar error', e); }
+  try { updateCamera(dt); } catch (e) { err('updateCamera error', e); }
+  try { updateEnvironment(dt, t); } catch (e) { err('updateEnvironment error', e); }
+  try { if (world && typeof world.update === 'function') world.update(dt); } catch (e) { err('world.update error', e); }
+
+  renderer.render(scene, camera);
+}
+
+// bootstrap
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    setupRendererAndScene();
+    world = new World(scene);
+    createCar();
+    setupInput();
+    setupUI();
+    initSettingsUI(preset => applyPreset(preset));
+    startProgressiveLoad();
+    animate();
+    log('bootstrap complete');
+  } catch (e) {
+    err('bootstrap error', e);
+  }
 });
+
+function setupUI(){
+  const btn = document.getElementById('graphicsBtn');
+  const panel = document.getElementById('graphicsPanel');
+  btn?.addEventListener('click', ()=> panel.classList.toggle('hidden'));
+
+  const sel = document.getElementById('presetSelect');
+  if (sel) {
+    getPresetNames().forEach(n => {
+      const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+    });
+    document.getElementById('applySettings')?.addEventListener('click', ()=>{
+      const p = getPresetByName(sel.value);
+      if (p) applyPreset(p);
+    });
+  }
+}
