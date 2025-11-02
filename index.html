@@ -10,22 +10,11 @@
 
   <div id="ui">
     <button id="graphicsBtn">Graphics</button>
-    <div id="graphicsPanel" class="hidden">
-      <label>Preset:
-        <select id="presetSelect"></select>
-      </label>
-      <button id="applySettings">Apply</button>
-    </div>
+    <div id="graphicsPanel" class="hidden"></div>
   </div>
 
   <canvas id="gameCanvas"></canvas>
 
-  <!-- All scripts must be modules -->
-  <script type="module" src="./graphicsPresets.js"></script>
-  <script type="module" src="./settings.js"></script>
-  <script type="module" src="./environment.js"></script>
-  <script type="module" src="./world.js"></script>
-  <script type="module" src="./main.js"></script>
-
+  <script type="module" src="main.js"></script>
 </body>
 </html>
