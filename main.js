@@ -1,4 +1,4 @@
-// main.js (diagnostic + fixed imports)
+// main.js (diagnostic + cleaned, duplicates removed)
 // --------------------------------------------------
 // Full working main with verbose console diagnostics
 // --------------------------------------------------
@@ -12,7 +12,6 @@ import { initSettingsUI } from './settings.js';
 // Global debug helpers
 window.__UR_DEBUG__ = window.__UR_DEBUG__ || {};
 const DEBUG = true;
-
 function safeLog(...args) { if (DEBUG) console.log('[UR]', ...args); }
 function safeWarn(...args) { if (DEBUG) console.warn('[UR]', ...args); }
 function safeError(...args) { if (DEBUG) console.error('[UR]', ...args); }
@@ -48,7 +47,7 @@ function reportSceneSummary() {
   return counts;
 }
 
-// Initialize renderer, scene, camera
+// -------------------- Renderer / Scene / Lights / Car --------------------
 function setupRenderer() {
   const canvas = document.getElementById('gameCanvas');
   renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
@@ -83,7 +82,7 @@ function createCar() {
   safeLog('car created');
 }
 
-// Input handling
+// -------------------- Input --------------------
 function setupInput() {
   window.addEventListener('keydown', (e) => {
     if (['w','ArrowUp'].includes(e.key)) input.forward = true;
@@ -100,7 +99,7 @@ function setupInput() {
   safeLog('input handlers set');
 }
 
-// Terrain height sample: nearest vertex approx
+// -------------------- Terrain sampling --------------------
 function getTerrainHeightAt(x, z) {
   try {
     const g = scene.getObjectByName('sr_ground');
@@ -123,8 +122,8 @@ function getTerrainHeightAt(x, z) {
   }
 }
 
-// Car simple dynamics / height lock
-let carState = { speed: 0, heading: 0 };
+// -------------------- Car dynamics --------------------
+let carState = { speed: 0 };
 function updateCar(dt) {
   // acceleration/brake
   if (input.forward) carState.speed += 18 * dt;
@@ -144,23 +143,22 @@ function updateCar(dt) {
   const terrainY = getTerrainHeightAt(car.position.x, car.position.z);
   car.position.y = terrainY + 0.5;
 
-  // debug output each second
+  // debug output each second (throttled)
   if (Math.floor(t) % 1 === 0) {
     safeLog('car pos', car.position.toArray().map(v => v.toFixed(2)), 'speed', carState.speed.toFixed(2));
   }
 }
 
-// Smooth chase camera behind car
+// -------------------- Camera --------------------
 function updateCamera(dt) {
   const behind = new THREE.Vector3(0, 2.0, -6).applyEuler(car.rotation).add(car.position);
   camera.position.lerp(behind, 4 * dt);
   camera.lookAt(car.position.clone().add(new THREE.Vector3(0, 1.2, 6).applyEuler(car.rotation)));
 }
 
-// Apply a graphics preset (progressive friendly)
+// -------------------- Graphics / LOD --------------------
 function applyPreset(preset) {
   safeLog('Applying preset', preset.name ?? preset);
-  // pixel ratio (clamped)
   const targetPR = Math.min(2.5, (window.devicePixelRatio || 1) * (preset.renderScale || 1));
   renderer.setPixelRatio(targetPR);
   camera.far = preset.viewDistance || 1000;
@@ -174,26 +172,22 @@ function applyPreset(preset) {
     safeError('applyMode failed', err);
   }
 
-  // scene summary
   reportSceneSummary();
 }
 
-// Progressive LOD sequence logic
 function startProgressiveLoad() {
   safeLog('starting progressive LOD sequence');
-  // immediate low preset
   applyPreset(GraphicsPresets[0]); // Potato
   setTimeout(() => { safeLog('upgrading to medium'); applyPreset(GraphicsPresets[2]); }, 1500);
   setTimeout(() => { safeLog('upgrading to high (CPU Destroyer)'); applyPreset(GraphicsPresets[5]); }, 4500);
 }
 
-// Setup UI hooks
+// -------------------- UI --------------------
 function setupUI() {
   const btn = document.getElementById('graphicsBtn');
   const panel = document.getElementById('graphicsPanel');
   btn?.addEventListener('click', () => panel.classList.toggle('hidden'));
 
-  // populate preset select
   const sel = document.getElementById('presetSelect');
   if (sel) {
     getPresetNames().forEach(name => {
@@ -210,7 +204,7 @@ function setupUI() {
   }
 }
 
-// Main init
+// -------------------- INIT / ANIMATE --------------------
 function init() {
   safeLog('init start');
   setupRenderer();
@@ -236,58 +230,20 @@ function init() {
   safeLog('init complete - entering loop');
 }
 
-function setupRenderer() {
-  const canvas = document.getElementById('gameCanvas');
-  renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio || 1);
-  safeLog('renderer initialized', { pixelRatio: renderer.getPixelRatio() });
-}
-
-function setupScene() {
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000);
-  camera.position.set(0, 4, -8);
-}
-
-function setupLights() {
-  const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-  sun.position.set(50, 200, 50);
-  scene.add(sun);
-  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-}
-
-// Animation frame
 function animate(now = performance.now()) {
   const dt = Math.min(0.05, (now - lastTime) / 1000);
   lastTime = now;
   t += dt;
 
-  // Update systems
-  try {
-    updateCar(dt);
-  } catch (err) {
-    safeError('updateCar error', err);
-  }
-  try {
-    updateCamera(dt);
-  } catch (err) {
-    safeError('updateCamera error', err);
-  }
-  try {
-    updateEnvironment(dt, t);
-  } catch (err) {
-    safeError('updateEnvironment error', err);
-  }
-  try {
-    world.update(dt);
-  } catch (err) {
-    safeError('world.update error', err);
-  }
+  // Update systems (each wrapped to log errors)
+  try { updateCar(dt); } catch (err) { safeError('updateCar error', err); }
+  try { updateCamera(dt); } catch (err) { safeError('updateCamera error', err); }
+  try { updateEnvironment(dt, t); } catch (err) { safeError('updateEnvironment error', err); }
+  try { if (world && typeof world.update === 'function') world.update(dt); } catch (err) { safeError('world.update error', err); }
 
   renderer.render(scene, camera);
 
-  // print some stats every 3 seconds
+  // basic periodic stats
   if (Math.floor(t) % 3 === 0) {
     const mem = performance && performance.memory ? performance.memory : null;
     safeLog('tick', { t: t.toFixed(2), rendererInfo: renderer.info.render, memory: mem });
@@ -296,7 +252,7 @@ function animate(now = performance.now()) {
   requestAnimationFrame(animate);
 }
 
-// On DOM ready (we are module loaded after index, but ensure)
+// DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   try {
     init();
