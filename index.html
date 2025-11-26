@@ -1,27 +1,667 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Slow Roads — Enhanced Demo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aurora — Web OS</title>
+
+  <!-- Tailwind Play CDN for quick styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Interact.js for drag/resize -->
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+
+  <!-- xterm.js (terminal) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+
+  <style>
+    :root{
+      --bg1: linear-gradient(135deg,#0f172a 0%, #021025 60%, #052b36 100%);
+      --glass: rgba(255,255,255,0.06);
+      --glass-2: rgba(255,255,255,0.04);
+      --accent: #7c5cff;
+      --accent-2: #00e5ff;
+      --radius: 14px;
+    }
+    html,body,#root{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      background:var(--bg1);
+      overflow:hidden;
+    }
+    /* Wallpaper container */
+    #wallpaper {
+      position:fixed;inset:0;background-position:center;background-size:cover;filter:blur(0.3px) saturate(1.05);
+    }
+    /* Desktop area */
+    #desktop {
+      position:absolute;inset:0;padding:24px;display:flex;flex-wrap:wrap;gap:18px;align-content:flex-start;
+    }
+    .desk-icon{width:84px;text-align:center;color:white;cursor:pointer;user-select:none}
+    .desk-icon img{width:64px;height:64px;border-radius:12px;box-shadow:0 4px 20px rgba(2,6,23,0.6)}
+    .desk-icon span{display:block;margin-top:6px;font-size:13px;max-width:84px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* Taskbar */
+    #taskbar{
+      position:fixed;left:0;right:0;bottom:0;height:56px;padding:6px 18px;display:flex;align-items:center;gap:12px;
+      background:linear-gradient(180deg, rgba(8,10,15,0.18), rgba(8,10,15,0.28));backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.03);
+    }
+    #start-button{
+      width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      display:flex;align-items:center;justify-content:center;color:white;font-weight:600;cursor:pointer;
+      box-shadow:0 6px 22px rgba(2,6,23,0.6);
+    }
+    #taskbar .pinned {display:flex;gap:8px;align-items:center}
+    .tb-btn{height:40px;min-width:40px;padding:6px;border-radius:9px;background:transparent;border:none;cursor:pointer;color:white;display:flex;align-items:center;justify-content:center}
+    .tb-btn:hover{background:rgba(255,255,255,0.03)}
+
+    /* Window style */
+    .aurora-window{position:absolute;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 20px 50px rgba(2,6,23,0.7);overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+    .win-title{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);backdrop-filter: blur(3px)}
+    .win-title .left{display:flex;gap:8px;align-items:center}
+    .win-controls button{margin-left:6px;border-radius:8px;width:32px;height:28px;background:transparent;border:0;color:white;cursor:pointer}
+    .win-body{height:calc(100% - 44px);background:transparent;overflow:auto}
+
+    /* Start Menu */
+    #start-menu{position:fixed;left:50%;transform:translateX(-50%);bottom:72px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border-radius:16px;padding:14px;width:760px;box-shadow:0 30px 70px rgba(2,6,23,0.7);display:flex;gap:14px;color:white}
+    .start-left{width:46%}
+    .start-right{width:54%;display:flex;flex-direction:column;gap:8px}
+    .app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .app-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;cursor:pointer}
+    .app-card:hover{background:rgba(255,255,255,0.02)}
+
+    /* Context menu */
+    .ctx{position:fixed;background:#0b1220;color:white;border-radius:8px;padding:8px;box-shadow:0 10px 30px rgba(2,6,23,0.6);display:none;z-index:9999}
+    .ctx button{display:block;width:100%;text-align:left;padding:6px;border-radius:6px;background:transparent;border:0;color:white;cursor:pointer}
+
+    /* small helpers */
+    .muted{color:rgba(255,255,255,0.6);font-size:13px}
+    .icon-small{width:22px;height:22px;border-radius:6px}
+  </style>
 </head>
 <body>
-  <!-- Game Canvas -->
-  <canvas id="gameCanvas"></canvas>
+  <!-- Wallpaper (user-changeable) -->
+  <div id="wallpaper" style="background-image: radial-gradient(circle at 10% 20%, rgba(124,92,255,0.18), transparent 10%), radial-gradient(circle at 80% 80%, rgba(0,229,255,0.06), transparent 10%), linear-gradient(135deg,#021025 0%, #052b36 100%);"></div>
 
-  <!-- Graphics Settings UI -->
-  <div id="graphicsPanel" class="hidden">
-    <label for="presetSelect">Graphics Preset:</label>
-    <select id="presetSelect"></select>
-    <button id="applySettings">Apply</button>
+  <!-- Desktop -->
+  <div id="desktop" oncontextmenu="return false;"></div>
+
+  <!-- Start menu (hidden by default) -->
+  <div id="start-menu" style="display:none" aria-hidden="true">
+    <div class="start-left">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700">A</div>
+        <div>
+          <div style="font-weight:700;font-size:16px">Aurora</div>
+          <div class="muted">Welcome back — ready to explore?</div>
+        </div>
+      </div>
+      <div style="margin-top:8px" class="muted">Pinned</div>
+      <div id="pinned-grid" class="app-grid" style="margin-top:8px"></div>
+    </div>
+    <div class="start-right">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700">All apps</div>
+        <input id="start-search" placeholder="Search apps..." style="background:rgba(255,255,255,0.03);border-radius:8px;padding:8px;border:0;color:white;width:55%" />
+      </div>
+      <div id="all-apps" style="overflow:auto;height:420px;margin-top:8px"></div>
+    </div>
   </div>
-  <button id="graphicsBtn">Graphics Settings</button>
 
-  <!-- Game Overlay (speedometer, info) is injected via JS -->
+  <!-- Taskbar -->
+  <div id="taskbar">
+    <div id="start-button" title="Start (press Win or click)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3h4v4H3V3zM9 3h6v4H9V3zM15 3h6v4h-6V3zM3 9h4v6H3V9zM9 9h6v6H9V9zM15 9h6v6h-6V9zM3 15h4v6H3v-6zM9 15h6v6H9v-6zM15 15h6v6h-6v-6z" fill="white"/></svg></div>
+    <div class="pinned" id="taskbar-pinned"></div>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:10px;align-items:center;color:white">
+      <div id="tray-wifi" class="muted">Aurora</div>
+      <div id="tray-time" class="muted"></div>
+      <div id="tray-open-menu" style="width:40px;height:40px;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer">⚙️</div>
+    </div>
+  </div>
 
-  <!-- Audio: preload can be done in JS -->
-  <!-- Scripts -->
-  <script type="module" src="./main.js"></script>
+  <!-- Context menu -->
+  <div id="ctx-menu" class="ctx" role="menu">
+    <button onclick="createNewFile()">New text file</button>
+    <button onclick="refreshDesktop()">Refresh</button>
+    <button onclick="openSettings()">Change wallpaper</button>
+  </div>
+
+  <!-- Templates container for windows -->
+  <div id="windows-root"></div>
+
+  <script>
+  /*************************************************************************
+   * Aurora Web OS - Single-file implementation
+   * Save this as index.html and open in browser.
+   *
+   * Features implemented:
+   * - Desktop icons for all listed apps (auto favicon)
+   * - Start menu (Win11 centered style), pinned apps, search
+   * - Taskbar with running windows, minimize, maximize, close
+   * - Draggable/resizable windows with interact.js
+   * - Built-in Terminal (xterm.js), Notepad (autosave), Calculator
+   * - Browser app (sandboxed iframe) with fallback when iframe blocked
+   * - Settings (wallpaper upload, theme toggle), File explorer (localStorage)
+   * - Right-click desktop context menu (new file, refresh, wallpaper)
+   *
+   * No proxies, no bypass features. External URLs are loaded in iframes
+   * and may be blocked by their own CSP/X-Frame rules.
+   *************************************************************************/
+
+  // Your apps list (exactly as you provided)
+  const APPS = [
+    { id:'daydreamx', name: 'DayDreamX', url:'https://study.info.north-kazakhstan.su.cdn.cloudflare.net/' },
+    { id:'velera',    name: 'Velera',    url:'https://zearn.buzz.cdn.cloudflare.net/' },
+    { id:'truffled',  name: 'Truffled',  url:'https://truffled.example/' },
+    { id:'petezah',   name: 'PeteZah',   url:'https://pete.example/' },
+    { id:'uniubv4',   name: 'UniUB v4',  url:'https://university.example/' },
+    { id:'rosin',     name: 'Rosin',     url:'https://lbbjwojcgm.antrak.org.tr/' },
+    { id:'nexus',     name: 'Nexus',     url:'https://nexus-is.onthewifi.com/' },
+    { id:'dogeub',    name: 'DogeUB',    url:'https://math.linked8.net/indev' },
+    { id:'rammer',    name: 'RammerHead',url:'https://geo.searchgpy.com/' },
+    { id:'cbmagic',   name: 'CBmagic',   url:'https://soloo.fun/' },
+    { id:'axiom',     name: 'Axiom',     url:'https://ultralight.mwbread.com/' },
+    { id:'quasar',    name: 'Quasar',    url:'https://tuition.oneuniversity.info/' },
+    { id:'boredom',   name: 'Boredom',   url:'https://boredom.global.ssl.fastly.net/?_sm_au_=iHVW0PqgfVNrr60Q7K3CjK60HMLcq' },
+    { id:'somestuff', name: 'SomeStuff', url:'https://wmath.pages.dev/#prxy' },
+    { id:'galaxy',    name: 'Galaxy',    url:'https://frylight.jumpingcrab.com/' },
+    { id:'eldardo',   name: 'Eldardo',   url:'https://eldardo.net/app/' },
+  ];
+
+  // Built-in system apps
+  const SYS_APPS = [
+    { id:'terminal', name:'Terminal' },
+    { id:'notepad',  name:'Notepad' },
+    { id:'calculator', name:'Calculator' },
+    { id:'files', name:'Files' },
+    { id:'settings', name:'Settings' },
+  ];
+
+  // Utilities
+  function hostFromUrl(u){
+    try { return new URL(u).hostname } catch { return u.replace(/https?:\/\/(www\.)?/,'').split('/')[0] }
+  }
+  function faviconFor(url){
+    const host = hostFromUrl(url);
+    // Google favicon service (size 64)
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=64`;
+  }
+
+  // App state (running windows)
+  const state = {
+    windows: [], // {id, title, contentType:'iframe'|'builtin', url, x,y,w,h,minimized}
+    z: 100,
+    pinned: JSON.parse(localStorage.getItem('aurora_pinned') || '[]'),
+    wallpaper: localStorage.getItem('aurora_wallpaper') || '',
+    dark: (localStorage.getItem('aurora_dark') || 'true') === 'true',
+    files: JSON.parse(localStorage.getItem('aurora_files') || '[]') // {name, content}
+  };
+
+  // DOM refs
+  const desktop = document.getElementById('desktop');
+  const windowsRoot = document.getElementById('windows-root');
+  const startMenu = document.getElementById('start-menu');
+  const pinnedGrid = document.getElementById('pinned-grid');
+  const allAppsEl = document.getElementById('all-apps');
+  const taskbarPinned = document.getElementById('taskbar-pinned');
+  const trayTime = document.getElementById('tray-time');
+  const ctxMenu = document.getElementById('ctx-menu');
+  const wallpaperEl = document.getElementById('wallpaper');
+  const startSearch = document.getElementById('start-search');
+
+  /* ----------------- Initialization ----------------- */
+  function init(){
+    if(state.wallpaper) wallpaperEl.style.backgroundImage = `url(${state.wallpaper})`;
+    if(!state.dark) document.body.classList.add('light-mode');
+    renderDesktop();
+    renderStartMenu();
+    renderPinned();
+    renderFiles();
+    bindGlobal();
+    tickClock();
+  }
+
+  /* ----------------- Desktop rendering ----------------- */
+  function renderDesktop(){
+    desktop.innerHTML = '';
+    // Desktop icons for apps
+    [...APPS, ...SYS_APPS].forEach(app => {
+      const el = document.createElement('div');
+      el.className = 'desk-icon';
+      el.title = app.name;
+      el.innerHTML = `
+        <img src="${app.url ? faviconFor(app.url) : '/favicon.svg'}" alt="${app.name}" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=64 height=64><rect width=100% height=100% fill=\\'%230c1220\\' rx=12 /><text x=50% y=50% fill=white font-size=22 font-family=Inter text-anchor=middle dominant-baseline=middle>A</text></svg>" />
+        <span>${app.name}</span>
+      `;
+      el.ondblclick = () => openAppWindow(app);
+      el.onclick = () => selectIcon(el);
+      desktop.appendChild(el);
+    });
+  }
+  function selectIcon(el){
+    // selection style
+    document.querySelectorAll('.desk-icon').forEach(d=>d.style.outline='none');
+    el.style.outline = '2px solid rgba(255,255,255,0.06)';
+    setTimeout(()=>el.style.outline='none',1200);
+  }
+
+  /* ----------------- Start menu ----------------- */
+  function renderStartMenu(){
+    // pinned
+    pinnedGrid.innerHTML = '';
+    state.pinned.forEach(id => {
+      const app = findApp(id);
+      if(!app) return;
+      const card = document.createElement('div');
+      card.className = 'app-card';
+      card.innerHTML = `<img class="icon-small" src="${app.url ? faviconFor(app.url) : ''}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=24 height=24><rect width=100% height=100% fill=\\'%23ffffff\\' rx=4 /></svg>'" /><div style="font-size:13px">${app.name}</div>`;
+      card.onclick = ()=> openAppWindow(app);
+      pinnedGrid.appendChild(card);
+    });
+
+    // all apps list
+    allAppsEl.innerHTML = '';
+    const all = [...SYS_APPS, ...APPS].sort((a,b)=>a.name.localeCompare(b.name));
+    all.forEach(app=>{
+      const row = document.createElement('div');
+      row.className = 'app-card';
+      row.style.justifyContent = 'space-between';
+      row.innerHTML = `<div style="display:flex;gap:10px;align-items:center"><img class="icon-small" src="${app.url ? faviconFor(app.url) : ''}" /><div>${app.name}</div></div><div style="display:flex;gap:8px"><button class="muted small" onclick="togglePin('${app.id}')">PIN</button><button class="muted small" onclick="openAppWindowById('${app.id}')">OPEN</button></div>`;
+      allAppsEl.appendChild(row);
+    });
+  }
+
+  function togglePin(appId){
+    if(state.pinned.includes(appId)) state.pinned = state.pinned.filter(x=>x!==appId);
+    else state.pinned.push(appId);
+    localStorage.setItem('aurora_pinned', JSON.stringify(state.pinned));
+    renderStartMenu();
+    renderPinned();
+  }
+
+  function renderPinned(){
+    taskbarPinned.innerHTML = '';
+    state.pinned.forEach(id=>{
+      const app = findApp(id);
+      if(!app) return;
+      const btn = document.createElement('button');
+      btn.className = 'tb-btn';
+      btn.title = app.name;
+      btn.innerHTML = `<img src="${app.url ? faviconFor(app.url) : ''}" style="width:20px;height:20px" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=20 height=20><rect width=100% height=100% fill=\\'%23ffffff\\' rx=4 /></svg>'" />`;
+      btn.onclick = ()=> openAppWindow(app);
+      taskbarPinned.appendChild(btn);
+    });
+  }
+
+  /* ----------------- App open / window management ----------------- */
+  function findApp(id){ return APPS.concat(SYS_APPS).find(a=>a.id===id || a.name===id) }
+
+  function openAppWindow(app){
+    // map system apps
+    if(typeof app==='string') app = findApp(app);
+    const id = 'win_' + Date.now();
+    const title = app.name;
+    const isSys = !app.url;
+    const contentType = app.url ? 'iframe' : 'builtin';
+    const url = app.url || mapSysToId(app.id);
+    const w = { id, title, contentType, url, x:100+Math.random()*200, y:80+Math.random()*150, w:780, h:460, minimized:false };
+    state.windows.push(w);
+    createWindowElement(w);
+    updateTaskbar();
+  }
+  function openAppWindowById(id){
+    const app = findApp(id);
+    if(app) openAppWindow(app);
+  }
+  function mapSysToId(id){
+    // system mapping (simplified)
+    if(id==='terminal') return 'builtin:terminal';
+    if(id==='notepad') return 'builtin:notepad';
+    if(id==='calculator') return 'builtin:calculator';
+    if(id==='files') return 'builtin:files';
+    if(id==='settings') return 'builtin:settings';
+    return '';
+  }
+
+  function createWindowElement(win){
+    const el = document.createElement('div');
+    el.className = 'aurora-window';
+    el.id = win.id;
+    el.style.left = (win.x||120)+'px';
+    el.style.top = (win.y||80)+'px';
+    el.style.width = (win.w||720)+'px';
+    el.style.height = (win.h||420)+'px';
+    el.style.zIndex = ++state.z;
+
+    // title bar & controls
+    el.innerHTML = `
+      <div class="win-title">
+        <div class="left"><img src="${win.contentType==='iframe' ? faviconFor(win.url) : 'data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=20 height=20><rect width=100% height=100% fill=\\'%23ffffff\\' rx=4 /></svg>'}" style="width:18px;height:18px;border-radius:6px;margin-right:8px" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=20 height=20><rect width=100% height=100% fill=\\'%23ffffff\\' rx=4 /></svg>'" /><div style="font-weight:600">${win.title}</div></div>
+        <div class="win-controls">
+          <button class="min">▁</button>
+          <button class="max">▣</button>
+          <button class="close">✕</button>
+        </div>
+      </div>
+      <div class="win-body"></div>
+    `;
+    windowsRoot.appendChild(el);
+
+    const body = el.querySelector('.win-body');
+
+    // content
+    if(win.contentType==='iframe' && !win.url.startsWith('builtin:')){
+      // show loading + iframe
+      const frameWrap = document.createElement('div');
+      frameWrap.style.width='100%';frameWrap.style.height='100%';
+      const loading = document.createElement('div'); loading.className='muted'; loading.style.padding='14px'; loading.innerText='Loading...';
+      frameWrap.appendChild(loading);
+      const iframe = document.createElement('iframe');
+      iframe.src = win.url;
+      iframe.style.width='100%'; iframe.style.height='100%'; iframe.style.border='0';
+      iframe.sandbox = 'allow-scripts allow-same-origin';
+      iframe.referrerPolicy = 'no-referrer';
+      // iframe blocked detection: set a timeout, then check contentWindow access
+      iframe.onload = ()=>{
+        try {
+          // some sites prevent access; this try may throw in cross-origin cases
+          loading.style.display='none';
+        } catch (e) {
+          loading.style.display='none';
+        }
+      }
+      frameWrap.appendChild(iframe);
+
+      // fallback message if content blocked (can't reliably detect, so show button)
+      const blockedMsg = document.createElement('div');
+      blockedMsg.className = 'muted';
+      blockedMsg.style.padding='10px';
+      blockedMsg.innerHTML = `If the site doesn't load inside Aurora, it may block embedding. <button style="margin-left:8px;padding:6px;border-radius:6px;border:0;cursor:pointer;background:rgba(255,255,255,0.06);color:white" onclick="window.open('${win.url}','_blank')">Open in new tab</button>`;
+      frameWrap.appendChild(blockedMsg);
+
+      body.appendChild(frameWrap);
+    } else {
+      // built-in apps
+      if(win.url==='builtin:terminal'){
+        const termDiv = document.createElement('div'); termDiv.style.width='100%'; termDiv.style.height='100%';
+        body.appendChild(termDiv);
+        // init xterm
+        setTimeout(()=>{
+          try{
+            const term = new window.Terminal({cols:80,rows:24,theme:{background:'#041226',foreground:'#d1f5ff'}});
+            term.open(termDiv);
+            term.write('Aurora Terminal\\r\\n> ');
+            let buffer = '';
+            term.onKey(e=>{
+              const key = e.key;
+              if(key==='\\r'){ // enter
+                handleTerminalCommand(term, buffer.trim());
+                buffer=''; term.write('\\r\\n> ');
+              } else if(key==='\\u007f'){ // backspace
+                if(buffer.length>0){ buffer=buffer.slice(0,-1); term.write('\\b \\b'); }
+              } else {
+                buffer += key; term.write(key);
+              }
+            });
+            function handleTerminalCommand(t, cmd){
+              if(!cmd) return;
+              const parts = cmd.split(' ');
+              const c = parts[0].toLowerCase();
+              if(c==='help'){
+                t.writeln('Commands: help, time, echo, clear, about');
+              } else if(c==='time'){
+                t.writeln(new Date().toString());
+              } else if(c==='echo'){
+                t.writeln(parts.slice(1).join(' '));
+              } else if(c==='clear'){
+                t.clear();
+              } else if(c==='about'){
+                t.writeln('Aurora Terminal — demo shell');
+              } else {
+                t.writeln('Unknown command: '+c);
+              }
+            }
+          }catch(e){ body.innerHTML='<div class="muted p-4">Terminal failed to load.</div>' }
+        },120);
+      } else if(win.url==='builtin:notepad'){
+        const ta = document.createElement('textarea');
+        ta.style.width='100%'; ta.style.height='100%'; ta.style.background='transparent'; ta.style.color='white'; ta.style.border='0'; ta.style.padding='12px'; ta.placeholder='Type and it autosaves...';
+        const key = 'aurora_note';
+        ta.value = localStorage.getItem(key) || '';
+        ta.oninput = ()=> localStorage.setItem(key, ta.value);
+        body.appendChild(ta);
+      } else if(win.url==='builtin:calculator'){
+        const calcWrap = document.createElement('div'); calcWrap.style.padding='12px';
+        calcWrap.innerHTML = `<input id="calc-input" placeholder="e.g. 2+2*3" style="width:100%;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);border:0;color:white;margin-bottom:8px" /><div><button id="calc-go" style="padding:8px;border-radius:8px;border:0;background:${'#7c5cff'};color:white">Compute</button><div id="calc-res" class="muted" style="margin-top:8px"></div></div>`;
+        body.appendChild(calcWrap);
+        calcWrap.querySelector('#calc-go').onclick = ()=>{
+          const expr = calcWrap.querySelector('#calc-input').value;
+          try{
+            // safe math evaluation: only numbers, parentheses, + - * / % . ^ 
+            if(!/^[0-9()+\\-*/.%\\s^.]+$/.test(expr)) throw 'Invalid characters';
+            // replace ^ with ** for power
+            const res = Function('"use strict";return ('+expr.replace(/\^/g,'**')+')')();
+            calcWrap.querySelector('#calc-res').innerText = 'Result: ' + res;
+          }catch(e){ calcWrap.querySelector('#calc-res').innerText = 'Error'; }
+        };
+      } else if(win.url==='builtin:files'){
+        // simple file explorer using localStorage
+        const fileWrap = document.createElement('div'); fileWrap.style.padding='10px'; fileWrap.style.height='100%';
+        const list = document.createElement('div');
+        const refresh = ()=> {
+          list.innerHTML=''; const files = JSON.parse(localStorage.getItem('aurora_files') || '[]');
+          files.forEach((f,idx)=>{
+            const r = document.createElement('div'); r.style.display='flex'; r.style.justifyContent='space-between'; r.style.padding='8px'; r.style.borderBottom='1px solid rgba(255,255,255,0.02)';
+            r.innerHTML = `<div style="max-width:70%">${f.name}</div><div style="display:flex;gap:8px"><button onclick="downloadFile(${idx})">Download</button><button onclick="deleteFile(${idx})">Delete</button></div>`;
+            list.appendChild(r);
+          });
+        }
+        const createUI = document.createElement('div'); createUI.style.marginBottom='8px';
+        createUI.innerHTML = `<input id="file-name" placeholder="filename.txt" style="padding:6px;border-radius:6px;background:rgba(255,255,255,0.02);border:0;color:white" /><button id="file-create" style="margin-left:8px;padding:6px;border-radius:6px;background:rgba(255,255,255,0.04);border:0">Create</button>`;
+        fileWrap.appendChild(createUI); fileWrap.appendChild(list);
+        body.appendChild(fileWrap);
+        fileWrap.querySelector('#file-create').onclick = ()=>{
+          const name = fileWrap.querySelector('#file-name').value || ('file-'+Date.now()+'.txt');
+          const files = JSON.parse(localStorage.getItem('aurora_files') || '[]');
+          files.push({name,content:''});
+          localStorage.setItem('aurora_files', JSON.stringify(files));
+          refresh();
+        };
+        window.deleteFile = (idx)=>{ const f = JSON.parse(localStorage.getItem('aurora_files')||'[]'); f.splice(idx,1); localStorage.setItem('aurora_files', JSON.stringify(f)); refresh(); }
+        window.downloadFile = (idx)=>{ const f = JSON.parse(localStorage.getItem('aurora_files')||'[]')[idx]; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([f.content],{type:'text/plain'})); a.download = f.name; a.click(); }
+        refresh();
+      } else if(win.url==='builtin:settings'){
+        const s = document.createElement('div'); s.style.padding='12px';
+        s.innerHTML = `<div style="display:flex;gap:12px"><div style="flex:1">
+          <div style="font-weight:700">Appearance</div>
+          <div style="margin-top:8px">Theme: <button id="toggle-theme" style="margin-left:8px;padding:6px;border-radius:6px;background:rgba(255,255,255,0.04);border:0">Toggle</button></div>
+          <div style="margin-top:8px">Wallpaper: <input id="wall-upload" type="file" accept="image/*" style="margin-left:8px" /></div>
+        </div></div>`;
+        body.appendChild(s);
+        s.querySelector('#toggle-theme').onclick = ()=>{ state.dark = !state.dark; localStorage.setItem('aurora_dark', state.dark); document.body.classList.toggle('light-mode', !state.dark); }
+        s.querySelector('#wall-upload').onchange = (ev)=>{
+          const f = ev.target.files[0]; if(!f) return;
+          const r = new FileReader(); r.onload = ()=>{ state.wallpaper = r.result; localStorage.setItem('aurora_wallpaper', r.result); wallpaperEl.style.backgroundImage = `url(${r.result})`; }; r.readAsDataURL(f);
+        }
+      }
+    }
+
+    // controls
+    el.querySelector('.win-controls .close').onclick = ()=> closeWindow(win.id);
+    el.querySelector('.win-controls .min').onclick = ()=> minimizeWindow(win.id);
+    el.querySelector('.win-controls .max').onclick = ()=> toggleMaximize(win.id);
+    el.onclick = ()=> { el.style.zIndex = ++state.z; };
+
+    // make draggable & resizable via interact.js
+    interact(el).draggable({
+      allowFrom: '.win-title',
+      listeners: {
+        move(event){
+          const t = event.target;
+          const left = (parseFloat(t.style.left) || 0) + event.dx;
+          const top = (parseFloat(t.style.top) || 0) + event.dy;
+          t.style.left = left + 'px'; t.style.top = top + 'px';
+        }
+      }
+    }).resizable({
+      edges: { left:true, right:true, bottom:true, top:true },
+      listeners: {
+        move(event){
+          const t = event.target;
+          let { x, y } = t.dataset;
+          x = (parseFloat(t.style.left) || 0) + (event.deltaRect.left || 0);
+          y = (parseFloat(t.style.top) || 0) + (event.deltaRect.top || 0);
+          t.style.width = event.rect.width + 'px';
+          t.style.height = event.rect.height + 'px';
+          t.style.left = x + 'px';
+          t.style.top = y + 'px';
+        }
+      },
+      modifiers: [
+        interact.modifiers.restrictSize({ min: { width: 320, height: 160 } })
+      ]
+    });
+
+    return el;
+  }
+
+  function closeWindow(id){
+    const el = document.getElementById(id);
+    if(el) el.remove();
+    state.windows = state.windows.filter(w=>w.id!==id);
+    updateTaskbar();
+  }
+  function minimizeWindow(id){
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+    const w = state.windows.find(x=>x.id===id); if(w) w.minimized = true;
+    updateTaskbar();
+  }
+  function restoreWindow(id){
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'block';
+    const w = state.windows.find(x=>x.id===id); if(w) w.minimized = false;
+    el.style.zIndex = ++state.z;
+  }
+  function toggleMaximize(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(el.dataset.max==='1'){
+      // restore
+      el.style.left = el.dataset.ox; el.style.top = el.dataset.oy; el.style.width = el.dataset.ow; el.style.height = el.dataset.oh;
+      el.dataset.max = '0';
+    } else {
+      el.dataset.ox = el.style.left; el.dataset.oy = el.style.top; el.dataset.ow = el.style.width; el.dataset.oh = el.style.height;
+      el.style.left = '6px'; el.style.top = '6px'; el.style.width = (window.innerWidth-12)+'px'; el.style.height = (window.innerHeight-92)+'px';
+      el.dataset.max = '1';
+    }
+  }
+
+  function updateTaskbar(){
+    // show running windows as buttons
+    // (simple approach: a small button for each window)
+    const existing = document.querySelectorAll('.running-win-btn'); existing.forEach(e=>e.remove());
+    state.windows.forEach(win=>{
+      const btn = document.createElement('button');
+      btn.className = 'tb-btn running-win-btn';
+      btn.title = win.title;
+      btn.innerText = win.title.length>8 ? win.title.slice(0,8)+'…' : win.title;
+      btn.onclick = ()=>{
+        const el = document.getElementById(win.id);
+        if(!el) return;
+        if(win.minimized) { restoreWindow(win.id); win.minimized=false; } else { el.style.zIndex = ++state.z; }
+      };
+      taskbarPinned.parentNode.insertBefore(btn, taskbarPinned.nextSibling);
+    });
+  }
+
+  /* ----------------- Right-click context menu ----------------- */
+  document.addEventListener('contextmenu', (e)=>{
+    // show on desktop only
+    if(e.target.closest('.desk-icon') || e.target.closest('.aurora-window')) { ctxMenu.style.display='none'; return; }
+    e.preventDefault();
+    ctxMenu.style.left = e.clientX+'px'; ctxMenu.style.top = e.clientY+'px'; ctxMenu.style.display='block';
+  });
+  document.addEventListener('click', ()=> ctxMenu.style.display='none');
+
+  window.createNewFile = function(){
+    const files = JSON.parse(localStorage.getItem('aurora_files')||'[]');
+    files.push({name:'new-file-'+Date.now()+'.txt', content:''});
+    localStorage.setItem('aurora_files', JSON.stringify(files));
+    renderFiles();
+  }
+  window.refreshDesktop = function(){ renderDesktop(); }
+  window.openSettings = function(){ // open settings app
+    openAppWindowById('settings');
+  }
+
+  /* ----------------- Files (simple) ----------------- */
+  function renderFiles(){
+    // (not a desktop explorer except Files app)
+  }
+
+  /* ----------------- Global bindings ----------------- */
+  function bindGlobal(){
+    // start button toggle
+    document.getElementById('start-button').onclick = ()=> toggleStart();
+
+    // start search
+    startSearch.oninput = ()=> {
+      const q = startSearch.value.toLowerCase();
+      Array.from(allAppsEl.children).forEach(row=>{
+        if(!q) row.style.display='flex';
+        else row.style.display = row.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    };
+
+    // tray time
+    document.getElementById('tray-open-menu').onclick = ()=> openSettings();
+
+    // keyboard: Win toggles Start; Esc closes Start
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){ startMenu.style.display='none'; }
+      if(e.key === 'Meta') toggleStart();
+      if(e.key === 'F12') console.log('Aurora dev: windows', state.windows);
+    });
+
+    // desktop double-click blank to create welcome note
+    desktop.ondblclick = ()=> openAppWindowById('notepad');
+
+    // update taskbar time
+    setInterval(tickClock, 1000);
+  }
+
+  function toggleStart(){
+    if(startMenu.style.display==='none'){ startMenu.style.display='flex'; startSearch.focus(); }
+    else startMenu.style.display='none';
+  }
+
+  function tickClock(){
+    const d = new Date();
+    trayTime.innerText = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  }
+
+  /* ----------------- Init app icons/pinned on first run -------------- */
+  if(!localStorage.getItem('aurora_pinned')){
+    // pin Terminal and Notepad by default
+    localStorage.setItem('aurora_pinned', JSON.stringify(['terminal','notepad']));
+    state.pinned = JSON.parse(localStorage.getItem('aurora_pinned'));
+  }
+
+  // initial render
+  init();
+
+  // expose some helper functions to global for buttons inside dynamic HTML
+  window.openAppWindow = openAppWindow;
+  window.openAppWindowById = openAppWindowById;
+  window.togglePin = togglePin;
+
+  </script>
 </body>
 </html>
