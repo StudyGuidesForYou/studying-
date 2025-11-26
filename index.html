@@ -8,7 +8,7 @@
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Interact.js -->
+<!-- Interact.js for drag/resize -->
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
 <!-- xterm.js -->
@@ -24,7 +24,7 @@
   --accent-2: #00e5ff;
   --radius: 14px;
 }
-html,body,#root{height:100%}
+html,body,#root{height:100%;}
 body{
   margin:0;
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
@@ -32,89 +32,55 @@ body{
   -moz-osx-font-smoothing:grayscale;
   background:var(--bg1);
   overflow:hidden;
-  transition: background 0.3s;
 }
-
 /* Wallpaper */
-#wallpaper {
-  position:fixed; inset:0; background-position:center; background-size:cover; filter:blur(0.3px) saturate(1.05);
-  transition: all 0.3s;
-}
-
-/* Desktop icons */
-#desktop {
-  position:absolute; inset:0; padding:24px; display:flex; flex-wrap:wrap; gap:18px; align-content:flex-start;
-}
-.desk-icon{width:84px;text-align:center;color:white;cursor:pointer;user-select:none;transition:transform 0.15s}
-.desk-icon:hover{transform:scale(1.07)}
-.desk-icon img{width:64px;height:64px;border-radius:12px;box-shadow:0 4px 20px rgba(2,6,23,0.6);transition:all 0.2s}
+#wallpaper{position:fixed; inset:0; background-position:center; background-size:cover; filter:blur(0.3px) saturate(1.05);}
+#desktop{position:absolute; inset:0; padding:24px; display:flex; flex-wrap:wrap; gap:18px; align-content:flex-start;}
+.desk-icon{width:84px;text-align:center;color:white;cursor:pointer;user-select:none}
+.desk-icon img{width:64px;height:64px;border-radius:12px;box-shadow:0 4px 20px rgba(2,6,23,0.6);}
 .desk-icon span{display:block;margin-top:6px;font-size:13px;max-width:84px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Taskbar */
 #taskbar{
   position:fixed;left:0;right:0;bottom:0;height:56px;padding:6px 18px;display:flex;align-items:center;gap:12px;
-  background:linear-gradient(180deg, rgba(8,10,15,0.18), rgba(8,10,15,0.28));
-  backdrop-filter: blur(8px);
-  border-top:1px solid rgba(255,255,255,0.03);
+  background:linear-gradient(180deg, rgba(8,10,15,0.18), rgba(8,10,15,0.28));backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,255,255,0.03);
 }
 #start-button{
   width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   display:flex;align-items:center;justify-content:center;color:white;font-weight:600;cursor:pointer;
-  box-shadow:0 6px 22px rgba(2,6,23,0.6);transition:transform 0.15s;
+  box-shadow:0 6px 22px rgba(2,6,23,0.6);
 }
-#start-button:hover{transform:scale(1.05);}
 #taskbar .pinned {display:flex;gap:8px;align-items:center}
-.tb-btn{height:40px;min-width:40px;padding:6px;border-radius:9px;background:transparent;border:none;cursor:pointer;color:white;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.tb-btn{height:40px;min-width:40px;padding:6px;border-radius:9px;background:transparent;border:none;cursor:pointer;color:white;display:flex;align-items:center;justify-content:center}
 .tb-btn:hover{background:rgba(255,255,255,0.03)}
 
-/* Window */
-.aurora-window{
-  position:absolute;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border-radius:12px;
-  box-shadow:0 20px 50px rgba(2,6,23,0.7);
-  overflow:hidden;
-  border:1px solid rgba(255,255,255,0.03);
-  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-  will-change: transform, width, height;
-}
-.win-title{
-  display:flex;align-items:center;justify-content:space-between;padding:8px 10px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);backdrop-filter: blur(3px);
-  cursor:grab;
-}
+/* Window style */
+.aurora-window{position:absolute;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 20px 50px rgba(2,6,23,0.7);overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+.win-title{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);backdrop-filter: blur(3px);cursor:move}
 .win-title .left{display:flex;gap:8px;align-items:center}
-.win-controls button{margin-left:6px;border-radius:8px;width:32px;height:28px;background:transparent;border:0;color:white;cursor:pointer;transition:background 0.2s;}
-.win-controls button:hover{background:rgba(255,255,255,0.06);}
-.win-body{height:calc(100% - 44px);background:transparent;overflow:auto;transition: all 0.25s}
+.win-controls button{margin-left:6px;border-radius:8px;width:32px;height:28px;background:transparent;border:0;color:white;cursor:pointer}
+.win-body{height:calc(100% - 44px);background:transparent;overflow:auto}
 
-/* Start menu */
-#start-menu{
-  position:fixed;left:50%;transform:translateX(-50%);bottom:72px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-  border-radius:16px;padding:14px;width:760px;box-shadow:0 30px 70px rgba(2,6,23,0.7);display:flex;gap:14px;color:white;
-  transition:all 0.25s;
-}
+/* Start Menu */
+#start-menu{position:fixed;left:50%;transform:translateX(-50%);bottom:72px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border-radius:16px;padding:14px;width:760px;box-shadow:0 30px 70px rgba(2,6,23,0.7);display:flex;gap:14px;color:white}
 .start-left{width:46%}
 .start-right{width:54%;display:flex;flex-direction:column;gap:8px}
 .app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.app-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;cursor:pointer;transition:background 0.2s}
+.app-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;cursor:pointer}
 .app-card:hover{background:rgba(255,255,255,0.02)}
 
 /* Context menu */
-.ctx{
-  position:fixed;background:#0b1220;color:white;border-radius:8px;padding:8px;
-  box-shadow:0 10px 30px rgba(2,6,23,0.6);display:none;z-index:9999;transition:opacity 0.2s;
-}
-.ctx button{display:block;width:100%;text-align:left;padding:6px;border-radius:6px;background:transparent;border:0;color:white;cursor:pointer;transition:background 0.2s;}
-.ctx button:hover{background:rgba(255,255,255,0.05);}
+.ctx{position:fixed;background:#0b1220;color:white;border-radius:8px;padding:8px;box-shadow:0 10px 30px rgba(2,6,23,0.6);display:none;z-index:9999}
+.ctx button{display:block;width:100%;text-align:left;padding:6px;border-radius:6px;background:transparent;border:0;color:white;cursor:pointer}
 
-/* Helpers */
+/* helpers */
 .muted{color:rgba(255,255,255,0.6);font-size:13px}
 .icon-small{width:22px;height:22px;border-radius:6px}
 </style>
 </head>
 <body>
+
 <div id="wallpaper" style="background-image: radial-gradient(circle at 10% 20%, rgba(124,92,255,0.18), transparent 10%), radial-gradient(circle at 80% 80%, rgba(0,229,255,0.06), transparent 10%), linear-gradient(135deg,#021025 0%, #052b36 100%);"></div>
 <div id="desktop" oncontextmenu="return false;"></div>
 
@@ -163,38 +129,34 @@ body{
 <div id="windows-root"></div>
 
 <script>
-// ---------- Apps ----------
+/* ---------- Apps ---------- */
 const APPS=[
-  {id:'daydreamx', name:'DayDreamX', url:'https://study.info.north-kazakhstan.su.cdn.cloudflare.net/'},
-  {id:'velera', name:'Velera', url:'https://zearn.buzz.cdn.cloudflare.net/'},
-  {id:'truffled', name:'Truffled', url:'https://truffled.example/'},
-  {id:'petezah', name:'PeteZah', url:'https://pete.example/'},
-  {id:'uniubv4', name:'UniUB v4', url:'https://university.example/'},
-  {id:'rosin', name:'Rosin', url:'https://lbbjwojcgm.antrak.org.tr/'},
-  {id:'nexus', name:'Nexus', url:'https://nexus-is.onthewifi.com/'},
-  {id:'dogeub', name:'DogeUB', url:'https://math.linked8.net/indev'},
-  {id:'rammer', name:'RammerHead', url:'https://geo.searchgpy.com/'},
-  {id:'cbmagic', name:'CBmagic', url:'https://soloo.fun/'},
-  {id:'axiom', name:'Axiom', url:'https://ultralight.mwbread.com/'},
-  {id:'quasar', name:'Quasar', url:'https://tuition.oneuniversity.info/'},
-  {id:'boredom', name:'Boredom', url:'https://boredom.global.ssl.fastly.net/'},
-  {id:'somestuff', name:'SomeStuff', url:'https://wmath.pages.dev/#prxy'},
-  {id:'galaxy', name:'Galaxy', url:'https://frylight.jumpingcrab.com/'},
-  {id:'eldardo', name:'Eldardo', url:'https://eldardo.net/app/'}
-];
-
-const SYS_APPS=[
-  {id:'terminal', name:'Terminal'},
   {id:'notepad', name:'Notepad'},
   {id:'calculator', name:'Calculator'},
+  {id:'paint', name:'Paint'},
+  {id:'terminal', name:'Terminal'},
   {id:'files', name:'Files'},
-  {id:'settings', name:'Settings'}
+  {id:'settings', name:'Settings'},
+  {id:'photos', name:'Photos'},
+  {id:'music', name:'Music'},
+  {id:'browser', name:'Browser'},
+  {id:'calendar', name:'Calendar'},
+  {id:'clock', name:'Clock'},
+  {id:'sticky', name:'Sticky Notes'},
+  {id:'maps', name:'Maps'},
+  {id:'weather', name:'Weather'},
+  {id:'tips', name:'Tips'}
 ];
 
-// ---------- State ----------
-const state={windows:[],z:100,pinned:JSON.parse(localStorage.getItem('aurora_pinned')||'[]'),wallpaper:localStorage.getItem('aurora_wallpaper')||'',dark:(localStorage.getItem('aurora_dark')||'true')==='true',files:JSON.parse(localStorage.getItem('aurora_files')||'[]')};
+const state={
+  windows:[],
+  z:100,
+  pinned:JSON.parse(localStorage.getItem('aurora_pinned')||'[]'),
+  wallpaper:localStorage.getItem('aurora_wallpaper')||'',
+  dark:true,
+  files:JSON.parse(localStorage.getItem('aurora_files')||'[]')
+};
 
-// ---------- DOM ----------
 const desktop=document.getElementById('desktop');
 const windowsRoot=document.getElementById('windows-root');
 const startMenu=document.getElementById('start-menu');
@@ -206,65 +168,56 @@ const ctxMenu=document.getElementById('ctx-menu');
 const wallpaperEl=document.getElementById('wallpaper');
 const startSearch=document.getElementById('start-search');
 
-// ---------- Functions ----------
-// bring clicked window to front and prioritize
-function focusWindow(winId){
-  const el=document.getElementById(winId);
-  if(!el) return;
-  el.style.zIndex=++state.z;
-  state.windows.forEach(w=>{
-    const e=document.getElementById(w.id);
-    if(e && w.id!==winId){e.style.filter='blur(0.5px)';}
-  });
-  el.style.filter='none';
-}
+/* ---------- Utility ---------- */
+function findApp(id){return APPS.find(a=>a.id===id||a.name===id);}
 
-// ---------- RENDER DESKTOP ----------
+/* ---------- Desktop ---------- */
 function renderDesktop(){
   desktop.innerHTML='';
-  [...APPS,...SYS_APPS].forEach(app=>{
+  APPS.forEach(app=>{
     const el=document.createElement('div');
     el.className='desk-icon';
     el.title=app.name;
-    el.innerHTML=`<img src="${app.url?faviconFor(app.url):'/favicon.svg'}" alt="${app.name}" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=64 height=64><rect width=100% height=100% fill=\\'%230c1220\\' rx=12 /><text x=50% y=50% fill=white font-size=22 font-family=Inter text-anchor=middle dominant-baseline=middle>A</text></svg>'" /><span>${app.name}</span>`;
+    el.innerHTML=`<img src="" alt="${app.name}" style="background:rgba(255,255,255,0.1);border-radius:12px;width:64px;height:64px" /><span>${app.name}</span>`;
     el.ondblclick=()=>openAppWindow(app);
+    el.onclick=()=>selectIcon(el);
     desktop.appendChild(el);
   });
 }
-renderDesktop();
 
-// ---------- CLOCK ----------
-setInterval(()=>{trayTime.innerText=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});},1000);
+function selectIcon(el){document.querySelectorAll('.desk-icon').forEach(d=>d.style.outline='none'); el.style.outline='2px solid rgba(255,255,255,0.06)'; setTimeout(()=>el.style.outline='none',1200);}
 
-// ---------- START MENU ----------
+/* ---------- Start Menu ---------- */
+function renderStartMenu(){
+  pinnedGrid.innerHTML='';
+  state.pinned.forEach(id=>{const app=findApp(id); if(!app) return;
+    const card=document.createElement('div'); card.className='app-card';
+    card.innerText=app.name;
+    card.onclick=()=>openAppWindow(app);
+    pinnedGrid.appendChild(card);
+  });
+  allAppsEl.innerHTML='';
+  APPS.forEach(app=>{
+    const row=document.createElement('div'); row.className='app-card';
+    row.innerText=app.name;
+    row.onclick=()=>openAppWindow(app);
+    allAppsEl.appendChild(row);
+  });
+}
+
 function toggleStart(){startMenu.style.display==='none'?startMenu.style.display='flex':startMenu.style.display='none';}
-document.getElementById('start-button').onclick=toggleStart;
-startSearch.oninput=()=>{const q=startSearch.value.toLowerCase(); Array.from(allAppsEl.children).forEach(row=>{row.style.display=!q?'flex':row.innerText.toLowerCase().includes(q)?'flex':'none';});};
 
-// ---------- CONTEXT MENU ----------
-desktop.addEventListener('contextmenu', (e)=>{
-  if(e.target.closest('.desk-icon')||e.target.closest('.aurora-window')){ctxMenu.style.display='none'; return;}
-  e.preventDefault();
-  ctxMenu.style.left=e.clientX+'px';
-  ctxMenu.style.top=e.clientY+'px';
-  ctxMenu.style.display='block';
-});
-document.addEventListener('click', ()=>ctxMenu.style.display='none');
-
-// ---------- INITIALIZE ----------
-if(!localStorage.getItem('aurora_pinned')){localStorage.setItem('aurora_pinned',JSON.stringify(['terminal','notepad'])); state.pinned=JSON.parse(localStorage.getItem('aurora_pinned'));}
-
-// ---------- FILES ----------
-function createNewFile(){state.files.push({name:'new-'+Date.now()+'.txt',content:''}); localStorage.setItem('aurora_files',JSON.stringify(state.files));}
-
-// ---------- Window Management ----------
+/* ---------- Window Management ---------- */
+function focusWindow(id){
+  const el=document.getElementById(id);
+  if(el){el.style.zIndex=++state.z;}
+}
 function openAppWindow(app){
   if(!app) return;
   const id='win-'+app.id;
   let existing=document.getElementById(id);
   if(existing){existing.style.display='block'; focusWindow(id); return;}
-  const win=document.createElement('div');
-  win.id=id; win.className='aurora-window';
+  const win=document.createElement('div'); win.id=id; win.className='aurora-window';
   win.style.left='100px'; win.style.top='100px'; win.style.width='480px'; win.style.height='320px'; win.style.zIndex=++state.z;
   win.innerHTML=`
     <div class="win-title">
@@ -275,60 +228,71 @@ function openAppWindow(app){
         <button onclick="closeWindow('${id}')">×</button>
       </div>
     </div>
-    <div class="win-body">
-      <iframe src="${app.url||''}" style="width:100%;height:100%;border:0" loading="lazy"></iframe>
-    </div>`;
+    <div class="win-body">${app.name==='Terminal'?'<div id="term-'+id+'" style="width:100%;height:100%"></div>':'<p style="padding:12px;">Welcome to '+app.name+'</p>'}</div>`;
   windowsRoot.appendChild(win);
-  focusWindow(id);
+
+  // Initialize terminal if needed
+  if(app.name==='Terminal'){
+    const term=new Terminal({cols:80,rows:24});
+    term.open(document.getElementById('term-'+id));
+    term.writeln('Aurora Terminal Ready');
+  }
 
   // draggable & resizable
-  interact(win).draggable({
-    listeners:{
-      move(event){
-        const t=event.target;
-        t.style.left=(parseFloat(t.style.left)||0)+event.dx+'px';
-        t.style.top=(parseFloat(t.style.top)||0)+event.dy+'px';
-      }
-    }
-  }).resizable({
-    edges:{left:true,right:true,bottom:true,top:true},
-    modifiers:[interact.modifiers.restrictSize({min:{width:320,height:160}})],
-    listeners:{
-      move(event){
-        const t=event.target;
-        t.style.width=event.rect.width+'px';
-        t.style.height=event.rect.height+'px';
-        t.style.left=(parseFloat(t.style.left)||0)+event.deltaRect.left+'px';
-        t.style.top=(parseFloat(t.style.top)||0)+event.deltaRect.top+'px';
-      }
-    }
+  interact(win).draggable({allowFrom:'.win-title', listeners:{move(e){const t=e.target; t.style.left=(parseFloat(t.style.left)||0)+e.dx+'px'; t.style.top=(parseFloat(t.style.top)||0)+e.dy+'px';}}})
+    .resizable({edges:{left:true,right:true,top:true,bottom:true},modifiers:[interact.modifiers.restrictSize({min:{width:320,height:160}})],listeners:{move(e){const t=e.target; t.style.width=e.rect.width+'px'; t.style.height=e.rect.height+'px'; t.style.left=(parseFloat(t.style.left)||0)+e.deltaRect.left+'px'; t.style.top=(parseFloat(t.style.top)||0)+e.deltaRect.top+'px';}}});
+
+  state.windows.push({id:id,title:app.name});
+  updateTaskbar();
+}
+
+/* ---------- Window Actions ---------- */
+function closeWindow(id){const el=document.getElementById(id); if(el) el.remove(); state.windows=state.windows.filter(w=>w.id!==id); updateTaskbar();}
+function minimizeWindow(id){const el=document.getElementById(id); if(el) el.style.display='none'; updateTaskbar();}
+function toggleMaximize(id){
+  const el=document.getElementById(id); if(!el) return;
+  if(el.dataset.max==='1'){el.style.left=el.dataset.ox; el.style.top=el.dataset.oy; el.style.width=el.dataset.ow; el.style.height=el.dataset.oh; el.dataset.max='0';}
+  else{el.dataset.ox=el.style.left; el.dataset.oy=el.style.top; el.dataset.ow=el.style.width; el.dataset.oh=el.style.height;
+    el.style.left='6px'; el.style.top='6px'; el.style.width=(window.innerWidth-12)+'px'; el.style.height=(window.innerHeight-92)+'px'; el.dataset.max='1';}
+}
+
+/* ---------- Taskbar ---------- */
+function updateTaskbar(){
+  taskbarPinned.innerHTML='';
+  state.pinned.forEach(id=>{
+    const app=findApp(id); if(!app) return;
+    const btn=document.createElement('button'); btn.className='tb-btn'; btn.innerText=app.name;
+    btn.onclick=()=>openAppWindow(app);
+    taskbarPinned.appendChild(btn);
   });
 }
 
-// ---------- Window actions ----------
-function closeWindow(id){const el=document.getElementById(id); if(el) el.remove();}
-function minimizeWindow(id){const el=document.getElementById(id); if(el) el.style.display='none';}
-function toggleMaximize(id){
-  const el=document.getElementById(id);
-  if(!el) return;
-  if(el.dataset.max==='1'){
-    el.style.left=el.dataset.ox; el.style.top=el.dataset.oy;
-    el.style.width=el.dataset.ow; el.style.height=el.dataset.oh;
-    el.dataset.max='0';
-  }else{
-    el.dataset.ox=el.style.left; el.dataset.oy=el.style.top;
-    el.dataset.ow=el.style.width; el.dataset.oh=el.style.height;
-    el.style.left='6px'; el.style.top='6px';
-    el.style.width=(window.innerWidth-12)+'px';
-    el.style.height=(window.innerHeight-92)+'px';
-    el.dataset.max='1';
-  }
-}
-
-document.addEventListener('click', (e)=>{
-  const w=e.target.closest('.aurora-window');
-  if(w) focusWindow(w.id);
+/* ---------- Context Menu ---------- */
+document.addEventListener('contextmenu', (e)=>{
+  if(e.target.closest('.desk-icon')||e.target.closest('.aurora-window')){ctxMenu.style.display='none'; return;}
+  e.preventDefault();
+  ctxMenu.style.left=e.clientX+'px'; ctxMenu.style.top=e.clientY+'px'; ctxMenu.style.display='block';
 });
+document.addEventListener('click', ()=>ctxMenu.style.display='none');
+window.createNewFile=function(){state.files.push({name:'new-file-'+Date.now()+'.txt',content:''}); renderFiles();}
+window.refreshDesktop=function(){renderDesktop();}
+window.openSettings=function(){openAppWindow(findApp('settings'));}
+
+/* ---------- Files ---------- */
+function renderFiles(){}
+
+/* ---------- Clock ---------- */
+setInterval(()=>{trayTime.innerText=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})},1000);
+
+/* ---------- Init ---------- */
+if(!state.pinned.length){state.pinned=['notepad','terminal'];}
+renderDesktop();
+renderStartMenu();
+
+document.getElementById('start-button').onclick=toggleStart;
+startSearch.oninput=()=>{const q=startSearch.value.toLowerCase(); Array.from(allAppsEl.children).forEach(row=>{row.style.display=!q?'flex':row.innerText.toLowerCase().includes(q)?'flex':'none';});};
+document.addEventListener('click', (e)=>{const w=e.target.closest('.aurora-window'); if(w) focusWindow(w.id);});
 </script>
+
 </body>
 </html>
