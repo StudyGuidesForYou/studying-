@@ -1,7 +1,0 @@
-body { margin:0; overflow:hidden; background:#0d0d0d; font-family:sans-serif; color:#eee; }
-#sr_ui { position:absolute; top:10px; left:10px; z-index:1000; }
-#sr_toggleSettings { background:#222; color:#fff; border:none; padding:10px; cursor:pointer; border-radius:5px; }
-#sr_settingsPanel { background:#111; padding:10px; margin-top:5px; border-radius:5px; display:flex; flex-direction:column; gap:5px; }
-#sr_settingsPanel label { display:flex; justify-content:space-between; font-size:14px; }
-#sr_settingsPanel input[type=range] { width:150px; }
-#sr_settingsPanel select { background:#222; color:#fff; border:none; }
