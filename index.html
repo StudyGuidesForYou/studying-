@@ -131,40 +131,39 @@ button{cursor:pointer;}
 
 <script>
 /* ---------- Apps ---------- */
-// Native Aurora Apps
+// Modern Aurora-native apps
 const APPS=[
-  {id:'aura-notepad',name:'Aurora Notes',icon:'📝',type:'app',run:notepadApp},
-  {id:'aura-calc',name:'Aurora Calc',icon:'🧮',type:'app',run:calculatorApp},
-  {id:'aura-paint',name:'Aurora Paint',icon:'🎨',type:'app',run:paintApp},
-  {id:'aura-terminal',name:'Aurora Terminal',icon:'💻',type:'app',run:terminalApp},
-  {id:'aura-files',name:'Aurora Files',icon:'📁',type:'app',run:filesApp},
-  {id:'aura-settings',name:'Aurora Settings',icon:'⚙️',type:'app',run:settingsApp},
-  {id:'aura-photos',name:'Aurora Photos',icon:'🖼️',type:'app',run:photosApp},
-  {id:'aura-music',name:'Aurora Music',icon:'🎵',type:'app',run:musicApp},
-  {id:'aura-browser',name:'Aurora Browser',icon:'🌐',type:'app',run:browserApp},
+{id:'aura-notepad',name:'Notepad',icon:'📝',type:'app',run:notepadApp},
+{id:'aura-calc',name:'Calculator',icon:'🧮',type:'app',run:calculatorApp},
+{id:'aura-paint',name:'Paint',icon:'🎨',type:'app',run:paintApp},
+{id:'aura-terminal',name:'Terminal',icon:'💻',type:'app',run:terminalApp},
+{id:'aura-files',name:'Files',icon:'📁',type:'app',run:filesApp},
+{id:'aura-settings',name:'Settings',icon:'⚙️',type:'app',run:settingsApp},
+{id:'aura-photos',name:'Photos',icon:'🖼️',type:'app',run:photosApp},
+{id:'aura-music',name:'Music',icon:'🎵',type:'app',run:musicApp},
+{id:'aura-browser',name:'Browser',icon:'🌐',type:'app',run:browserApp},
 
-  // Web apps (all restored)
-  {id:'DayDreamX', name:'DayDreamX', icon:'💭', type:'web', url:'https://study.info.north-kazakhstan.su.cdn.cloudflare.net/'},
-  {id:'Velera', name:'Velera', icon:'🚀', type:'web', url:'https://zearn.buzz.cdn.cloudflare.net/'},
-  {id:'Truffled', name:'Truffled', icon:'🍄', type:'web', url:'https://truffled.example/'},
-  {id:'PeteZah', name:'PeteZah', icon:'🐾', type:'web', url:'https://pete.example/'},
-  {id:'UniUBv4', name:'UniUB v4', icon:'🎓', type:'web', url:'https://university.example/'},
-  {id:'Rosin', name:'Rosin', icon:'🪵', type:'web', url:'https://lbbjwojcgm.antrak.org.tr/'},
-  {id:'Nexus', name:'Nexus', icon:'🕸️', type:'web', url:'https://nexus-is.onthewifi.com/'},
-  {id:'DogeUB', name:'DogeUB', icon:'🐶', type:'web', url:'https://math.linked8.net/indev'},
-  {id:'RammerHead', name:'RammerHead', icon:'🎧', type:'web', url:'https://geo.searchgpy.com/'},
-  {id:'CBmagic', name:'CBmagic', icon:'✨', type:'web', url:'https://soloo.fun/'},
-  {id:'Axiom', name:'Axiom', icon:'🧩', type:'web', url:'https://ultralight.mwbread.com/'},
-  {id:'Quasar', name:'Quasar', icon:'🌌', type:'web', url:'https://tuition.oneuniversity.info/'},
-  {id:'Boredom', name:'Boredom', icon:'😐', type:'web', url:'https://boredom.global.ssl.fastly.net/?_sm_au_=iHVW0PqgfVNrr60Q7K3CjK60HMLcq'},
-  {id:'SomeStuff', name:'SomeStuff', icon:'📦', type:'web', url:'https://wmath.pages.dev/#prxy'},
-  {id:'Galaxy', name:'Galaxy', icon:'🌠', type:'web', url:'https://frylight.jumpingcrab.com/'},
-  {id:'Eldardo', name:'Eldardo', icon:'🛸', type:'web', url:'https://eldardo.net/app/'}
+// Web apps
+{id:'DayDreamX', name:'DayDreamX', icon:'💭', type:'web', url:'https://study.info.north-kazakhstan.su.cdn.cloudflare.net/'},
+{id:'Velera', name:'Velera', icon:'🚀', type:'web', url:'https://zearn.buzz.cdn.cloudflare.net/'},
+{id:'Truffled', name:'Truffled', icon:'🍄', type:'web', url:'https://truffled.example/'},
+{id:'PeteZah', name:'PeteZah', icon:'🐾', type:'web', url:'https://pete.example/'},
+{id:'UniUBv4', name:'UniUB v4', icon:'🎓', type:'web', url:'https://university.example/'},
+{id:'Rosin', name:'Rosin', icon:'🪵', type:'web', url:'https://lbbjwojcgm.antrak.org.tr/'},
+{id:'Nexus', name:'Nexus', icon:'🕸️', type:'web', url:'https://nexus-is.onthewifi.com/'},
+{id:'DogeUB', name:'DogeUB', icon:'🐶', type:'web', url:'https://math.linked8.net/indev'},
+{id:'RammerHead', name:'RammerHead', icon:'🎧', type:'web', url:'https://geo.searchgpy.com/'},
+{id:'CBmagic', name:'CBmagic', icon:'✨', type:'web', url:'https://soloo.fun/'},
+{id:'Axiom', name:'Axiom', icon:'🧩', type:'web', url:'https://ultralight.mwbread.com/'},
+{id:'Quasar', name:'Quasar', icon:'🌌', type:'web', url:'https://tuition.oneuniversity.info/'},
+{id:'Boredom', name:'Boredom', icon:'😐', type:'web', url:'https://boredom.global.ssl.fastly.net/?_sm_au_=iHVW0PqgfVNrr60Q7K3CjK60HMLcq'},
+{id:'SomeStuff', name:'SomeStuff', icon:'📦', type:'web', url:'https://wmath.pages.dev/#prxy'},
+{id:'Galaxy', name:'Galaxy', icon:'🌠', type:'web', url:'https://frylight.jumpingcrab.com/'},
+{id:'Eldardo', name:'Eldardo', icon:'🛸', type:'web', url:'https://eldardo.net/app/'}
 ];
 
 /* ---------- State ---------- */
 const state={windows:[],z:100,pinned:JSON.parse(localStorage.getItem('aurora_pinned')||'[]'),wallpaper:localStorage.getItem('aurora_wallpaper')||'',dark:true,files:JSON.parse(localStorage.getItem('aurora_files')||'[]')};
-
 const desktop=document.getElementById('desktop');
 const windowsRoot=document.getElementById('windows-root');
 const startMenu=document.getElementById('start-menu');
@@ -202,105 +201,121 @@ function renderStartMenu(){
     row.onclick=()=>openAppWindow(app); allAppsEl.appendChild(row);
   });
 }
-
 /* ---------- Window Management ---------- */
-function focusWindow(id){const el=document.getElementById(id); if(el) el.style.zIndex=++state.z;}
-
 function openAppWindow(app){
-  if(!app) return; 
-  const id='win-'+app.id;
-  let existing=document.getElementById(id); 
-  if(existing){existing.style.display='block'; focusWindow(id); return;}
-
-  const win=document.createElement('div'); win.id=id; win.className='aurora-window';
-
-  // Dynamic size based on screen
-  const width = Math.min(window.innerWidth * 0.75, 1000);
-  const height = Math.min(window.innerHeight * 0.75, 700);
-  win.style.width = width + 'px';
-  win.style.height = height + 'px';
-  win.style.left = (window.innerWidth - width)/2 + 'px';
-  win.style.top = (window.innerHeight - height)/2 + 'px';
+  const win=document.createElement('div'); win.className='aurora-window';
+  const width=Math.min(window.innerWidth*0.7,600), height=Math.min(window.innerHeight*0.7,400);
+  win.style.width=width+'px'; win.style.height=height+'px';
+  win.style.left=(window.innerWidth-width)/2+'px';
+  win.style.top=(window.innerHeight-height)/2+'px';
   win.style.zIndex=++state.z;
 
-  if(app.type==='web'){
-    win.innerHTML=`<div class="win-title"><div class="left">${app.name}</div>
+  win.innerHTML=`
+    <div class="win-title">
+      <div class="left"><span style="font-size:18px">${app.icon}</span> ${app.name}</div>
       <div class="win-controls">
-        <button onclick="minimizeWindow('${id}')">_</button>
-        <button onclick="toggleMaximize('${id}')">□</button>
-        <button onclick="closeWindow('${id}')">×</button>
-      </div></div>
-      <div class="win-body"><iframe src="${app.url}" style="width:100%;height:100%;border:0" loading="lazy"></iframe></div>`;
-  } else if(app.type==='app'){
-    win.innerHTML=`<div class="win-title"><div class="left">${app.name}</div>
-      <div class="win-controls">
-        <button onclick="minimizeWindow('${id}')">_</button>
-        <button onclick="toggleMaximize('${id}')">□</button>
-        <button onclick="closeWindow('${id}')">×</button>
-      </div></div>
-      <div class="win-body" id="app-body-${id}"></div>`;
-    try{app.run('app-body-'+id);} catch(e){console.error(e);}
-  }
-
+        <button onclick="closeWindow(this)">✖</button>
+      </div>
+    </div>
+    <div class="win-body" id="win-body-${app.id}"></div>
+  `;
   windowsRoot.appendChild(win);
 
-  // Drag & Resize
-  interact(win).draggable({allowFrom:'.win-title', modifiers:[interact.modifiers.restrictRect({restriction:'parent'})], listeners:{move(event){const {x,y}=event.target.dataset; const dx=event.dx; const dy=event.dy; let nx=(x?parseFloat(x):0)+dx; let ny=(y?parseFloat(y):0)+dy; event.target.style.transform=`translate(${nx}px,${ny}px)`; event.target.dataset.x=nx; event.target.dataset.y=ny;}}})
-    .resizable({edges:{left:true,right:true,bottom:true,top:true},listeners:{move(event){let {width,height}=event.rect; event.target.style.width=width+'px'; event.target.style.height=height+'px';}}});
+  interact(win).draggable({
+    allowFrom:'.win-title', listeners:{move:dragMoveListener}
+  }).resizable({edges:{left:true,right:true,bottom:true,top:true},listeners:{move:resizeMoveListener}});
+  
+  state.windows.push({id:app.id,el:win});
+  if(app.type==='app' && typeof app.run==='function') app.run(document.getElementById(`win-body-${app.id}`));
+  else if(app.type==='web') document.getElementById(`win-body-${app.id}`).innerHTML=`<iframe src="${app.url}" style="width:100%;height:100%;border:none"></iframe>`;
 }
 
-function minimizeWindow(id){const el=document.getElementById(id); if(el) el.style.display='none';}
-function closeWindow(id){const el=document.getElementById(id); if(el) el.remove();}
-function toggleMaximize(id){
-  const el=document.getElementById(id);
-  if(!el) return;
-  if(el.dataset.max==='1'){el.style.width='75%'; el.style.height='75%'; el.style.left='12.5%'; el.style.top='12.5%'; el.dataset.max='0';}
-  else{el.style.width='100%'; el.style.height='100%'; el.style.left='0'; el.style.top='0'; el.dataset.max='1';}
+function dragMoveListener(event){
+  const target=event.target;
+  const x=(parseFloat(target.getAttribute('data-x'))||0)+event.dx;
+  const y=(parseFloat(target.getAttribute('data-y'))||0)+event.dy;
+  target.style.transform=`translate(${x}px,${y}px)`;
+  target.setAttribute('data-x',x); target.setAttribute('data-y',y);
 }
 
-/* ---------- Clock ---------- */
-function updateClock(){const d=new Date(); trayTime.textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
-setInterval(updateClock,1000); updateClock();
+function resizeMoveListener(event){
+  const target=event.target;
+  target.style.width=event.rect.width+'px';
+  target.style.height=event.rect.height+'px';
+  const x=(parseFloat(target.getAttribute('data-x'))||0)+event.deltaRect.left;
+  const y=(parseFloat(target.getAttribute('data-y'))||0)+event.deltaRect.top;
+  target.style.transform=`translate(${x}px,${y}px)`;
+  target.setAttribute('data-x',x); target.setAttribute('data-y',y);
+}
 
-/* ---------- Context Menu ---------- */
-desktop.oncontextmenu=e=>{
+function closeWindow(btn){btn.closest('.aurora-window').remove();}
+
+/* ---------- Apps Implementation ---------- */
+function notepadApp(container){
+  container.innerHTML=`<textarea style="width:100%;height:100%;resize:none" placeholder="Type your notes here..."></textarea>`;
+}
+
+function calculatorApp(container){
+  container.innerHTML=`
+    <div style="display:flex;flex-direction:column;height:100%">
+      <input type="text" id="calc-display" style="flex:none;padding:8px;font-size:20px" disabled />
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);flex:1;gap:4px;margin-top:4px">
+        ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(v=>`<button onclick="calcPress('${v}')">${v}</button>`).join('')}
+      </div>
+    </div>
+  `;
+  window.calcVal='';
+  window.calcPress=function(val){
+    if(val==='='){try{window.calcVal=eval(window.calcVal);}catch{window.calcVal='Error'}}
+    else window.calcVal+=val;
+    document.getElementById('calc-display').value=window.calcVal;
+  }
+}
+
+function paintApp(container){
+  const canvas=document.createElement('canvas'); canvas.width=container.clientWidth; canvas.height=container.clientHeight;
+  canvas.style.background='white'; container.appendChild(canvas);
+  const ctx=canvas.getContext('2d'); let painting=false;
+  canvas.onmousedown=e=>painting=true;
+  canvas.onmouseup=e=>painting=false;
+  canvas.onmousemove=e=>{if(!painting) return; ctx.lineTo(e.offsetX,e.offsetY); ctx.stroke(); ctx.beginPath(); ctx.moveTo(e.offsetX,e.offsetY);}
+}
+
+function terminalApp(container){
+  const term=new Terminal(); term.open(container); term.write('Aurora Terminal\r\n$ ');
+}
+
+function filesApp(container){container.innerHTML=`<div>File manager not implemented yet.</div>`;}
+function settingsApp(container){container.innerHTML=`<div>Settings panel not implemented yet.</div>`;}
+function photosApp(container){container.innerHTML=`<div>Photos viewer not implemented yet.</div>`;}
+function musicApp(container){container.innerHTML=`<div>Music player not implemented yet.</div>`;}
+function browserApp(container){container.innerHTML=`<div>Browser app not implemented yet.</div>`;}
+
+/* ---------- Desktop Right Click ---------- */
+desktop.addEventListener('contextmenu',e=>{
   e.preventDefault();
   ctxMenu.style.left=e.clientX+'px';
   ctxMenu.style.top=e.clientY+'px';
   ctxMenu.style.display='block';
-};
-desktop.onclick=()=>ctxMenu.style.display='none';
+});
+document.addEventListener('click',()=>ctxMenu.style.display='none');
 
-/* ---------- Wallpaper ---------- */
-if(state.wallpaper) wallpaperEl.style.backgroundImage=`url(${state.wallpaper})`;
-
-/* ---------- Start Button ---------- */
-document.getElementById('start-button').onclick=()=>{
+/* ---------- Start Menu ---------- */
+document.getElementById('start-button').addEventListener('click',()=>{
   startMenu.style.display=startMenu.style.display==='none'?'flex':'none';
-  renderStartMenu();
-};
+});
+startSearch.addEventListener('input',()=>{ 
+  const val=startSearch.value.toLowerCase();
+  Array.from(allAppsEl.children).forEach(c=>{
+    c.style.display=c.textContent.toLowerCase().includes(val)?'flex':'none';
+  });
+});
 
-/* ---------- Search ---------- */
-startSearch.oninput=()=>{const q=startSearch.value.toLowerCase(); allAppsEl.childNodes.forEach(row=>{
-  row.style.display=row.textContent.toLowerCase().includes(q)?'flex':'none';
-})};
+/* ---------- Time Tray ---------- */
+function updateTrayTime(){const d=new Date(); trayTime.textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
+setInterval(updateTrayTime,1000); updateTrayTime();
 
-/* ---------- Desktop Render ---------- */
+/* ---------- Initialization ---------- */
 renderDesktop();
-
-/* ---------- Placeholder App Functions ---------- */
-function notepadApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<textarea style="width:100%;height:100%;"></textarea>';}
-function calculatorApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<div>Calculator Placeholder</div>';}
-function paintApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<div>Paint Placeholder</div>';}
-function terminalApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<div>Terminal Placeholder</div>';}
-function filesApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<div>Files Placeholder</div>';}
-function settingsApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<div>Settings Placeholder</div>';}
-function photosApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<div>Photos Placeholder</div>';}
-function musicApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<div>Music Placeholder</div>';}
-function browserApp(id){const c=document.getElementById(id); if(!c) return; c.innerHTML='<div>Browser Placeholder</div>';}
-function createNewFile(){alert('Create new file (placeholder)');}
-function refreshDesktop(){renderDesktop();}
-function openSettings(){alert('Change wallpaper placeholder');}
-</script>
-</body>
-</html>
+renderStartMenu();
+if(state.wallpaper) wallpaperEl.style.backgroundImage=`url(${state.wallpaper})`;
