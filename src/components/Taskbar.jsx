@@ -1,18 +1,14 @@
-import React from 'react'
+import React from 'react';
 
-export default function Taskbar({ pinned = [], onLaunch = ()=>{}, time = new Date(), onToggleStart = ()=>{}, onSettings = ()=>{} }){
+export default function Taskbar({ openApps, onOpen, onClose }) {
   return (
-    <div className="taskbar" role="navigation" aria-label="Taskbar">
-      <button className="start-btn" onClick={onToggleStart}>A</button>
-      <div className="tb-pinned">
-        {pinned.map(p => <button key={p} className="tb-btn" onClick={()=> onLaunch(p)} title={p}>{p[0].toUpperCase()}</button>)}
-      </div>
-      <div style={{ flex:1 }} />
-      <div className="tray">
-        <div className="tray-label">Aurora</div>
-        <div className="tray-time">{time.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</div>
-        <button className="tb-btn" onClick={onSettings}>⚙</button>
-      </div>
+    <div className="taskbar">
+      {openApps.map((appName) => (
+        <div key={appName} className="taskbar-item">
+          <button onClick={() => onOpen(appName)}>{appName}</button>
+          <button onClick={() => onClose(appName)}>X</button>
+        </div>
+      ))}
     </div>
-  )
+  );
 }
