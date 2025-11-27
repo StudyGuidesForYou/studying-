@@ -1,32 +1,13 @@
-{"variant":"standard","title":"Corrected index.html for Vite React project","id":"75103"}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aurora Web OS</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="./favicon.ico" />
-    <!-- Styles -->
-    <link rel="stylesheet" href="./src/styles.css" />
-  </head>
-  <body>
-    <!-- React root -->
-    <div id="root"></div>
-
-    <!-- React & ReactDOM (from npm via Vite, no need for CDN in dev) -->
-    <script type="module">
-      import React from 'react';
-      import ReactDOM from 'react-dom/client';
-      import App from './src/Main.jsx';
-
-      // Render the app
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(
-        <React.StrictMode>
-          <App />
-        </React.StrictMode>
-      );
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurora Web OS</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/Main.jsx"></script>
+</body>
 </html>
