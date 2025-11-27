@@ -13,16 +13,7 @@ import Settings from '../apps/Settings.jsx';
 import Terminal from '../apps/Terminal.jsx';
 
 const appsList = {
-  Browser,
-  Calculator,
-  Clock,
-  Files,
-  Music,
-  Notepad,
-  Paint,
-  Photos,
-  Settings,
-  Terminal
+  Browser, Calculator, Clock, Files, Music, Notepad, Paint, Photos, Settings, Terminal
 };
 
 export default function Apps() {
