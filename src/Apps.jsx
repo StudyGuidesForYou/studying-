@@ -1,28 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react'
-import Window from './components/Window'
-import Taskbar from './components/Taskbar'
-import StartMenu from './components/StartMenu'
-import Notepad from './apps/Notepad'
-import Calculator from './apps/Calculator'
-import PaintApp from './apps/Paint'
-import FilesApp from './apps/Files'
-import PhotosApp from './apps/Photos'
-import MusicApp from './apps/Music'
-import BrowserApp from './apps/Browser'
-import SettingsApp from './apps/Settings'
-import TerminalApp from './apps/Terminal'
-import ClockApp from './apps/Clock'
+import StartMenu from './components/startmenu.jsx'
+import Taskbar from './components/taskbar.jsx'
+import Window from './components/window.jsx'
 
-const STORAGE_KEY = 'aurora_react_v1'
-const uid = (p='id') => p + Math.random().toString(36).slice(2,9)
+import Notepad from './apps/notepad.jsx'
+import Calculator from './apps/calculator.jsx'
+import PaintApp from './apps/paint.jsx'
+import FilesApp from './apps/files.jsx'
+import PhotosApp from './apps/photos.jsx'
+import MusicApp from './apps/music.jsx'
+import BrowserApp from './apps/browser.jsx'
+import SettingsApp from './apps/settings.jsx'
+import TerminalApp from './apps/terminal.jsx'
+import ClockApp from './apps/clock.jsx'
 
-const DEFAULT_STATE = {
+const STORAGE_KEY = 'aurora_state_v1'
+const uid = (p = 'id') => p + Math.random().toString(36).slice(2, 9)
+
+const DEFAULT = {
   z: 1000,
   pinned: ['files','photos','music','browser'],
   notes: { default: '' },
   calc: '',
   paint: null,
-  files: [{ id:'f_readme', name:'Welcome.txt', type:'text', content:'Welcome to Aurora (React) — double-click a file to open.' }],
+  files: [{ id:'f_readme', name:'welcome.txt', type:'text', content:'Welcome to Aurora! Double-click an icon to open an app.' }],
   photos: [],
   music: [],
   wallpaper: null,
@@ -30,8 +31,7 @@ const DEFAULT_STATE = {
 }
 
 function loadState(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? DEFAULT_STATE }
-  catch { return DEFAULT_STATE }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? DEFAULT } catch { return DEFAULT }
 }
 function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)) }
 
@@ -49,7 +49,7 @@ const APPS = [
 ]
 
 export default function App(){
-  const [state, setState] = useState(loadState)
+  const [state, setState] = useState(() => loadState())
   const [showStart, setShowStart] = useState(false)
   const [ctx, setCtx] = useState({ visible:false, x:0, y:0 })
   const [time, setTime] = useState(new Date())
@@ -63,29 +63,29 @@ export default function App(){
 
   useEffect(()=> {
     if(state.wallpaper){
-      document.querySelector('.wallpaper').style.backgroundImage = `url(${state.wallpaper})`
+      const el = document.querySelector('.wallpaper')
+      if(el) el.style.backgroundImage = `url(${state.wallpaper})`
     }
   }, [state.wallpaper])
 
-  function findApp(id){ return APPS.find(a=>a.id===id) }
+  function findApp(id){ return APPS.find(a => a.id === id) }
 
-  function openWindow(appId, opts={}){
-    const app = findApp(appId)
-    if(!app) return
-    // allow single-instance for some apps
+  function openWindow(appId, opts = { single: false, props: {} }){
+    const a = findApp(appId)
+    if(!a) return
+    // single-instance option
     if(opts.single){
-      const exists = state.windows.find(w=> w.appId === appId)
-      if(exists){
-        // focus existing
-        setState(s => ({ ...s, z: s.z+1, windows: s.windows.map(w => w === exists ? {...w, z: s.z+1, minimized:false} : w) }))
+      const existing = state.windows.find(w => w.appId === appId)
+      if(existing){
+        setState(s => ({ ...s, z: s.z + 1, windows: s.windows.map(w => w === existing ? { ...w, minimized:false, z: s.z + 1 } : w) }))
         return
       }
     }
     const w = {
       winId: uid('win_'),
-      appId: app.id,
-      title: app.name,
-      icon: app.icon,
+      appId: a.id,
+      title: a.name,
+      icon: a.icon,
       x: Math.max(20, (window.innerWidth - 800)/2 + Math.random()*20),
       y: Math.max(20, (window.innerHeight - 520)/2 + Math.random()*20),
       w: Math.min(900, window.innerWidth * 0.8),
@@ -99,7 +99,7 @@ export default function App(){
   }
 
   function updateWindow(winId, patch){
-    setState(s => ({ ...s, windows: s.windows.map(w => w.winId === winId ? {...w, ...patch} : w) }))
+    setState(s => ({ ...s, windows: s.windows.map(w => w.winId === winId ? { ...w, ...patch } : w) }))
   }
   function closeWindow(winId){ setState(s => ({ ...s, windows: s.windows.filter(w => w.winId !== winId) })) }
   function pinApp(id){ setState(s => ({ ...s, pinned: [id, ...s.pinned.filter(x=>x!==id)] })) }
@@ -110,45 +110,40 @@ export default function App(){
     setCtx({ visible:true, x:e.clientX, y:e.clientY })
   }
 
-  function handleFileUpload(files){
+  async function handleFiles(files){
     const arr = Array.from(files || [])
-    arr.forEach(async (f) => {
+    for(const f of arr){
       const data = await fileToDataURL(f)
       const ext = (f.name.split('.').pop()||'').toLowerCase()
       if(['png','jpg','jpeg','gif','webp','bmp'].includes(ext)){
         const id = uid('img')
-        setState(s => ({ ...s, photos: [...s.photos, { id, name: f.name, data }], files: [...s.files, { id, name: f.name, type:'image', content: data }] }))
+        setState(s=> ({ ...s, photos: [...s.photos, { id, name: f.name, data }], files: [...s.files, { id, name: f.name, type:'image', content: data }] }))
       } else if(['mp3','wav','ogg','m4a'].includes(ext)){
         const id = uid('aud')
-        setState(s => ({ ...s, music: [...s.music, { id, name: f.name, data }], files: [...s.files, { id, name: f.name, type:'audio', content: data }] }))
-      } else if(f.type.startsWith('text') || ext==='txt' || ext==='json'){
+        setState(s=> ({ ...s, music: [...s.music, { id, name: f.name, data }], files: [...s.files, { id, name: f.name, type:'audio', content: data }] }))
+      } else if(f.type.startsWith('text') || ext === 'txt' || ext === 'json'){
         const txt = await f.text()
-        setState(s => ({ ...s, files: [...s.files, { id: uid('txt'), name: f.name, type:'text', content: txt }] }))
+        setState(s=> ({ ...s, files: [...s.files, { id: uid('txt'), name: f.name, type:'text', content: txt }] }))
       } else {
         const id = uid('bin')
-        setState(s => ({ ...s, files: [...s.files, { id, name: f.name, type:'binary', content: data }] }))
+        setState(s=> ({ ...s, files: [...s.files, { id, name: f.name, type:'binary', content: data }] }))
       }
-    })
+    }
   }
 
-  function fileToDataURL(file){
-    return new Promise((res, rej) => {
-      const r = new FileReader()
-      r.onload = ()=> res(r.result)
-      r.onerror = rej
-      r.readAsDataURL(file)
-    })
-  }
+  function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }) }
+
+  function closeContext(){ setCtx({...ctx, visible:false}) }
 
   return (
     <div className="aurora-root" ref={rootRef} onContextMenu={handleDesktopContext}>
       <div className="wallpaper" aria-hidden="true" />
       <div className="desktop-shell">
         {/* Desktop icons */}
-        <div className="desktop-icons">
-          {APPS.map(a=> (
+        <div className="desktop-icons" role="list">
+          {APPS.map(a => (
             <div key={a.id} className="desk-icon" title={a.name}
-                 onDoubleClick={() => openWindow(a.id, { single:true })}>
+                 onDoubleClick={() => openWindow(a.id, { single: true })}>
               <div className="icon-emoji">{a.icon}</div>
               <div className="icon-label">{a.name}</div>
             </div>
@@ -157,40 +152,32 @@ export default function App(){
       </div>
 
       {/* Start menu */}
-      <StartMenu
-        visible={showStart}
-        apps={APPS}
-        pinned={state.pinned}
-        onOpen={(id) => { openWindow(id, { single:true }); setShowStart(false) }}
-        onPin={pinApp}
-        onUnpin={unpinApp}
+      <StartMenu visible={showStart} apps={APPS} pinned={state.pinned}
+                 onOpen={(id) => { openWindow(id, { single:true }); setShowStart(false) }}
+                 onPin={pinApp} onUnpin={unpinApp}
       />
 
       {/* Taskbar */}
-      <Taskbar
-        pinned={state.pinned}
-        onLaunch={(id)=> openWindow(id)}
-        time={time}
-        onToggleStart={() => setShowStart(s=>!s)}
-        onSettings={() => openWindow('settings', { single:true })}
-      />
+      <Taskbar pinned={state.pinned} onLaunch={(id)=> openWindow(id)} time={time}
+               onToggleStart={() => setShowStart(s => !s)} onSettings={() => openWindow('settings', { single:true })} />
 
       {/* Context menu */}
       {ctx.visible && (
         <div className="context-menu" style={{ left: ctx.x, top: ctx.y }}>
-          <button onClick={() => { setCtx({...ctx, visible:false}); openWindow('notepad', { single:true }) }}>New text file</button>
+          <button onClick={() => { closeContext(); openWindow('notepad', { single:true }) }}>New text file</button>
           <label className="ctx-upload">
             Upload file...
-            <input type="file" multiple onChange={(e)=> { handleFileUpload(e.target.files); setCtx({...ctx, visible:false}) }} />
+            <input type="file" multiple onChange={(e) => { handleFiles(e.target.files); closeContext(); }} />
           </label>
-          <button onClick={() => { setCtx({...ctx, visible:false}); setState(s => ({ ...s })) }}>Refresh</button>
-          <button onClick={() => { setCtx({...ctx, visible:false}); openWindow('settings', { single:true }) }}>Change wallpaper</button>
+          <button onClick={() => { closeContext(); setState(s => ({ ...s })) }}>Refresh</button>
+          <button onClick={() => { closeContext(); openWindow('settings', { single:true }) }}>Change wallpaper</button>
         </div>
       )}
 
       {/* Windows */}
       {state.windows.map(win => {
-        const AppComp = (APPS.find(a=>a.id===win.appId) || {}).comp
+        const app = APPS.find(a => a.id === win.appId)
+        const Comp = app?.comp || (() => <div>App not found</div>)
         return (
           <Window key={win.winId}
                   win={win}
@@ -201,8 +188,8 @@ export default function App(){
                   onToggleMax={() => updateWindow(win.winId, { maximized: !win.maximized })}
                   onMove={(x,y) => updateWindow(win.winId, { x,y })}
                   onResize={(w,h) => updateWindow(win.winId, { w,h })}
-            >
-            {AppComp ? <AppComp state={state} setState={setState} openWindow={openWindow} win={win} /> : <div>App not found</div>}
+          >
+            <Comp state={state} setState={setState} openWindow={openWindow} win={win} handleFiles={handleFiles} />
           </Window>
         )
       })}
