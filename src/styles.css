@@ -1,0 +1,59 @@
+:root{
+  --bg-1: linear-gradient(190deg,#071428 0%, #052b36 100%);
+  --accent: #7c5cff;
+  --accent-2:#00e5ff;
+  --muted: rgba(255,255,255,0.72);
+  --taskbar-h:60px;
+  --radius:12px;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{margin:0;font-family:var(--font);-webkit-font-smoothing:antialiased;background:var(--bg-1);color:white;overflow:hidden}
+
+/* Wallpaper & Desktop */
+.wallpaper{position:fixed;inset:0;background-size:cover;background-position:center;filter:blur(.6px) saturate(1.03);z-index:0}
+.desktop-shell{position:relative;z-index:10;padding:20px;height:100%}
+.desktop-icons{display:flex;flex-wrap:wrap;gap:18px;align-content:flex-start}
+.desk-icon{width:88px;text-align:center;cursor:pointer;user-select:none;padding:10px;border-radius:12px;background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);transition:transform .12s,box-shadow .12s}
+.desk-icon:hover{transform:translateY(-6px);box-shadow:0 18px 60px rgba(2,6,23,0.6)}
+.icon-emoji{font-size:34px}
+.icon-label{margin-top:8px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Start menu */
+.start-menu{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;width:920px;max-width:calc(100% - 36px);background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:16px;padding:16px;box-shadow:0 30px 70px rgba(2,6,23,0.75);display:flex;gap:14px;z-index:600}
+.start-left{width:44%}
+.start-right{width:56%;display:flex;flex-direction:column}
+.badge{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800}
+.brand-title{font-weight:800;font-size:16px}
+.muted{color:var(--muted)}
+.section-title{font-weight:700;margin-top:8px}
+.app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.app-card{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;cursor:pointer}
+
+/* Taskbar */
+.taskbar{position:fixed;left:14px;right:14px;bottom:14px;height:var(--taskbar-h);padding:8px;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg, rgba(10,12,16,0.45), rgba(7,9,12,0.6));backdrop-filter: blur(10px);border-radius:20px;z-index:700;border:1px solid rgba(255,255,255,0.03);box-shadow:0 12px 36px rgba(2,6,23,0.7)}
+.start-btn{width:48px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:0;color:white;font-weight:700;cursor:pointer}
+.tb-pinned{display:flex;gap:8px;align-items:center}
+.tb-btn{height:40px;min-width:40px;padding:6px;border-radius:10px;background:transparent;border:0;cursor:pointer;color:white}
+
+/* Context menu */
+.context-menu{position:fixed;background:#07121a;color:white;border-radius:10px;padding:8px;box-shadow:0 10px 30px rgba(2,6,23,0.6);z-index:9999}
+.context-menu button, .context-menu .ctx-upload{display:block;padding:8px;border-radius:8px;background:transparent;border:0;color:white;cursor:pointer}
+
+/* Windows */
+.window{position:absolute;pointer-events:auto;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 24px 80px rgba(2,6,23,0.8);overflow:hidden;border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column}
+.win-header{display:flex;align-items:center;justify-content:space-between;padding:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);cursor:move}
+.win-title{display:flex;gap:10px;align-items:center;font-weight:700}
+.win-body{padding:12px;overflow:auto;flex:1}
+
+/* helpers */
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.input, textarea, select{background: rgba(255,255,255,0.03);border-radius:8px;color:white;border:1px solid rgba(255,255,255,0.03);padding:8px}
+.empty{color:rgba(255,255,255,0.45);padding:16px;border-radius:8px;background:rgba(255,255,255,0.01)}
+
+/* responsive */
+@media (max-width:900px){
+  .start-menu{left:12px;right:12px;transform:none;bottom:80px;width:auto;border-radius:12px}
+}
