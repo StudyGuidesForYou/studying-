@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  base: '/studying-/', // matches your GitHub Pages repo name
   plugins: [react()],
-  base: '/studying-/' // <-- IMPORTANT for GitHub Pages (use your repo name)
-})
+});
