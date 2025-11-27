@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 export default function Window({ win, children, onFocus, onClose, onMinimize, onRestore, onToggleMax, onMove, onResize }) {
   const ref = useRef()
@@ -39,16 +39,18 @@ export default function Window({ win, children, onFocus, onClose, onMinimize, on
     <div ref={ref} className="window" style={{ position:'absolute', ...style }} onMouseDown={onFocus}>
       <div className="win-header" onMouseDown={startDrag}>
         <div className="win-title">
-          <div className="win-icon">{win.icon}</div>
-          <div className="win-text">{win.title}</div>
+          <div style={{ fontSize:18 }}>{win.icon}</div>
+          <div>{win.title}</div>
         </div>
-        <div className="win-controls">
+        <div style={{ display:'flex', gap:6 }}>
           <button onClick={onMinimize} title="Minimize">—</button>
           <button onClick={onToggleMax} title={win.maximized ? 'Restore' : 'Maximize'}>{win.maximized ? '🗗' : '🗖'}</button>
           <button onClick={onClose} title="Close">✖</button>
         </div>
       </div>
-      <div className="win-body">{children}</div>
+      <div className="win-body">
+        {children}
+      </div>
     </div>
   )
 }
